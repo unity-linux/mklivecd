@@ -769,7 +769,7 @@ sub create_initrd {
 	do_cmd("rm -rf $mnt/lost+found",                                    ++$pos);
 	do_cmd("(cd $dir ; tar cf - .) | (cd $mnt ; tar xf -)",             ++$pos);
 	do_cmd("sleep 1 ; umount $mnt",                                     ++$pos);
-	do_cmd("(cd $workdir/livecd/isolinux ; gzip -9 $initrddir)",        ++$pos);
+	do_cmd("(cd $workdir/livecd/isolinux ; find $initrddir 2>/dev/null | cpio --quiet -c -o | xz -9 --format=lzma > "live.xz")",        ++$pos);
 
 	# make splash
 	if (($o_splash !~ m/no/) && (!defined($opts{nosplash}))&& ($initrddir !~ m/^live2$/) ) {
@@ -788,9 +788,9 @@ sub create_initrd {
 		do_cmd("[ -d $o_root/tmp ] || mkdir $o_root/tmp");
 		do_cmd("mv -f $initrd.gz /tmp");
 		if (!defined($opts{nosplash})) {
-			do_cmd("/tmp/bootsplash/scripts/make-boot-splash-raw $o_root/tmp/live.gz $o_theme");
+			do_cmd("/tmp/bootsplash/scripts/make-boot-splash-raw $o_root/tmp/live.xz $o_theme");
 		}
-		do_cmd("mv -f $o_root/tmp/live.gz $workdir/livecd/isolinux", ++$pos);
+		do_cmd("mv -f $o_root/tmp/live.xz $workdir/livecd/isolinux", ++$pos);
 	}
 	
   	# we are done
@@ -939,7 +939,7 @@ sub create_isolinux {
 
 	# write config
 	my $appopt;
-	$appopt = "initrd=live.gz root=/dev/sr0:CDLABEL=$opts{volumeid} ramdisk_size=32768 vga=$o_vgamode keyb=$o_keyboard nopat rd_NO_LUKS rd_NO_MD noiswmd";
+	$appopt = "initrd=live.xz root=/dev/sr0:CDLABEL=$opts{volumeid} ramdisk_size=32768 vga=$o_vgamode keyb=$o_keyboard nopat rd_NO_LUKS rd_NO_MD noiswmd";
 	#$appopt .= " splash=$o_splash" if ($o_splash !~ m/no/);
 	$appopt = "$appopt fstab=".$opts{fstab} if (defined($opts{fstab}));
 	$appopt = "$appopt home=usb" if (defined($opts{usbhome}));
@@ -1030,19 +1030,19 @@ sub create_isolinux {
 	print CFG "gfxmenu (cd)/boot/grub/message\n\n";
 	print CFG "title LiveCD start\n";
 	print CFG "kernel (cd)/isolinux/vmlinuz $appopt\n";
-	print CFG "initrd (cd)/isolinux/live.gz\n\n";
+	print CFG "initrd (cd)/isolinux/live.xz\n\n";
 	print CFG "title Video safe mode - VESA\n";	
 	print CFG "kernel (cd)/isolinux/vmlinuz $appopt vesa\n";
-	print CFG "initrd (cd)/isolinux/live.gz\n\n";
+	print CFG "initrd (cd)/isolinux/live.xz\n\n";
 	print CFG "title Safe boot\n";	
 	print CFG "kernel (cd)/isolinux/vmlinuz acpi=off vga=normal noapic nolapic noscsi nopcmcia\n";
-	print CFG "initrd (cd)/isolinux/live.gz\n\n";
+	print CFG "initrd (cd)/isolinux/live.xz\n\n";
 	print CFG "title Copy to RAM\n";
 	print CFG "kernel (cd)/isolinux/vmlinuz copy2ram $appopt splash=verbose\n";
-	print CFG "initrd (cd)/isolinux/live.gz\n\n";
+	print CFG "initrd (cd)/isolinux/live.xz\n\n";
 	print CFG "title Media check\n";
 	print CFG "kernel (cd)/isolinux/vmlinuz md5sum $appopt splash=verbose\n";
-	print CFG "initrd (cd)/isolinux/live.gz\n\n";
+	print CFG "initrd (cd)/isolinux/live.xz\n\n";
 	print CFG "title Memory test\n";
 	print CFG "kernel (cd)/isolinux/memtest\n\n\n";
 	print CFG "#title LegacyKernel\n";
@@ -1056,14 +1056,14 @@ sub create_isolinux {
 
 	if ($o_mbkopt ne "") {
 		if ($o_bootloader =~ m/^iso/) {
-		    do_cmd("perl -pi -e 's/live2.gz initrd=live.gz/live2.gz/' $workdir/livecd/isolinux/isolinux.cfg");
+		    do_cmd("perl -pi -e 's/live2.gz initrd=live.xz/live2.gz/' $workdir/livecd/isolinux/isolinux.cfg");
 	    	    do_cmd("perl -pi -e 's/#//' $workdir/livecd/isolinux/isolinux.cfg");
 		    if ($o_mbkopt !~ m/lgc/) {	
 			do_cmd("perl -pi -e 's/LiveCD/LiveCD-".$o_kernel."/' $workdir/livecd/isolinux/isolinux.cfg");
 		        do_cmd("perl -pi -e 's/LegacyKernel/Kernel-".$o_mbkopt."/' $workdir/livecd/isolinux/isolinux.cfg");
 		    }
     	        } else {
-		    do_cmd("perl -pi -e 's/live2.gz initrd=live.gz/live2.gz/' $workdir/livecd/boot/grub/menu.lst");
+		    do_cmd("perl -pi -e 's/live2.gz initrd=live.xz/live2.gz/' $workdir/livecd/boot/grub/menu.lst");
 		    do_cmd("perl -pi -e 's/#//' $workdir/livecd/boot/grub/menu.lst");
 			if ($o_mbkopt !~ m/lgc/) {
 		        do_cmd("perl -pi -e 's/LiveCD/LiveCD-".$o_kernel."/' $workdir/livecd/boot/grub/menu.lst");
@@ -1086,7 +1086,7 @@ sub create_finaliso {
 	print SORT "$workdir/livecd/isolinux/isolinux.bin 500\n";
 	print SORT "$workdir/livecd/isolinux/isolinux.cfg 499\n";
 	print SORT "$workdir/livecd/isolinux/vmlinuz 498\n";
-	print SORT "$workdir/livecd/isolinux/live.gz 497\n";
+	print SORT "$workdir/livecd/isolinux/live.xz 497\n";
 	print SORT "$workdir/livecd/isolinux/* 450\n";
 	print SORT "$workdir/livecd/livecd.$o_looptype 400\n";
 	close SORT;
