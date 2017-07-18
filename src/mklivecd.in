@@ -769,7 +769,7 @@ sub create_initrd {
 	do_cmd("rm -rf $mnt/lost+found",                                    ++$pos);
 	do_cmd("(cd $dir ; tar cf - .) | (cd $mnt ; tar xf -)",             ++$pos);
 	do_cmd("sleep 1 ; umount $mnt",                                     ++$pos);
-	do_cmd("(cd $workdir/livecd/isolinux ; find $initrddir 2>/dev/null | cpio --quiet -c -o | xz -9 --format=lzma > "live.xz")",        ++$pos);
+	do_cmd("(cd $workdir/livecd/isolinux ; find $initrddir 2>/dev/null | cpio --quiet -c -o | xz -9 --format=lzma > live.xz)",        ++$pos);
 
 	# make splash
 	if (($o_splash !~ m/no/) && (!defined($opts{nosplash}))&& ($initrddir !~ m/^live2$/) ) {
@@ -786,7 +786,7 @@ sub create_initrd {
 		}
 
 		do_cmd("[ -d $o_root/tmp ] || mkdir $o_root/tmp");
-		do_cmd("mv -f $initrd.gz /tmp");
+		do_cmd("mv -f $initrd.xz /tmp");
 		if (!defined($opts{nosplash})) {
 			do_cmd("/tmp/bootsplash/scripts/make-boot-splash-raw $o_root/tmp/live.xz $o_theme");
 		}
