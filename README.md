@@ -1,5 +1,7 @@
 # mklivecd: 
-has a long and sorted history. It currently lives on in a different
+has a long and sorted history. Many folks have worked on it inlcuding 
+Tom Kelly, Jaco Greeff and various distro teams ranging from Mandrake, 
+(Mandriva) PCLinuxOS, to Unity-Linux. It currently lives on in a different
 form called mylivecd which was forked for PCLinuxOS. I have decided to 
 revive the old version that had been maintained by Unity-Linux until it 
 went defunct. mklivecd comes from Mandrake and was dependant on drakxtools.
@@ -39,10 +41,7 @@ and extract it to your $HOME directory.
 Patches, suggestions, flames and general comments are always
 welcome, just submit an issue. Good luck!
 
-mklivecd, version 0.9.4, http://unity-linux.org/
-  
-Copyright (C) 2002-2004, Jaco Greeff &lt;jaco@puxedo.org&gt;
-  
+mklivecd, version 0.9.5, http://unity-linux.org/
   
 This program is free software; you can redistribute it and/or
   
