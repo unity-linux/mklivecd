@@ -898,6 +898,7 @@ sub create_isolinux {
 	die_(N("\nFATAL: '%s' does not exist on your machine. You need to install the syslinux package.\n", $bin)) unless (-f $bin);
 	do_copy($bin, 644, "$workdir/livecd/isolinux/isolinux.bin", ++$pos);
 	do_copy($o_root."usr/lib/syslinux/vesamenu.c32", 644, "$workdir/livecd/isolinux/vesamenu.c32", ++$pos);
+	do_copy($o_root."usr/lib/syslinux/ldlinux.c32", 644, "$workdir/livecd/isolinux/ldlinux.c32", ++$pos);
 	die_(N("\nFATAL: The kernel '%sboot/vmlinuz-%s' does not exist on your machine.\n", $o_root, $o_kernel)) unless (-f $o_root."boot/vmlinuz-$o_kernel");
 	do_copy($o_root."boot/vmlinuz-$o_kernel", 644, "$workdir/livecd/isolinux/vmlinuz", ++$pos);
 	if ($o_mbkopt ne "") {
