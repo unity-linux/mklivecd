@@ -66,7 +66,7 @@ install:
 	@echo 'Installed halt.local to $(DESTDIR)$(SHAREDIR)'
 	@$(INSTALL) -m 644 $(DISTDIR)/rc.sysinit $(DESTDIR)$(SHAREDIR)
 	@echo 'Installed rc.sysinit to $(DESTDIR)$(SHAREDIR)'
-	@$(INSTALL) -m 644 $(DISTDIR)/*.desktop.in $(DESTDIR)$(DESKTOPDIR)
+	@$(INSTALL) -m 644 $(DISTDIR)/*.desktop $(DESTDIR)$(DESKTOPDIR)
 	@echo 'Installed desktop files to $(DESTDIR)$(DESKTOPDIR)'
 	@$(INSTALL) -m 755 $(DISTDIR)/$(PKGNAME) $(DESTDIR)$(SBINDIR)
 	@echo 'Installed $(PKGNAME) to $(DESTDIR)$(SBINDIR)'
