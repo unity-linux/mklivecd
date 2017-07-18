@@ -921,7 +921,7 @@ sub create_isolinux {
 	if ($o_bootloader =~ m/^iso/) {
 		if (!defined($opts{nosplash})) {
 	   		my $bootsplashtest = $o_root."usr/share/plymouth/themes/$opts{boottheme}/background.png";
-	   		die_("\nWARNING: The boot theme is missing, please install a bootsplash theme\n") unless (-f $bootsplashtest);
+	   		die_("\nWARNING: The boot theme is missing, please install a bootsplash theme\n") unless (-e $bootsplashtest);
 			do_copy($o_root."usr/share/plymouth/themes/$opts{boottheme}/background.png", 644, "$workdir/livecd/isolinux/splash.png", ++$pos);
 		}
 	} else {
