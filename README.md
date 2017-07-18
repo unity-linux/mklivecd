@@ -37,10 +37,7 @@ https://github.com/unity-linux/mklivecd/archive/master.zip
 and extract it to your $HOME directory. 
 
 Patches, suggestions, flames and general comments are always
-welcome at the above address. Good luck!
-
-    - Jaco Greeff <jaco@linuxminicd.org>,
-      Wed, Nov 05, 2003
+welcome, just submit an issue. Good luck!
 
 mklivecd, version 0.9.4, http://unity-linux.org/
   
