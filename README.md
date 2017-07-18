@@ -23,19 +23,18 @@ testing release.
 
 If you want to contibute, or just fancy running the latest-
 greatest version, you can also get the latest development version
-from SVN. You will find all the information at:
-    http://docs.unity-linux.org/development:packaging:svn
+from Github (here): 
+```
+git clone https://github.com/unity-linux/mklivecd.git
+```
 
-To download a copy of the source code,
+To download a zipped copy of the source code,
+```
+https://github.com/unity-linux/mklivecd/archive/master.zip
+```
 
-ReadOnly SVN interface - as the name implies, allows you to use your favorite 
-Subversion client to checkout the whole or any particular portion of Unity 
-source repository. Simply download the file 
-( http://svn.unity-linux.org/unity_svn_setup_readonly.tgz ) 
-and extract it to your $HOME directory. However, if you already have 
-file $HOME/.ssh/config present on your system, don't overwrite it but append 
-contents of .ssh/config file from inside the tarball to the end of existing file.
 
+and extract it to your $HOME directory. 
 
 Patches, suggestions, flames and general comments are always
 welcome at the above address. Good luck!
