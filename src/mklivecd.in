@@ -458,7 +458,7 @@ sub parse_options {
 	$opts{application} = "$distro $version LiveCD" unless (defined($opts{application}));
 	$opts{preparer} = "$PROG_NAME $PROG_VERSION" unless (defined($opts{preparer}));
 	$opts{publisher} = "$URL" unless (defined($opts{publisher}));
-	$opts{boottheme} = "Unity" unless (defined($opts{boottheme}));
+	$opts{boottheme} = "*-Default" unless (defined($opts{boottheme}));
 	$opts{bootlang} = "en" unless (defined($opts{bootlang}));
 
 	# create our working dir if none given
@@ -919,9 +919,9 @@ sub create_isolinux {
 
 	if ($o_bootloader =~ m/^iso/) {
 		if (!defined($opts{nosplash})) {
-	   		my $bootsplashtest = $o_root."usr/share/bootsplash/themes/$opts{boottheme}/images/bootsplash-1024x768.jpg";
+	   		my $bootsplashtest = $o_root."usr/share/plymouth/themes/$opts{boottheme}/background.png";
 	   		die_("\nWARNING: The boot theme is missing, please install a bootsplash theme\n") unless (-f $bootsplashtest);
-			do_copy($o_root."usr/share/bootsplash/themes/$opts{boottheme}/images/bootsplash-800x600.jpg", 644, "$workdir/livecd/isolinux/splash.jpg", ++$pos);
+			do_copy($o_root."usr/share/plymouth/themes/$opts{boottheme}/background.png", 644, "$workdir/livecd/isolinux/splash.png", ++$pos);
 		}
 	} else {
 	   	do_copy($o_stage2, 644, "$workdir/livecd/boot/grub/stage2_eltorito", ++$pos);
@@ -955,7 +955,7 @@ sub create_isolinux {
 		open CFG, '>', "$workdir/livecd/isolinux/isolinux.cfg";
 		print CFG "default vesamenu.c32\n";
 		print CFG "timeout $o_timeout\n";
-		print CFG "menu background splash.jpg\n" if (!defined($opts{nosplash}));
+		print CFG "menu background splash.png\n" if (!defined($opts{nosplash}));
 		print CFG "menu title Welcome to Unity Linux 2012!\n";
 		print CFG "menu tabmsg Press [Tab] to edit options\n";
 		print CFG "menu passprompt Password required\n";
