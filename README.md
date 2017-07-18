@@ -15,8 +15,6 @@ be for functionality on Mageia.
 
 Below you will fild the old ReadMe which will eventually be updated.
 
-# $Id: README,v 1.6 2006/04/23 01:55:14 tom_kelly33 Exp $
-
 
 The package naming tries to follow the Linux kernel approach to
 versioning, i.e. versions are in the format "major.minor.patch"
@@ -34,9 +32,9 @@ To download a zipped copy of the source code,
 ```
 https://github.com/unity-linux/mklivecd/archive/master.zip
 ```
-
-
 and extract it to your $HOME directory. 
+
+
 
 Patches, suggestions, flames and general comments are always
 welcome, just submit an issue. Good luck!
