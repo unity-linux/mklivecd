@@ -5,11 +5,11 @@ revive the old version that had been maintained by Unity-Linux until it
 went defunct. mklivecd comes from Mandrake and was dependant on drakxtools.
 Newer innerations of Mandrake ie. OpenMandriva no longer depend on these
 tools or even use them, however a fork from Mandriva called Mageia that
-still uses drakxtools can still utilize this tool. Eventually the
-dependacy on drakxtools should be dropped and this tool should be able
-to be used on OpenMandriva, Fedora and Mageia as features in dracut should
-allow it. However, until then it's current focus will be for functionality
-on Mageia.
+still uses drakxtools can still utilize this tool, with minimal updates. 
+Eventually the dependacy on drakxtools should be dropped and this tool 
+should be able to be used on OpenMandriva, Fedora and Mageia as features
+in dracut should allow it. However, until then it's current focus will 
+be for functionality on Mageia.
 
 Below you will fild the old ReadMe which will eventually be updated.
 
