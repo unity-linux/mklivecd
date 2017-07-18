@@ -36,7 +36,7 @@ and extract it to your $HOME directory.
 
 
 
-...Patches, suggestions, flames and general comments are always
+   Patches, suggestions, flames and general comments are always
 welcome, just submit an issue. Good luck!
 
 mklivecd, version 0.9.5, http://unity-linux.org/
