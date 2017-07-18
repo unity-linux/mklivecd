@@ -1,0 +1,1248 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the mkremaster package.
+# Alessio Adamo <gianvacca@unity-linux.org>, 2010.
+msgid ""
+msgstr ""
+"Project-Id-Version: mkremaster\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2011-02-02 00:08+0100\n"
+"PO-Revision-Date: 2010-11-11 00:16+0200\n"
+"Last-Translator: Alessio <alessio.adamo@unity-linux.org>\n"
+"Language-Team: ITALIANO\n"
+"Language: it\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Pootle 2.1.1\n"
+
+#: ../mkremaster.in:97
+msgid "You chose not to continue..."
+msgstr "Hai deciso di non continuare..."
+
+#: ../mkremaster.in:111
+msgid "ERROR:%s"
+msgstr "ERRORE:%s"
+
+#: ../mkremaster.in:125
+msgid ""
+"Cannot unmount %s. It may be busy or some other application may be "
+"controlling it.\n"
+"Try unmounting using your file manager or failing that unplug it, then re-"
+"run the script again.\n"
+"Now exiting..."
+msgstr ""
+"Non riesco a montare %s. Potrebbe essere occupato o un'altra applicazione "
+"potrebbe averne il controllo.\n"
+"Prova a smontarlo usando un file manager, o, se ciò non dovesse avere "
+"successo, scollegalo e poi riesegui lo script.\n"
+"Ora esco..."
+
+#: ../mkremaster.in:171
+msgid "Show all"
+msgstr "Mostra tutti"
+
+#: ../mkremaster.in:171
+msgid "Rescan"
+msgstr "Rileva ancora"
+
+#: ../mkremaster.in:173
+msgid ""
+"\n"
+"No mounted removable devices found in /media.\n"
+"\n"
+"Reinsert your device, let the OS detect it and then click 'Rescan'.\n"
+"\n"
+"If it does not mount, click on 'Show all' to show all devices, mounted or "
+"otherwise.\n"
+msgstr ""
+"\n"
+"Nessun dispositivo removibile montato è stato trovato in /media.\n"
+"\n"
+"Reinserisci il tuo dispositivo, permetti al sistema operativo di rilevarlo e "
+"poi clicca \"Rileva ancora\".\n"
+"\n"
+"Qualora non venisse montato, clicca su \"Mostra tutti\" per avere un elenco "
+"di tutti i dispositivi, che siano montati o meno.\n"
+
+#: ../mkremaster.in:186
+msgid "GB"
+msgstr "GB"
+
+#: ../mkremaster.in:198
+msgid "Device or Partition"
+msgstr "Dispositivo o partizione"
+
+#: ../mkremaster.in:199
+msgid "Size"
+msgstr "Dimensione"
+
+#: ../mkremaster.in:199
+msgid "Information"
+msgstr "Informazioni"
+
+#: ../mkremaster.in:200
+msgid ""
+"Please select a USB device or a bootable primary partition to install onto.\n"
+"Make sure *not* to select an internal SATA hard disk, an external\n"
+"large hard disk or a CD/DVD device.\n"
+msgstr ""
+"Per l'installazione, seleziona un dispositivo USB o una partizione primaria "
+"avviabile.\n"
+"Assicurati di NON selezionare un hard disk interno SATA, un hard disk\n"
+"esterno di grosse dimensioni o un lettore CD/DVD.\n"
+
+#: ../mkremaster.in:204 ../mkremaster.in:256 ../mkremaster.in:280
+#: ../mkremaster.in:330 ../mkremaster.in:397 ../mkremaster.in:453
+#: ../mkremaster.in:492 ../mkremaster.in:585 ../mkremaster.in:1322
+msgid ""
+"Exiting. You chose not to continue.\n"
+"No changes have been made to your device."
+msgstr ""
+"Esco. Hai deciso di non proseguire.\n"
+"Nessuna modifica è stata apportata al dispositivo."
+
+#: ../mkremaster.in:217
+msgid "The current live system"
+msgstr "Il sistema live corrente"
+
+#: ../mkremaster.in:218
+msgid "From an ISO file"
+msgstr "Da un file ISO"
+
+#: ../mkremaster.in:219
+msgid "From CD/DVD"
+msgstr "Da un CD/DVD"
+
+#: ../mkremaster.in:226 ../mkremaster.in:237
+msgid "Source"
+msgstr "Sorgente"
+
+#: ../mkremaster.in:226 ../mkremaster.in:237
+msgid "Choice"
+msgstr "Scelta"
+
+#: ../mkremaster.in:228
+msgid ""
+"You are currently running a live operating system.\n"
+"You can create a live USB installation of the live OS,\n"
+"or from a downloaded ISO file or from a CD/DVD.\n"
+"\n"
+"Please choose:\n"
+msgstr ""
+"Al momento stai eseguendo un sistema operativo live.\n"
+"Puoi creare una installazione live USB a partire dal sistema operativo live "
+"corrente,\n"
+"oppure da un'immagine ISO scaricata o da un CD/DVD.\n"
+"\n"
+"Fai una selezione:\n"
+
+#: ../mkremaster.in:239
+msgid ""
+"You are currently running from an installed operating system.\n"
+"You can create a live USB installation from a downloaded ISO\n"
+"file or from a CD/DVD.\n"
+"\n"
+"Please choose:\n"
+msgstr ""
+"Al momento stai eseguendo un sistema operativo installato su hard disk.\n"
+"Puoi creare una installazione live USB a partire da un'immagine ISO "
+"scaricata\n"
+"o da un CD/DVD.\n"
+"\n"
+"Fai una selezione:\n"
+
+#: ../mkremaster.in:253
+msgid ""
+"Please select an ISO file on the next screen that contains the operating "
+"system you want to install."
+msgstr ""
+"Nella prossima schermata seleziona un'immagine ISO che contenga il sistema "
+"operativo che vuoi installare."
+
+#: ../mkremaster.in:259
+msgid "Please select the downloaded iso file:"
+msgstr "Seleziona l'immagine ISO scaricata:"
+
+#: ../mkremaster.in:264
+msgid ""
+"Exiting. You have not selected an ISO file to create the live system from. "
+"Cannot continue."
+msgstr ""
+"Esco. Non hai selezionato un'immagine ISO da cui poter creare il sistema "
+"live. Impossibile proseguire."
+
+#: ../mkremaster.in:276
+msgid ""
+"Please select a mounted CD/DVD directory on the next screen that contains "
+"the operating system you want to install.\n"
+"\n"
+"Open the directory.\n"
+"If you can see the boot and isolinux directories and a greyed out livecd."
+"sqfs file, click on OK!"
+msgstr ""
+"Nella prossima schermata seleziona la directory di un CD/DVD montato che "
+"contenga il sistema operativo che vuoi installare.\n"
+"\n"
+"Apri la directory.\n"
+"Se riesci a vedere le directory boot e isolinux e un file livecd.sqfs in "
+"grigio, clicca OK!"
+
+#: ../mkremaster.in:283
+msgid "Please select a mounted CD/DVD:"
+msgstr "Seleziona un CD/DVD montato:"
+
+#: ../mkremaster.in:288
+msgid ""
+"Exiting. You have not selected a valid CD/DVD directory to create the live "
+"system from. Cannot continue."
+msgstr ""
+"Esco. Non hai selezionato una directory CD/DVD valida da cui poter creare il "
+"sistema live. Impossibile proseguire."
+
+#: ../mkremaster.in:296
+msgid "Exiting. You have not selected a live system source. Cannot continue."
+msgstr ""
+"Esco. Non hai selezionato una sorgente per il sistema live. Impossibile "
+"proseguire."
+
+#: ../mkremaster.in:308
+msgid ""
+"Do you want to format the device: %s and make it bootable?\n"
+"Formatting is desirable, but you can continue without formatting\n"
+"if you have already prepared your device with a FAT32 or linux\n"
+"filesystem and there is a bootable primary partition:\n"
+"\n"
+"* Do you want to use remaining space on the device in Windows(TM)?\n"
+"   Formats and creates a FAT32 filesystem (ALL DATA WILL BE LOST).\n"
+"   The changes file is limited to 4GB.\n"
+"* OR are you are only going to use the device in Linux?\n"
+"   Formats and creates an ext3 filesystem (ALL DATA WILL BE LOST).\n"
+"   There is no limit to changes file size but you need 50MB free\n"
+"   space to accomodate the journal.\n"
+"* OR the device is already bootable and you wish to proceed\n"
+"   with installation without formatting (NO DATA WILL BE ERASED).\n"
+msgstr ""
+"Vuoi formattare il dispositivo %s e renderlo avviabile?\n"
+"La formattazione è auspicabile, ma puoi continuare senza formattare\n"
+"se hai già preparato il tuo dispositivo con un filesystem FAT32 o\n"
+"linux ed è presente una partizione primaria d'avvio:\n"
+"\n"
+"* Vuoi utilizzare lo spazio rimanente sul dispositivo in Windows™?\n"
+"   Formatta e crea un filesystem FAT32 (TUTTI I DATI SARANNO PERSI).\n"
+"   Il file per la persistenza delle modifiche è limitato a 4GB.\n"
+"* O hai intenzione di usare il dispositivo solo su linux?\n"
+"   Formatta e crea un filesystem ext3 (TUTTI I DATI SARANNO PERSI).\n"
+"   Non ci sono limiti alle dimensioni del file della persistenza\n"
+"   ma sono necessari 50MB di spazio libero per il journal.\n"
+"* O il dispositivo è già avviabile e desideri procedere con\n"
+"   l'installazione senza formattare (NESSUN DATO VERRÀ CANCELLATO).\n"
+
+#: ../mkremaster.in:323
+msgid "Format device?"
+msgstr "Formattare il dispositivo?"
+
+#: ../mkremaster.in:323
+msgid "Compatibility"
+msgstr "Compatibilità"
+
+#: ../mkremaster.in:324
+msgid "YES. Format %s compatible with:"
+msgstr "SÌ. Formatta %s perché sia compatibile con:"
+
+#: ../mkremaster.in:324
+msgid "Windows(TM)"
+msgstr "Windows™"
+
+#: ../mkremaster.in:325
+msgid "YES. Format %s compatible only with:"
+msgstr "SÌ. Formatta %s perché sia compatibile solo con:"
+
+#: ../mkremaster.in:325
+msgid "Linux"
+msgstr "Linux"
+
+#: ../mkremaster.in:326
+msgid "NO. Do not format."
+msgstr "NO. Non formattare."
+
+#: ../mkremaster.in:326
+msgid "Pre-formatted"
+msgstr "Pre-formattato"
+
+#: ../mkremaster.in:349
+msgid ""
+"Tried to mount %s, but could not determine filesystem.\n"
+"Reinsert your device and let the OS mount it, then re-run the script again.\n"
+"You might try formatting using the Unity Control Center.\n"
+"\n"
+"Exiting..."
+msgstr ""
+"Ho tentato di montare %s ma è stato impossibile determinarne il filesystem.\n"
+"Reinserisci il dispositivo e consenti al sistema operativo di montarlo, poi "
+"riesegui il programma.\n"
+"Puoi provare a formattarlo usando il Centro di Controllo di Unity.\n"
+"\n"
+"Esco..."
+
+#: ../mkremaster.in:381
+msgid ""
+"There is not enough free space on %s to install the live system.\n"
+"There is %s MB free space on %s but the live OS size is %s MB.\n"
+"Delete some files or format the partition then re-run the script again.\n"
+"Note: with ext3 up to 8 percent of the filesystem size can be taken up by "
+"the journal. Consider formatting as FAT32 if you believe the live OS should "
+"fit.\n"
+"Cannot continue... no changes have been made to your device."
+msgstr ""
+"Non c'è abbastanza spazio su %s per installare il sistema live.\n"
+"Ci sono %s MB di spazio libero su %s ma la dimensione del sistema operativo "
+"live è di %s MB.\n"
+"Cancella alcuni file o formatta la partizione, poi riesegui il programma.\n"
+"Nota: con ext3 il journal può occupare fino all'8%% della dimensione del "
+"filesystem. Prendi in considerazione la formattazione come FAT32 se ritieni "
+"che lo spazio per il sistema live così sia sufficiente.\n"
+"Impossibile proseguire... Non è stata apportata alcuna modifica al "
+"dispositivo."
+
+#: ../mkremaster.in:389 ../mkremaster.in:574
+msgid "Install"
+msgstr "Installa"
+
+#: ../mkremaster.in:389 ../mkremaster.in:1289
+msgid "Cancel"
+msgstr "Annulla"
+
+#: ../mkremaster.in:391
+msgid ""
+"There is not enough free space on %s to set up a changes file but you can "
+"still install and run the live OS.\n"
+"There is %s MB free space on %s but the minimum space needed is 32 MB "
+"*after* formatting.\n"
+"\n"
+"Proceed with installation of live system anyway? You will not be able to "
+"boot the live USB with persistency.\n"
+"\n"
+"* Press 'Install' to proceed with installation.\n"
+"* Press 'Cancel' to close without making any changes to your device.\n"
+msgstr ""
+"Non c'è abbastanza spazio libero su %s per creare il file della persistenza, "
+"ma puoi comunque installare e lanciare il sistema operativo live.\n"
+"Ci sono %s MB di spazio libero su %s ma il minimo necessario è di 32 MB "
+"*dopo* la formattazione.\n"
+"\n"
+"Procedere comunque con l'installazione del sistema live? Non sarai in grado "
+"di avviare il LiveUSB con la persistenza.\n"
+"\n"
+"* Premi \"Installa\" per procedere con l'installazione.\n"
+"* Premi \"Annulla\" per chiudee senza apportare modifiche al dispositivo.\n"
+
+#: ../mkremaster.in:410
+msgid ""
+"This wizard helps you to create a Linux Live 'changes' file\n"
+"on %s in order to work with persistent system wide changes.\n"
+"NOTE: the changes file size is limited to 4GB on FAT32 partitions.\n"
+"\n"
+"This will take up more space on your device.\n"
+"You can choose how much space on the next screen.\n"
+"\n"
+"* Press 'Next' to enable persistency.\n"
+"* Press 'Skip' if you do not want to enable persistency."
+msgstr ""
+"Questa procedura guidata ti aiuta a creare un file su %s per il\n"
+"salvataggio delle modifiche, in modo da renderle persistenti ad ogni\n"
+"riavvio.\n"
+"NOTA: la dimensione massima del file della persistenza è 4GB su partizioni "
+"FAT32.\n"
+"\n"
+"Ciò farà sì che venga occupato ancora più spazio sul dispositivo.\n"
+"Puoi scegliere quanto spazio nella prossima schermata.\n"
+"\n"
+"* Premi \"Avanti\" per abilitare la persistenza.\n"
+"* Premi \"Salta\" se non vuoi abilitarla."
+
+#: ../mkremaster.in:418 ../mkremaster.in:1289
+msgid "Next"
+msgstr "Avanti"
+
+#: ../mkremaster.in:418
+msgid "Skip"
+msgstr "Salta"
+
+#: ../mkremaster.in:423
+msgid "Skipping this step - you chose not to create a changes file."
+msgstr ""
+"Salto questo passaggio - hai deciso di non creare un file per la "
+"preservazione delle modifiche."
+
+#: ../mkremaster.in:449
+msgid ""
+"How much space would you like to use for the loopfs file (in MB)?\n"
+"* Minimum size = 10 MB\n"
+"* Maximum size = %s MB (%s GB)"
+msgstr ""
+"Quanto spazio vuoi riservare al file loopfs (in MB)?\n"
+"* Minimo = 10 MB\n"
+"* Massimo = % MB (%s GB)"
+
+#: ../mkremaster.in:481
+msgid "Format"
+msgstr "Formatta"
+
+#: ../mkremaster.in:481 ../mkremaster.in:574
+msgid "Quit"
+msgstr "Esci"
+
+#: ../mkremaster.in:483
+msgid ""
+"LAST CHANCE TO QUIT!\n"
+"\n"
+"Are you sure you want to format %s?\n"
+"This will DELETE ALL partitions and files on the device!\n"
+"\n"
+"* Press 'Format' to continue. The device will be formatted\n"
+"   and the live OS installed.\n"
+"* Press 'Quit' to close this wizard without making any\n"
+"   changes to your device."
+msgstr ""
+"ULTIMA POSSIBILITÀ DI USCITA!\n"
+"\n"
+"Sei sicuro di voler formattare %s?\n"
+"Ciò causerà la PERDITA DI TUTTE le partizioni e file sul dispositivo!\n"
+"\n"
+"* Premi \"Formatta\" per continuare. Il dispositivo sarà formattato\n"
+"   e il sistema live installato.\n"
+"* Premi \"Esci\" per chiudere questa procedura guidata senza effettuare\n"
+"   alcun cambiamento al dispositivo."
+
+#: ../mkremaster.in:498
+msgid "# Unmounting %s. Please wait..."
+msgstr "# Smontaggio di %s. Attendere..."
+
+#: ../mkremaster.in:503
+msgid "# Erasing partition table of %s. Please wait..."
+msgstr "# Cancellazione della tabella delle partizioni di %s. Attendere..."
+
+#: ../mkremaster.in:511
+msgid "# Cleaning Master Boot Record. Please wait..."
+msgstr "# Pulizia del Master Boot Record. Attendere..."
+
+#: ../mkremaster.in:513
+msgid "# Close any windows if your OS automounts the new partition."
+msgstr ""
+"# Chiudi eventuali finestre se il sistema operativo monta la nuova "
+"partizione automaticamente."
+
+#: ../mkremaster.in:532
+msgid "# Creating new bootable partition: %s. Please wait..."
+msgstr "# Creazione di una nuova partizione d'avvio: %s. Attendere..."
+
+#: ../mkremaster.in:538
+msgid "# Formatting %s as %s. Please wait..."
+msgstr "# Formattazione di %s come %s. Attendere..."
+
+#: ../mkremaster.in:545
+msgid "# Initializing new filesystem. Please wait..."
+msgstr "# Inizializzazione del nuovo filesystem. Attendere..."
+
+#: ../mkremaster.in:553
+msgid "Preparing %s before formatting..."
+msgstr "Preparazione di %s prima della formattazione..."
+
+#: ../mkremaster.in:558
+msgid "Exiting. You chose not to continue. Cancelling format..."
+msgstr "Esco. Hai deciso di non continuare. Annullo la formattazione..."
+
+#: ../mkremaster.in:567
+msgid ""
+"Fdisk reports that the chosen partition is an NTFS partition.\n"
+"NTFS is not a supported filesystem. You need to use FAT32 or a linux "
+"filesystem eg ext2/3/4 or reiserfs.\n"
+"Exiting..."
+msgstr ""
+"fdisk riporta che la partizione scelta è di tipo NTFS.\n"
+"NTFS non è un filesystem supportato. Devi usare FAT32 o un filesystem linux "
+"(es. ext2/3/4 o reiserfs).\n"
+"Esco..."
+
+#: ../mkremaster.in:576
+msgid ""
+"\n"
+"You have decided not to format %s.\n"
+"The live OS will be installed onto %s.\n"
+"Your device must have a bootable primary partition.\n"
+"\n"
+"The Grub bootloader will be installed to the Master Boot Record. This will "
+"DELETE any existing boot loader, but your filesystem and data will remain "
+"intact.\n"
+"\n"
+"* Press 'Install' to continue. The live OS will be installed.\n"
+"* Press 'Quit' to close this wizard without installing anything\n"
+"   on your device."
+msgstr ""
+"\n"
+"Hai deciso di non formattare %s.\n"
+"Il sistema operativo live sarà installato su %s.\n"
+"Il dispositivo deve avere una partizione primaria d'avvio.\n"
+"\n"
+"Sul Master Boot Record sarà installato il bootloader Grub. Un qualsiasi "
+"bootloader preesistente sarà ELIMINATO, ma il filesystem e i dati rimarranno "
+"intatti.\n"
+"\n"
+"* Premi \"Installa\" per continuare. Sarà installato il sistema live.\n"
+"* Premi \"Esci\" per chiudere la procedura guidata senza installare nulla\n"
+"   sul dispositivo."
+
+#: ../mkremaster.in:612
+msgid ""
+"Tried to mount %s, but could not determine filesystem.\n"
+"Reinsert your device and let the OS mount it, then re-run the script again.\n"
+"\n"
+"Exiting..."
+msgstr ""
+"Ho tentato di montare %s ma è sato impossibile determinarne il filesystem.\n"
+"Reinserisci il dispositivo e consenti al sistema operativo di montarlo, poi "
+"riesegui il programma.\n"
+"\n"
+"Esco..."
+
+#: ../mkremaster.in:627
+msgid ""
+"Could not detect mount point of %s so cannot continue.\n"
+"Check /var/log/mkremaster to see detailed output.\n"
+"\n"
+"Try reinserting the device and allow your OS to mount it, then re-run the "
+"script again."
+msgstr ""
+"Impossibile rilevare il punto di montaggio di %s e dunque è impossibile "
+"proseguire.\n"
+"Controlla /var/log/mkremaster per visualizzare l'output dettagliato.\n"
+"\n"
+"Prova a reinserire il dispositivo e consenti al sistema operativo di "
+"montarlo, poi riesegui il programma."
+
+#: ../mkremaster.in:643
+msgid ""
+"Error: Cannot identify which partition on %s is bootable.\n"
+"Try formatting your device using diskdrake in the Unity Control Centre and "
+"then re-running this script.\n"
+"Exiting..."
+msgstr ""
+"Errore: Impossibile identificare la partizione d'avvio su %s.\n"
+"Prova a formattare il dispositivo utilizzando diskdrake nel Centro di "
+"Controllo di Unity e poi riesegui il programma.\n"
+"Esco..."
+
+#: ../mkremaster.in:650
+msgid ""
+"Error: For some reason the filesystem was not properly created.\n"
+"The LiveUSB creation can not continue.\n"
+"Try formatting your device using diskdrake in the Unity Control Centre and "
+"then re-running this script.\n"
+"Exiting..."
+msgstr ""
+"Errore: Per qualche ragione il filesystem non è stato creato correttamente.\n"
+"La creazione del LiveUSB non può proseguire.\n"
+"Prova a formattare il dispositivo utilizzando diskdrake nel Centro di "
+"Controllo di Unity e poi riesegui il programma.\n"
+"Esco..."
+
+#: ../mkremaster.in:675
+msgid "# Created 0 MB of %s MB changes file. Please wait..."
+msgstr "# Creati 0 MB di %s MB del file della persistenza. Attendere..."
+
+#: ../mkremaster.in:682 ../mkremaster.in:685
+msgid "# Created %s MB of %s MB changes file. Please wait..."
+msgstr "# Creati %s MB di %s MB del file della persistenza. Attendere..."
+
+#: ../mkremaster.in:687
+msgid "# Formatting changes file as %s. This will take some time..."
+msgstr ""
+"# Formattazione del file della persistenza come %s. Ci vorrà un po' di "
+"tempo..."
+
+#: ../mkremaster.in:692
+msgid "# Initializing new changes loop filesystem. Please wait..."
+msgstr "# Inizializzazione del filesystem di loop. Attendere..."
+
+#: ../mkremaster.in:697
+msgid "Creating Changes File on %s. This will take some time..."
+msgstr ""
+"Creazione del file della persistenza su %s. Ci vorrà un po' di tempo..."
+
+#: ../mkremaster.in:702
+msgid ""
+"Exiting. You chose not to continue. Trying to stop all processes and unmout "
+"device..."
+msgstr ""
+"Esco. Hai deciso di non proseguire. È in corso l'arresto di tutti i processi "
+"e lo smontaggio del dispositivo..."
+
+#: ../mkremaster.in:722
+msgid "# Copying vmlinuz. Please wait..."
+msgstr "# Copia di vmlinuz. Attendere..."
+
+#: ../mkremaster.in:725
+msgid "# Copying initrd.gz. Please wait..."
+msgstr "# Copia di initrd.gz. Attendere..."
+
+#: ../mkremaster.in:729
+msgid "# Creating bootloader. Please wait..."
+msgstr "# Creazione del bootloader. Attendere..."
+
+#: ../mkremaster.in:752
+msgid "# Probing devices. This may take a while. Please wait..."
+msgstr ""
+"# Ricerca dei dispositivi. Potrebbe volerci un po' di tempo. Attendere..."
+
+#: ../mkremaster.in:760
+msgid "# Creating graphical boot menu. Please wait..."
+msgstr "# Creazione del menù d'avvio grafico. Attendere..."
+
+#: ../mkremaster.in:831
+msgid "# Copying livecd.sqfs. Please wait..."
+msgstr "# Copia di livecd.sqfs. Attendere..."
+
+#: ../mkremaster.in:835
+msgid "# Transferred 0 MB of %s MB. Please wait..."
+msgstr "# Trasferiti 0 MB di %s MB. Attendere..."
+
+#: ../mkremaster.in:843 ../mkremaster.in:846
+msgid "# Transferred %s MB of %s MB. Please wait..."
+msgstr "# Trasferiti %s MB di %s MB. Attendere..."
+
+#: ../mkremaster.in:848
+msgid "# Please wait while file transfer is finalized..."
+msgstr "# Attendere che venga ultimato il trasferimento del file..."
+
+#: ../mkremaster.in:856
+msgid "# Nearly there! Unmounting %s. Please wait..."
+msgstr "# Quasi fatto! Smontaggio di %s. Attendere..."
+
+#: ../mkremaster.in:859
+msgid "Copying live system. This may take some time..."
+msgstr "Copia del sistema live. Potrebbe volerci molto tempo..."
+
+#: ../mkremaster.in:865
+msgid ""
+"Exiting. You chose not to continue. Trying to stop copy and unmount all..."
+msgstr ""
+"Esco. Hai deciso di non proseguire. Arresto del processo di copia e "
+"smontaggio di tutto..."
+
+#: ../mkremaster.in:883
+msgid ""
+"\n"
+"UnityLive USB successfully created on %s.\n"
+"\n"
+"You can unplug it now.\n"
+"\n"
+"When rebooting, please check your BIOS settings while the device is "
+"inserted!\n"
+"\n"
+"Press 'FINISH' to exit or 'LOG' to view detailed output."
+msgstr ""
+"\n"
+"USBLive creato con successo su %s.\n"
+"\n"
+"Puoi scollegare il dispositivo ora.\n"
+"\n"
+"Una volta riavviato, controlla le impostazioni del BIOS mentre il "
+"dispositivo è inserito!\n"
+"\n"
+"Premi \"Termina\" per uscire o \"Log\" per visualizzare l'output dettagliato."
+
+#: ../mkremaster.in:890
+msgid "Finish"
+msgstr "Termina"
+
+#: ../mkremaster.in:890
+msgid "Log"
+msgstr "Log"
+
+#: ../mkremaster.in:895
+msgid "UnityLive /var/log/mkremaster Detailed Output"
+msgstr "Output dettagliato di UnityLive /var/log/mkremaster"
+
+#: ../mkremaster.in:914
+msgid "Needed space on temporary partition: %s kB"
+msgstr "Spazio necessario sulla partizione temporanea: %s kB"
+
+#: ../mkremaster.in:919
+msgid "Chosen partition has %s kB of free space..."
+msgstr "La partizione selezionata ha %s kB di spazio libero... "
+
+#: ../mkremaster.in:925
+msgid "Select a partition for the temporary files."
+msgstr "Seleziona una partizione per i file temporanei."
+
+#: ../mkremaster.in:926
+msgid "Partition Name ( Size - Used - Free - Percentage Used - Mount Point )"
+msgstr ""
+"Nome della partizione ( Dimensione - Usata - Libera - Percentuale d'uso - "
+"Punto di montaggio )"
+
+#. TRANSLATORS: The message continues from "Chosen partition has %s kB of free space... "
+#. TRANSLATORS: The message continues from "Chosen partition has %s MB of free space... "
+#: ../mkremaster.in:940 ../mkremaster.in:1223
+msgid "that should be enough."
+msgstr "dovrebbe essere sufficiente."
+
+#. TRANSLATORS: The message continues from "Chosen partition has %s kB of free space... "
+#: ../mkremaster.in:943
+msgid "that is NOT enough."
+msgstr "NON è sufficiente."
+
+#: ../mkremaster.in:944
+msgid ""
+"Chosen partition has not enough free space left\n"
+"You will need at least %s kB free!"
+msgstr ""
+"La partizione selezionata non ha abbastanza spazio libero.\n"
+"Hai bisogno di almeno %s kB liberi!"
+
+#: ../mkremaster.in:954 ../mkremaster.in:1012
+msgid ""
+"The resolution of %s dependency failed.\n"
+"\n"
+"This might be due to an out of date repository information.\n"
+"\n"
+"If problem persist, please contact the Unity-Linux dev team.\n"
+"\n"
+"\n"
+"Would you like to try to update smart and try again?"
+msgstr ""
+"Impossibile risolvere le dipendenze di %s.\n"
+"\n"
+"Potrebbe essere dovuto a informazioni non aggiornate sui repository.\n"
+"\n"
+"Se il problema persiste, contattare il team di sviluppo di Unity Linux.\n"
+"\n"
+"\n"
+"Vuoi aggiornare smart e riprovare?"
+
+#: ../mkremaster.in:963 ../mkremaster.in:1021
+msgid "Sorry, the resolution failed again. Please try again later"
+msgstr ""
+"Spiacente, la risoluzione delle dipendenze è fallita di nuovo. Ritenta più "
+"tardi."
+
+#: ../mkremaster.in:979 ../mkremaster.in:1037
+msgid ""
+"The download of %s rpms failed.\n"
+"\n"
+"This might be due to an error with the network connection or a dependency "
+"error.\n"
+"\n"
+"If problem persist, please contact the Unity-Linux dev team.\n"
+"\n"
+"\n"
+"Would you like to try again?"
+msgstr ""
+"Impossibile scaricare l'rpm %s.\n"
+"\n"
+"Ciò potrebbe essere dovuto a un problema con la connessione di rete o a un "
+"problema di dipendenze.\n"
+"\n"
+"Se il problema persiste, contattare il team di sviluppo di Unity Linux.\n"
+"\n"
+"\n"
+"Vuoi rifare un tentativo?"
+
+#: ../mkremaster.in:988 ../mkremaster.in:1046
+msgid "Sorry, the download failed again. Please try again later"
+msgstr "Spiacente, lo scaricamento è fallito di nuovo. Ritenta più tardi."
+
+#: ../mkremaster.in:1004 ../mkremaster.in:1062
+msgid ""
+"Sorry, the install of the rpms failed. Please ensure plf is not enabled and "
+"the repo has not changed since the last time you updated smart"
+msgstr ""
+"Spiacente, è stato impossibile installare gli rpm. Assicurati che plf non "
+"sia abilitato e che il repository non abbia subito cambiamenti dall'ultima "
+"volta che smart è stato aggiornato."
+
+#. TRANSLATORS: Do not translate 'root' and 'guest'
+#: ../mkremaster.in:1124
+msgid "Please select the root and guest passwords."
+msgstr "Seleziona le password degli utenti root e guest."
+
+#: ../mkremaster.in:1168
+msgid "LiveCD creator"
+msgstr "LiveCD creator"
+
+#: ../mkremaster.in:1171
+msgid ""
+"You're about to create a LiveCD ISO.\n"
+"\n"
+"* The compressed image of the running system will be created on a chosen "
+"partition.\n"
+"\n"
+"* Requirements: min. 2 GB free space on the chosen partition.\n"
+"\n"
+"* A Windows FAT filesystem can't be used.\n"
+"\n"
+"\n"
+"Would you like to provide some advanced options?"
+msgstr ""
+"Sta per essere creata un'immagine ISO LiveCD.\n"
+"\n"
+"* Verrà creata un'immagine compressa del sistema corrente su una partizione "
+"a scelta.\n"
+"\n"
+"* Requisiti: min. 2 GB di spazio libero sulla partizione scelta.\n"
+"\n"
+"* Non può essere usato il filesystem FAT.\n"
+"\n"
+"\n"
+"Desideri fornire alcune opzioni avanzate?"
+
+#: ../mkremaster.in:1180 ../mkremaster.in:1366
+msgid "Please select options:"
+msgstr "Selezionare le opzioni:"
+
+#: ../mkremaster.in:1181 ../mkremaster.in:1367 ../mkremaster.in:1393
+#: ../mkremaster.in:1503
+msgid "Checkbox"
+msgstr "‒"
+
+#: ../mkremaster.in:1182 ../mkremaster.in:1368
+msgid "mklivecd option"
+msgstr "Opzione di mklivecd"
+
+#: ../mkremaster.in:1182 ../mkremaster.in:1368 ../mkremaster.in:1394
+msgid "Description"
+msgstr "Descrizione"
+
+#: ../mkremaster.in:1183 ../mkremaster.in:1369
+msgid "Without auto mounting of drives"
+msgstr "Senza montaggio automatico dei dischi"
+
+#: ../mkremaster.in:1184 ../mkremaster.in:1370
+msgid "enable lzma compression"
+msgstr "Abilita la compressione lzma"
+
+#: ../mkremaster.in:1185 ../mkremaster.in:1371
+msgid "Livecd without finish install"
+msgstr "LiveCD senza finish install"
+
+#: ../mkremaster.in:1186 ../mkremaster.in:1372
+msgid "embed the md5sum in the iso"
+msgstr "Incorpora md5sum nell'iso"
+
+#: ../mkremaster.in:1187 ../mkremaster.in:1373
+msgid "Disable boot splash screen"
+msgstr "Disabilita lo splash screen d'avvio"
+
+#: ../mkremaster.in:1188 ../mkremaster.in:1374
+msgid "Disable log system to speed up livecds"
+msgstr "Disabilita il sistema di log per velocizzare i LiveCD"
+
+#: ../mkremaster.in:1194
+msgid ""
+"Please enter your custom options if required (press cancel to skip)\n"
+"\n"
+"Note that any wrong option will result in a failed liveCD\n"
+"\n"
+"For Example:\n"
+"--nodir=^/home/guest\n"
+"--nofile=^/var/state/apt/lists/*.*\n"
+"\n"
+"The '--' is required and separate multiple options with a blank space.\n"
+"\n"
+"Insert your mklivecd options here:"
+msgstr ""
+"Inserisci eventuali opzioni personalizzate (premi \"Annulla\" per andare "
+"avanti)\n"
+"\n"
+"Nota: qualsiasi opzione errata farà fallire il comando!\n"
+"\n"
+"Per esempio:\n"
+"--nodir=^/home/guest\n"
+"--nofile=^/var/state/apt/lists/*.*\n"
+"\n"
+"I trattini '--' sono necessari. Inoltre, separa le opzioni multiple con uno "
+"spazio.\n"
+"\n"
+"Inserire qui le opzioni per mklivecd:"
+
+#: ../mkremaster.in:1244 ../mkremaster.in:1384 ../mkremaster.in:1430
+#: ../mkremaster.in:1437 ../mkremaster.in:1444
+msgid "Cancelled!"
+msgstr "Annullato!"
+
+#: ../mkremaster.in:1254
+msgid "Running mklivecd to create the remaster..."
+msgstr "Esecuzione di mklivecd per creare il remaster..."
+
+#: ../mkremaster.in:1266
+msgid "Creating MD5SUM check file"
+msgstr "Creazione del file di controllo MD5SUM"
+
+#: ../mkremaster.in:1268
+msgid "creating md5sum..."
+msgstr "Creazione del md5sum..."
+
+#: ../mkremaster.in:1270
+msgid "Something went wrong!"
+msgstr "Qualcosa è andato storto!"
+
+#: ../mkremaster.in:1276
+msgid ""
+"The LiveCD was created successfully!\n"
+"\n"
+"It was created as %s.\n"
+"The MD5 sum of the file is:\n"
+"%s"
+msgstr ""
+"Il LiveCD è stato creato con successo!\n"
+"\n"
+"L'immagine ISO è %s.\n"
+"Il codice di controllo MD5 è:\n"
+"%s"
+
+#: ../mkremaster.in:1284
+msgid "LiveUSB creator"
+msgstr "LiveUSB creator"
+
+#: ../mkremaster.in:1291
+msgid ""
+"This wizard creates a bootable Linux 'live' system on your chosen USB "
+"device.\n"
+"\n"
+"Before proceeding PLEASE READ CAREFULLY:\n"
+"\n"
+"1. This wizard requires a device with an empty partition large enough to "
+"hold the live\n"
+"    filesystem with a bootable primary partition.\n"
+"\n"
+"2. This wizard can format your device, BUT YOU WILL LOSE ALL THE DATA ON THE "
+"DEVICE.\n"
+"\n"
+"3. Alternatively you can install on a prepared FAT32 or ext2/3 partition. Be "
+"sure that\n"
+"    the boot flag is set on a primary partition. (You can use the Unity "
+"Control Center\n"
+"    for partitioning).\n"
+"\n"
+"4. Plug your device in now (if it is not already) and wait for your OS to "
+"mount it.\n"
+"    If it cannot be detected, all flash drives, external harddrives and "
+"internal sata\n"
+"    disks will be shown. Before proceeding, make sure which device is the "
+"correct one.\n"
+"    Use the Unity Control Center or the command line: fdisk -l as root.\n"
+"\n"
+"5. Files from either the current live session, a CD/DVD or from an ISO file "
+"can be copied\n"
+"    to the device.\n"
+"\n"
+"6. There is an option to enable a persistent operating system (one that "
+"saves any changes\n"
+"    you make) by creating a loop changes file. The size on FAT32 is limited "
+"to 4GB.\n"
+"\n"
+"7. Any remaining space on the device can then be used as normal in Linux or "
+"Windows(TM).\n"
+"\n"
+"    ****** Unity Linux accepts no responsibility for data loss or hardware "
+"damage! ******\n"
+"\n"
+"8. Please verify that your usb flash drive is plugged in and press 'Next' to "
+"proceed."
+msgstr ""
+"Questa procedura guidata crea un sistema Linux \"live\" avviabile su un "
+"dispositivo USB a scelta.\n"
+"\n"
+"Prima di procedere LEGGERE ATTENTAMENTE:\n"
+"\n"
+"1. Questa procedura guidata richiede un dispositivo con partizione grande "
+"abbastanza per contenere\n"
+"   il filesystem live con una partizione primaria d'avvio.\n"
+"\n"
+"2. Questa procedura guidata può formattare il dispositivo, MA PERDERAI TUTTI "
+"I DATI.\n"
+"\n"
+"3. In alternativa puoi installare su una partizione FAT32 o ext2/3 già "
+"pronta. Assicurati\n"
+"   che la flag del boot sia impostata su una partizione primaria (puoi usare "
+"il Centro\n"
+"   di Controllo di Unity per il partizionamento).\n"
+"\n"
+"4. Collega ora il dispositivo (se non lo è già) e attendi che sia montato "
+"dal sistema.\n"
+"   Se non dovesse essere rilevato, saranno mostrate tutte le memorie flash, "
+"gli hard disk\n"
+"   esterni e quelli SATA interni. Prima di procedere, assicurati di quale "
+"dispositivo sia\n"
+"   quello corretto. Usa il Centro di Controllo di Unity o il comando fdisk -"
+"l da root.\n"
+"\n"
+"5. Sul dispositivo poosono essere copiati i file della sessione live "
+"corrente, di un\n"
+"   CD/DVD o di un'immagine ISO.\n"
+"\n"
+"6. C'è la possibilità di abilitarlo alla persistenza (il sistema operativo "
+"salva ogni\n"
+"   cambiamento effettuato) tramite creazione di un file di loop. La sua "
+"dimensione\n"
+"   massima è 4GB su partizioni FAT32.\n"
+"\n"
+"7. L'eventuale spazio rimanente sul dispositivo può essere usato come di "
+"norma in\n"
+"   Linux o Windows™.\n"
+"****** Unity Linux non si assume nessuna responsabilità per perdita dei dati "
+"o danneggiameneto harware! ******\n"
+"\n"
+"8. Verifica che il dispositivo flash USB sia inserito e premi \"Avanti\" per "
+"procedere."
+
+#: ../mkremaster.in:1351
+msgid "LiveRPM creator"
+msgstr "LiveRPM creator"
+
+#: ../mkremaster.in:1354
+msgid ""
+"You are about to create a LiveCD ISO from RPMS.\n"
+"\n"
+"Requirements:\n"
+"\n"
+"* min. 2 GB free space on the host system.\n"
+"\n"
+"* You must have a working Smart system and internet connectivity\n"
+"\n"
+"* Smart must not be used for the duration of the livecd creation\n"
+"\n"
+"* Make sure the plf repository is not enabled (not supported at present)"
+msgstr ""
+"Stai per creare un LiveCD a partire da RPM.\n"
+"\n"
+"Requisiti:\n"
+"\n"
+"* Minimo 2 GB liberi nel sistema host\n"
+"\n"
+"* Sistema Smart funzionante e connettività internet\n"
+"\n"
+"* Smart non deve essere usato nel corso della creazione del LiveCD\n"
+"\n"
+"* Repository plf disattivato (non è supportato al momento)"
+
+#: ../mkremaster.in:1392
+msgid "Please select elements to be added:"
+msgstr "Selezionare gli elementi da aggiungere:"
+
+#: ../mkremaster.in:1394
+msgid "System Element"
+msgstr "Elemento di sistema"
+
+#: ../mkremaster.in:1395
+msgid "Kernel, the core of your linux system"
+msgstr "Kernel, il cuore del tuo sistema linux"
+
+#: ../mkremaster.in:1396
+msgid "Provides kernel support for dkms"
+msgstr "Fornisce il supporto del kernel al dkms"
+
+#: ../mkremaster.in:1397
+msgid "minimal items required for a bootable X system"
+msgstr "Elementi minimi richiesti per un sistema X avviabile"
+
+#: ../mkremaster.in:1398
+msgid "Common drivers and firmware not included in the kernel"
+msgstr "Driver e firmware comuni non inclusi nel kernel"
+
+#: ../mkremaster.in:1399
+msgid "Drakxtools and Installer"
+msgstr "Strumenti Drakx e installatore"
+
+#: ../mkremaster.in:1400
+msgid "Default desktop applications for Unity"
+msgstr "Applicazioni desktop predefinite per Unity Linux"
+
+#: ../mkremaster.in:1401
+msgid "Default Unity locales for international support"
+msgstr "Pacchetti di localizzazione predefiniti per il supporto multilingua"
+
+#: ../mkremaster.in:1402
+msgid "Basic mime support"
+msgstr "Supporto mime di base"
+
+#: ../mkremaster.in:1403
+msgid "Basic Modem support"
+msgstr "Supporto modem di base"
+
+#: ../mkremaster.in:1404
+msgid "Extended wireless support, WPA"
+msgstr "Supporto esteso al wireless, WPA"
+
+#: ../mkremaster.in:1405
+msgid "Most common X11 drivers"
+msgstr "I più comuni driver X11"
+
+#: ../mkremaster.in:1406
+msgid "extra X11 drivers for uncommon equipment"
+msgstr "Driver X11 extra per hardware meno comune"
+
+#: ../mkremaster.in:1407
+msgid "Extra elements for a basic Unity livecd"
+msgstr "Elementi extra per un LiveCD Unity Linux di base"
+
+#: ../mkremaster.in:1408
+msgid "Default Unity plymouth theme"
+msgstr "Tema plymouth predefinito per Unity Linux"
+
+#: ../mkremaster.in:1415
+msgid ""
+"Please enter your additional rpm names if required (press cancel to skip)\n"
+"\n"
+"Note that any wrong option will result in a failed liveCD\n"
+"\n"
+"For Example:\n"
+"dkms-nvidia-current\n"
+"task-kde4\n"
+"\n"
+"Please separate multiple options with a blank space."
+msgstr ""
+"Inserisci i nomi di rpm addizionali se richiesto (premi \"Annulla\" per "
+"proseguire)\n"
+"\n"
+"Si noti che eventuali opzioni errate faranno fallire la creazione del "
+"LiveCD\n"
+"\n"
+"Per esempio:\n"
+"dkms-nvidia-current\n"
+"task-kde4\n"
+"\n"
+"Separa le opzioni multiple con uno spazio."
+
+#: ../mkremaster.in:1427
+msgid ""
+"Downloading and installing rpms\n"
+"\n"
+"\n"
+"This is going to take a long time, you may go for a coffee"
+msgstr ""
+"Scaricamento e installazione degli rpm...\n"
+"\n"
+"\n"
+"Ci vorrà molto tempo, vai pure a farti un caffè."
+
+#: ../mkremaster.in:1434
+msgid "Updating system settings"
+msgstr "Aggiornamento delle impostazioni di sistema..."
+
+#: ../mkremaster.in:1441
+msgid "Creating livecd"
+msgstr "Creazione del livecd"
+
+#: ../mkremaster.in:1449
+msgid "The LiveRPM ISO was created successfully!"
+msgstr "L'immagine ISO LiveRPM è stata creata con successo!"
+
+#: ../mkremaster.in:1457
+msgid "UnityLive Remastering Tool"
+msgstr "Strumento di rimasterizzazione UnityLive"
+
+#: ../mkremaster.in:1461
+msgid ""
+"UnityLive: mkremaster:\n"
+"\n"
+"Zenity is required to run this application.\n"
+"Please install it using Smart Package Manager.\n"
+msgstr ""
+"UnityLive: mkremaster:\n"
+"\n"
+"Zenity è necessario per lanciare questa applicazione.\n"
+"Installalo usando il gestore dei pacchetti Smart.\n"
+
+#: ../mkremaster.in:1464
+msgid "This script must be run as root."
+msgstr "Questo script deve essere eseguito come root."
+
+#: ../mkremaster.in:1490
+msgid "Running in live mode..."
+msgstr "Esecuzione in modalità live..."
+
+#: ../mkremaster.in:1494
+msgid "Running in installed mode..."
+msgstr "Esecuzione da installazione fissa..."
+
+#: ../mkremaster.in:1499
+msgid ""
+"What type of remaster would you like to create?\n"
+"\n"
+"\n"
+"- The LiveCD mode allows you to build an ISO suitable for cdrom\n"
+"\n"
+"- The LiveUSB mode allows you to transfer a LiveCD ISO onto a USB key\n"
+"\n"
+"- The LiveRPM mode allows you to create a LiveCD ISO from RPMS only\n"
+msgstr ""
+"Che tipo di remaster desideri creare?\n"
+"\n"
+"\n"
+"- La modalità LiveCD ti consente di creare una ISO adatta a lettori CD/DVD\n"
+"\n"
+"- La modalità LiveUSB ti consente di trasferire una ISO LiveCD su chiavetta "
+"USB\n"
+"\n"
+"- La modalità LiveRPM ti consente di creare una ISO LiveCD a partire da "
+"semplici RPM\n"
+
+#: ../mkremaster.in:1503
+msgid "Label"
+msgstr "Etichetta"
+
+#: ../mkremaster-tinyme.desktop.in.h:1 ../mkremaster-kde.desktop.in.h:1
+#: ../mkremaster.desktop.in.h:1
+msgid "Make Remaster"
+msgstr "Crea un Remaster"
+
+#: ../mkremaster-tinyme.desktop.in.h:2 ../mkremaster-kde.desktop.in.h:2
+#: ../mkremaster.desktop.in.h:2
+msgid "Remaster while running from livecd/harddrive"
+msgstr "Crea un remaster da livecd o installazione fissa"
+
+#~ msgid "Smart Failed to download all the rpms"
+#~ msgstr "Smart non è riuscito a scaricare tutti gli rpm."
+
+#~ msgid "Make LiveCD"
+#~ msgstr "Crea un CD live"
+
+#~ msgid "Please run this script as root!"
+#~ msgstr "Esegui questo script come root!"
+
+#~ msgid ""
+#~ "Please install zenity\n"
+#~ "\n"
+#~ "It can be installed while running from livecd.\n"
+#~ "\n"
+#~ "Would you like to install it now?"
+#~ msgstr ""
+#~ "Prima installa zenity.\n"
+#~ "\n"
+#~ "Può essere installato anche da LiveCD.\n"
+#~ "\n"
+#~ "Vuoi installarlo ora?"
+
+#~ msgid "Exiting now"
+#~ msgstr "Abbandono"
+
+#~ msgid "Would you like to provide some advanced options?"
+#~ msgstr "Vuoi fornire al programma alcune opzioni avanzate?"
+
+#~ msgid "Options for mklivecd:"
+#~ msgstr "Opzioni per mklivecd"
+
+#~ msgid "Livecd with union file system"
+#~ msgstr "LiveCD con filesystem union"
+
+#~ msgid "bootup resolution of 1024x768"
+#~ msgstr "Risoluzione all'avvio di 1024x768"
+
+#~ msgid "Creating your personal remaster..."
+#~ msgstr "Creazione del tuo remaster personale..."

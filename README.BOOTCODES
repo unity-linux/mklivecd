@@ -1,0 +1,255 @@
+# $Id: README.BOOTCODES,v 1.5 2006/04/23 01:55:14 tom_kelly33 Exp $
+
+Cheatcodes for Unity.
+====================
+
+Boot parameters (also known as cheatcodes) are used to affect the
+booting process of Unity. Some of them are common for all Linuxes, others
+are specific for Unity only. You can use them to disable desired kind of
+hardware detection, to start Unity from harddisk/usb key, to make the changes persistent etc.
+   
+Reboot your computer and wait several seconds until nice  graphical Unity
+logo appears with a boot menu (it's there usually for less then 9 seconds).
+Choose your desired menu entry, and in the last line on the screen, you see the command line 
+which will allow you to edit it. Add your desired boot argument from the list below, to affect
+booting the way you like:
+
+
+acpi=off
+
+nocd
+
+       The livecd will not search for the compressed loop image (cloop) on the cd. Usefull if for some reason the livecd doesn't recognizes your cd/dvd drive
+
+nohd
+
+      The livecd will not search for the compressed loop image (cloop) on the hard drives. Usefull if for some reason the livecd doesn't recognizes your hard drives
+
+fromusb
+
+       The livecd tries to look for the cloop image only on the usb drives
+
+bootfromiso=/Unity.iso
+bootfromiso=/path/to/Unity.iso
+
+   ... To load Unity iso data from different place instead of the boot device.
+   ... First example will search for Unity.iso, on all the available media or HD partition
+   ... Second example will search for '/path/to/Unity.iso' on all devices.
+       The first device containing the /path/file is used
+
+livecd=minime
+
+   ... To load the livecd compressed loop filesystem (name.sqfs) from the available media
+   ... in this example the livecd will search for the minime.sqfs cloop (compressed loop) file
+       on all devices. The first device containing the minime.sqfs file is used.
+       There is only the media capacity limits the number of different cloop images.
+       The cloop image and the corresponding initrd.gz has to be compiled with the same kernel.
+
+passwd=somepass
+passwd=ask
+
+   ... set root's password to "somepass", or ask (with =ask) for a new password
+       during the boot, before starting Unity (don't worry, the new password
+       won't be shown at the login screen)
+
+
+changes_dev=/dev/device
+changes_dev=LABEL=Unity 
+changes_file=file.dat
+changes_file=/path/file.dat
+changes_dev=<changes_device> changes_file=<changes_file>
+
+   ... all changes you made in Unity are kept in memory until you reboot.
+       But with this boot parameter, you tell Unity to use different device
+       (or a file or directory) than the memory for storing changes. You can,
+       for example, format your disk partition /dev/hda1 with some Linux
+       filesystem (eg. ext2/3, reiserfs) and then use changes=/dev/hda1 to store all changes
+       to that disk (it will be stored in 'changes' directory on that disk.
+       This way you won't loose your changes after reboot.
+   ... if you use a file name instead of device, and the file contains valid
+       filesystem, the livecd will mount it as a loop device and will store changes
+       to it. Moreover if you don't specify the device where the file is stored,
+       Unity will try to find it on all your partitions.
+   ... if you use a directory, Unity will save changes to it (it will make a
+       'changes' subdirectory in there). The directory has to be on a Linux filesystem
+       on that disk. If you use a file (changes_file parameter is specified) you can save your changes even to VFAT or NTFS.
+   ... the <changes_device> can take any format the mount command would except 
+       i.e. /dev/device, LABEL=partition_label, UUID=partition_uuid
+
+hwdetect=no
+nodetect 
+hwdetect=yes
+
+   ... If you use persistent changes (changes_dev and/or changes_file) and the persistent changes media exists the livecd will not run the hardware detectiton routine again. If you want to rerun the hardware discovery, you can force it with the hwdetect=yes parameter.
+   ... If the livecd boot hangs in the hwdetect phase, you can bypass it with nodetect or hwdetect=no
+
+copy2ram 
+
+   ... copy all files (all required and optional modules) to RAM.
+       You'll need at least 320MB of RAM to do this and boot Unity properly.
+       This will slow down the boot phase but it will speed up Unity!
+
+debug
+
+   ... enable debug mode 
+
+hostname=<host>
+
+       Sets the hostname for the machine, as specified by <host>, eg. mybox.cool.com the parameter modifies the DHCP_HOSTNAME in the /etc/sysconfig/network-scripts/ifcfg-eth* scripts
+
+lang=<lang>
+      Override the default language (en), for the boot scripts and (eventually) CD language selection. Currently only the lang=en is working
+
+keyb=<mapping>
+
+      Use a different keyboard layout mapping from the one the LiveCD was built with.
+      Valid values for mapping can be found in the first column of the following table:
+		al              Albanian
+		am              Armenian (typewriter)
+		am_old          Armenian (old)
+		am_phonetic     Armenian (phonetic)
+		ar              Arabic
+		az              Azerbaidjani (latin)
+		be              Belgian
+		ben             Bengali
+		bg              Bulgarian (BDS)
+		bg_phonetic     Bulgarian (phonetic)
+		br              Brazilian (ABNT-2)
+		bs              Bosnian
+		by              Belarusian
+		ch_de           Swiss (German layout)
+		ch_fr           Swiss (French layout)
+		cz              Czech (QWERTZ)
+		cz_qwerty       Czech (QWERTY)
+		de              German
+		de_nodeadkeys   German (no dead keys)
+		dev             Devanagari
+		dk              Danish
+		dvorak          Dvorak (US)
+		dvorak_no       Dvorak (Norwegian)
+		dvorak_se       Dvorak (Swedish)
+		ee              Estonian
+		es              Spanish
+		fi              Finnish
+		fr              French
+		ge_la           Georgian ("Latin" layout)
+		ge_ru           Georgian ("Russian" layout)
+		gr              Greek
+		gr_pl           Greek (polytonic)
+		guj             Gujarati
+		gur             Gurmukhi
+		hr              Croatian
+		hu              Hungarian
+		ie              Irish
+		il              Israeli
+		il_phonetic     Israeli (Phonetic)
+		ir              Iranian
+		is              Icelandic
+		it              Italian
+		iu              Inuktitut
+		jp              Japanese 106 keys
+		kan             Kannada
+		kr              Korean keyboard
+		la              Latin American
+		lao             Laotian
+		lt_b            Lithuanian "number row" QWERTY
+		lt              Lithuanian AZERTY (old)
+		lt_new          Lithuanian AZERTY (new)
+		lt_p            Lithuanian "phonetic" QWERTY
+		lv              Latvian
+		mal             Malayalam
+		mk              Macedonian
+		mm              Myanmar (Burmese)
+		mng             Mongolian (cyrillic)
+		mt              Maltese (UK)
+		mt_us           Maltese (US)
+		nl              Dutch
+		no              Norwegian
+		ori             Oriya
+		pl2             Polish (qwertz layout)
+		pl              Polish (qwerty layout)
+		pt              Portuguese
+		qc              Canadian (Quebec)
+		ro2             Romanian (qwertz)
+		ro              Romanian (qwerty)
+		ru              Russian
+		ru_yawerty      Russian (Phonetic)
+		sapmi           Saami (norwegian)
+		sapmi_sefi      Saami (swedish/finnish)
+		se              Swedish
+		si              Slovenian
+		sk_qwerty       Slovakian (QWERTY)
+		sk              Slovakian (QWERTZ)
+		sr              Serbian (cyrillic)
+		syr_p           Syriac (phonetic)
+		syr             Syriac
+		tel             Telugu
+		th              Thai keyboard
+		tj              Tajik keyboard
+		tml             Tamil (ISCII-layout)
+		tr_f            Turkish (traditional "F" model)
+		tr_q            Turkish (modern "Q" model)
+		tscii           Tamil (Typewriter-layout)
+		ua              Ukrainian
+		uk              UK keyboard
+		us_intl         US keyboard (international)
+		us              US keyboard
+		uz              Uzbek (cyrillic)
+		vn              Vietnamese "numeric row" QWERTY
+		yu              Yugoslavian (latin)
+
+nonetwork
+
+	Don't probe/detect network cards
+
+nopcmcia
+
+        Don't probe/detect PCMCIA devices
+
+
+nocpufreq
+
+        Don't probe/setup cpufreq routines
+
+nofinishinstall
+
+        bypass the language, clock, network setup during hardware detection
+
+
+framebuffer
+
+       Use the fbdev driver for the video card instead of try to autodetect (default resolution is 1024x768x16).
+
+vesa
+
+       Override the default driver chosen for your video card with vesa driver and default resolution.
+
+
+Besides the above mentioned bootcodes, the isolinux will accept all the normal kernel
+Boot codes i.e. 	vga=xxx for the framebuffer resolution,
+			Splash=verbose|silent to turn on or off the splash screen
+          		Acpi apic lapic parameters
+			If the very last parameter is a numeral (i.e. 3) this is the runlevel the livecd 
+			will be booted. 
+                        Full documentation can be found in /usr/src/linux/Documentation/kernel-parameters.txt 
+
+noeject
+
+	Disable the ejection of the CD on shutdown (power-down) or reboot.
+
+splash=silent
+
+   ... enable splash screen on boot
+	
+splash=verbose
+splash=no
+
+   ... enable verbose boot up
+
+md5sum
+
+   ... enable checksum verification of the livecd
+
+initrd
+
+  ... if you want to execute only the initrd, for debuging purposes.

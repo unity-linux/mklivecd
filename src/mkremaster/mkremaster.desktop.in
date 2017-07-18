@@ -1,0 +1,11 @@
+[Desktop Entry]
+Encoding=UTF-8
+_Name=Make Remaster
+_Comment=Remaster while running from livecd/harddrive
+Exec=gksu -l /usr/sbin/mkremaster
+Icon=mkremaster
+Terminal=false
+Type=Application
+StartupNotify=false
+Categories=X-MandrivaLinux-System;
+NotShowIn=KDE;

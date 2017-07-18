@@ -1,0 +1,271 @@
+# $Id: FAQ,v 1.18 2004/01/05 05:45:40 jaco Exp $
+
+Q: How do I create a tiny (truly minimal) bootable Mandrake
+   LiveCD?
+A: Here is a step by step process of creating your own Mandrake
+   installation and creating a LiveCD image from it. (You can
+   customise the process by adding additional packages, but the
+   underlying concepts should stay the same)
+
+   1. Login as root, using "su -c"
+   2. Create a base directory to hold the minimal installation:
+      "mkdir -p /tmp/minimal"
+   3. Install the Mandrake base system:
+      "urpmi basesystem devfsd harddrake --root /tmp/minimal"
+   4. Enable shadow passwords in the image by issuing:
+      "chroot /tmp/minimal /usr/sbin/pwconv"
+   5. Set your root password ('root') within the image:
+      "chroot /tmp/minimal"
+      "echo 'root' | passwd --stdin root"
+      "exit"
+   6. Create a LiveCD image from the minimal installation:
+      "mklivecd --root /tmp/minimal minimal.iso"
+   7. Burn the resulting minimal.iso to CD-R and enjoy :)
+
+
+Q: I have created a LiveCD and I'm seeing weird hangs. This either
+   happens in my XFree86 or sometimes as part of the bootup
+   process. Any ideas?
+A: The most common cause for these hangs is an outdated cloop
+   module as shipped in the MDK 9.2 kernel. Install an updated
+   kernel >= 2.4.22.21mdk (providing cloop 1.02) or
+   kernel-tmb >= 2.4.22.21{tmb,mm} from contrib, and use this
+   one as the kernel for your LiveCD.
+
+
+Q: How much does the default compression algorithm compress the
+   actual LiveCD root?
+A: Exact figures differ from installation to installation, but as
+   a thumb-suck, you can work on a compression ratio of 40%, i.e.
+   a 1GB initial filesystem _should_ compress to 400MB.
+
+
+Q: Can I adjust the compression parameters for either a faster
+   LiveCD or a smaller one?
+A: Indeed. The LiveCD creation script has two options, --blocksize
+   and --looptype that allows you to adjust the behaviour of the
+   compression algorithm (--blocksize, default 64K) and the type
+   of compression used (--looptype, default cloop).
+
+   Some testes have beed done of the effect of these options on
+   both and speed, use your own judgement to see what is best for
+   your particular application. (All tests were done with an
+   uncompressed Knoppix v3.3 image.)
+
+   The following table lists the descriptions of the images that
+   were used in these tests. 'Compression' is the type of
+   compression (none = uncompressed, cloop = cloop.o, bzloop =
+   bzloop.o) and 'Block' is the blocksize passed to the various
+   create compressed fs commands:
+
+   Compression,   Block, Name:
+   ------------------------------------------
+          none,    none, knoppix.iso
+         cloop,     64K, knoppix.iso.clp-64
+         cloop,    224K, knoppix.iso.clp-224
+        bzloop,     64K, knoppix.iso.bzlp-64
+        bzloop,    224K, knoppix.iso.bzlp-224
+
+   This table lists the sizes of the files on disk. 'Size' is
+   the actual size as reported by the "du -k" command. 'Ratio'
+   is calculated with size/uncompressed_size*100:
+
+          Size,   Ratio, Name:
+   ------------------------------------------
+    1,871,360K, 100.00%, knoppix.iso
+      708,656K,  37.87%, knoppix.iso.clp-64
+      698,124K,  37.31%, knoppix.iso.clp-224
+      684,404K,  36.57%, knoppix.iso.bzlp-64
+      655,068K,  35.00%, knoppix.iso.bzlp-224
+
+   This following table lists some timings for performing a
+   (hopefully) expensive I/O operation on the mounted image.
+   'Time' is the time taken for the "insmod, mount, ls -alR,
+   tar -cf, umount, rmmod" and 'Ratio' is calculated with
+   time/uncompressed_time*100.
+
+          Time,   Ratio, Name:
+   ------------------------------------------
+           31s, 100.00%, knoppix.iso
+           38s, 122.58%, knoppix.iso.clp-64
+           43s, 138.71%, knoppix.iso.clp-224
+           49s, 158.06%, knoppix.iso.bzlp-64
+           73s, 235.48%, knoppix.iso.bzlp-224
+
+
+Q: How do I change my keyboard layout?
+A: By default the script installs a keyboard layout for a 'us'
+   layout. You can change this behaviour on the LiveCD in two
+   ways:
+
+   1. On bootup, specify "livecd keyb=<mapping>" at the isolinux
+      prompt. For instance, "livecd keyb=us_intl" will select the
+      international US keyboard layout.
+   2. If you are building a specific CD which should cater for a
+      specific keyboard layout, specify '--keyboard=<mapping>' on
+      the mklivecd command-line to automatically add a default
+      option to the isolinux configuration.
+
+
+Q: Ok, I know how to change the mapping, but what values are valid
+   for the 'mapping'?
+A: Here is a full list of the available keyboard mappings along
+   with their respective descriptions:
+
+   al              Albanian
+   am              Armenian (typewriter)
+   am_old          Armenian (old)
+   am_phonetic     Armenian (phonetic)
+   ar              Arabic
+   az              Azerbaidjani (latin)
+   be              Belgian
+   ben             Bengali
+   bg              Bulgarian (BDS)
+   bg_phonetic     Bulgarian (phonetic)
+   br              Brazilian (ABNT-2)
+   bs              Bosnian
+   by              Belarusian
+   ch_de           Swiss (German layout)
+   ch_fr           Swiss (French layout)
+   cz              Czech (QWERTZ)
+   cz_qwerty       Czech (QWERTY)
+   de              German
+   de_nodeadkeys   German (no dead keys)
+   dev             Devanagari
+   dk              Danish
+   dvorak          Dvorak (US)
+   dvorak_no       Dvorak (Norwegian)
+   dvorak_se       Dvorak (Swedish)
+   ee              Estonian
+   es              Spanish
+   fi              Finnish
+   fr              French
+   ge_la           Georgian ("Latin" layout)
+   ge_ru           Georgian ("Russian" layout)
+   gr              Greek
+   gr_pl           Greek (polytonic)
+   guj             Gujarati
+   gur             Gurmukhi
+   hr              Croatian
+   hu              Hungarian
+   ie              Irish
+   il              Israeli
+   il_phonetic     Israeli (Phonetic)
+   ir              Iranian
+   is              Icelandic
+   it              Italian
+   iu              Inuktitut
+   jp              Japanese 106 keys
+   kan             Kannada
+   kr              Korean keyboard
+   la              Latin American
+   lao             Laotian
+   lt_b            Lithuanian "number row" QWERTY
+   lt              Lithuanian AZERTY (old)
+   lt_new          Lithuanian AZERTY (new)
+   lt_p            Lithuanian "phonetic" QWERTY
+   lv              Latvian
+   mal             Malayalam
+   mk              Macedonian
+   mm              Myanmar (Burmese)
+   mng             Mongolian (cyrillic)
+   mt              Maltese (UK)
+   mt_us           Maltese (US)
+   nl              Dutch
+   no              Norwegian
+   ori             Oriya
+   pl2             Polish (qwertz layout)
+   pl              Polish (qwerty layout)
+   pt              Portuguese
+   qc              Canadian (Quebec)
+   ro2             Romanian (qwertz)
+   ro              Romanian (qwerty)
+   ru              Russian
+   ru_yawerty      Russian (Phonetic)
+   sapmi           Saami (norwegian)
+   sapmi_sefi      Saami (swedish/finnish)
+   se              Swedish
+   si              Slovenian
+   sk_qwerty       Slovakian (QWERTY)
+   sk              Slovakian (QWERTZ)
+   sr              Serbian (cyrillic)
+   syr_p           Syriac (phonetic)
+   syr             Syriac
+   tel             Telugu
+   th              Thai keyboard
+   tj              Tajik keyboard
+   tml             Tamil (ISCII-layout)
+   tr_f            Turkish (traditional "F" model)
+   tr_q            Turkish (modern "Q" model)
+   tscii           Tamil (Typewriter-layout)
+   ua              Ukrainian
+   uk              UK keyboard
+   us_intl         US keyboard (international)
+   us              US keyboard
+   uz              Uzbek (cyrillic)
+   vn              Vietnamese "numeric row" QWERTY
+   yu              Yugoslavian (latin)
+
+
+Q: What are these lss images that isolinux can display? How do I
+   generate them?
+A: Ahhh, you found the '--bootimg' option. The LSS image
+   format is a run-length encoded format, chosen by the syslinux
+   author as a fast/easy way of displaying boot images. Here is
+   how you create them:
+
+   1. Create a 16 colour (indexed palette) BMP file with a
+      resolution of
+   2. Convert the BMP to PPM format, using the "bmptoppm" utility.
+      (Part of the netpbm package.) An example of the usage is:
+      "bmptoppm -verbose mycd.bmp >mycd.ppm"
+   3. Convert the PPM format to LSS, using the "ppmtolss16"
+      utility. (Part of the syslinux package.) An example of the
+      usage is:
+      "ppmtolss16 \#3a3e6e=0 \#d0d0d0=7 <mycd.ppm >mycd.lss" (*)
+
+   Some users on the mklivecd lists have reportedly had success
+   with the gif2lss program, allowing you to skip the extra steps
+   of converting and re-converting. The program can be downloaded
+   from Freshmeat:
+
+   http://freshmeat.net/projects/gif2lss/?topic_id=105%2C139
+
+   (*) The command show the use of palette remapping, which might
+       be needed, depending on your original BMP image. ISOLinux
+       uses colour index 0 for the background and index 7 for the
+       foreground text. In the above example the remapping (using
+       the colour value) is done to get the correct effect. (The
+       utility expects colours to be indicated by #, in the above
+       example these are escaped as to not be identified as a
+       comment by the bash shell.)
+
+
+Q: Why are the isolinux images so limited? I know that Mandrake
+   uses more than 16 colours on their installation disks!
+A: Mandrake has made a modification to the isolinux program that
+   allows for the display of images up to 128 colours. To utilise
+   this option, follow the instructions (and script) in
+   /usr/share/doc/syslinux-1.76/README.graphic. In addition to
+   specifying the created boot message (as per the README) with
+   the '--bootmsg' flag, you would need to specify '--mdkboot'
+   on the mklivecd command-line to enable the use of the correct
+   (Mandrake-enhanced) isolinux boot image binary.
+
+
+Q: I don't like the fact that my CD ejects at shutdown - how do I
+   disable this?
+A: Pass the "noeject" parameter on the iso boot prompt, i.e
+   "livecd noeject"
+
+
+Q: How do I override some of the installation/creation parameters
+   on install? For instance, I want all my created CDs to default
+   to a different keyboard layout without specifying the --keyboard
+   parameter on CD creation.
+A: The Rules.mk makefile defines several parameters that can be
+   overridden on the "make" comman-line when installing mklivecd.
+   For instance, a "make DEF_KEYBOARD=dvorak ; make install" will
+   change your installation to always use the dvorak keyboard
+   layout. Other parameters that can be overridden includes:
+   DEF_RESOLUTION, DEF_VGAMODE and MAX_SPLASH.

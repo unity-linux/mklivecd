@@ -1,0 +1,1195 @@
+#!/usr/bin/perl
+#
+# LiveCD iso build script
+#
+# Copyright (C) 2002-2004, Jaco Greeff <jaco@puxedo.org>
+# Copyright (C) 2003, Buchan Milne <bgmilne@obsidian.co.za>
+# Copyright (C) 2004, Tom Kelly  <tom_kelly33@yahoo.com>
+#
+#    This program is free software; you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation; either version 2 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program; if not, write to the Free Software
+#    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+# Adapted from the MiniCD (http://www.linuxminicd.org) and mkinitrd build scripts
+
+use lib qw(/usr/lib/libDrakX);
+
+# i18n: IMPORTANT: to get correct namespace (mklivecd instead of libDrakX)
+BEGIN { unshift @::textdomains, 'mklivecd' }
+
+use strict;
+require services;
+
+### dependancies
+use Getopt::Long;
+use MDK::Common;
+use Storable qw(store);
+use threads::shared;
+use common;
+
+### useful functions
+sub get_exec { my $r = qx($_[0]); chomp($r); $r; };
+
+### global "constants"
+my $PROG_VERSION   = '@MKLIVECDVER@';
+my $PROG_NAME      = '@PKGNAME@';
+my $ESC            = "\x1B[";
+my $URL            = "http://unity-linux.org/";
+my $COPYRIGHT      = "Copyright (C) 2002-2004, Jaco Greeff <jaco\@puxedo.org>";
+
+### global variables
+my $starttime      = time;
+my $workdir        = undef;
+my $kernel26       = undef;
+my $kernelver      = "3.4.0";
+my $depmod         = "/sbin/depmod";
+my $modfile        = "/etc/modules.conf";
+my $modext         = ".ko";
+my $nodirs         = '^/[.].* ^/dev$ ^/initrd$ ^/live$ ^/lost+found$ ^/mnt$ ^/media$ ^/proc$ ^/sys$ ^/tmp$ ^/var/tmp$ ^/root/tmp$ ^/proc/asound';
+my $nofiles        = '^/[.].* ^/fastboot$ /core[.][0-9][0-9]*$ .*~$ .*[.]rpmnew$ .*[.]rpmsave$ [.]bash_history$ [.]fonts[.]cache-[0-9]$ [.]xauth.* [.]wh[.]* [.]xsession-errors$ ^/var/run/ ^/var/lock/subsys/ ^/var/lib/dhcp/ ^/etc/modprobe.conf ^/etc/sysconfig/network-scripts/ifcfg-eth* ^/etc/udev/rules.d/61-* ^/etc/udev/rules.d/70-persistent* ^/etc/asound.state ^/etc/X11/xorg.conf ^/etc/lilo.conf ^/boot/grub/menu.lst ^/etc/modprobe.preload.d/cpufreq ^/etc/sysconfig/harddrake2/previous_hw ^/var/lib/rpm/__db.* ^/etc/sysconfig/finish-install ^/etc/sysconfig/clock ^/etc/localtime ^/etc/sysconfig/hardrake2/kernels ^/var/lib/speedboot/status ^/run/* ^/var/run/* ^/var/log/* ^/var/log/ConsoleKit/* ^/var/log/cups/* ^/var/log/daemons/* ^/var/log/gdm/* ^/var/log/kernels/* ^/var/log/lpr/* ^/var/log/mail/* ^/var/log/ppp/* ^/root/.bash_history ^/home/guest/.bash_history ^/var/spool/repackage/* ^/var/lib/smart/packages/* ^/var/lib/smart/channels/* ^/var/lib/speedboot/status ^/root/.thumbnails';
+my $loopmod		= undef;
+my $loopcmp		= undef;
+my $o_stage2		= undef;
+my $finaliso		= "livecd.iso";
+my $loader		= "isolinux/isolinux.bin";
+my $md5sum		= undef;
+my $memtest		= undef;
+my $genisoimage_opts	= "";	# Fix for concat of undef in iso looptype
+my @services		= ();
+
+### command-line options
+my $o_verbose;
+my $o_workdir;
+my $o_root		= "/";
+my $o_tmp		= "/tmp";
+my $o_looptype		= "sqfs";
+my $o_keyboard		= '@DEF_KEYBOARD@';
+my $o_resolution	= '@DEF_RESOLUTION@';
+my $o_theme		= 'Unity';
+my $o_vgamode		= '@DEF_VGAMODE@';
+my $o_splash		= "silent";
+my $o_bootloader	= "iso";
+my $o_ufs		= '@DEF_UNION@';
+my $o_kernel		= get_exec("ls -1r $o_root/lib/modules/| head -n1 | sed -e 's|/||g'");
+my $o_mbkopt		= "";
+my $o_gzip;
+my $o_xz;
+my $o_nosplash;
+my $o_timeout		= 150;
+my %opts		= ( # these are all the options with defaults
+	'root'		=> \$o_root,
+	'tmp'		=> \$o_tmp,
+	'keyboard'	=> \$o_keyboard,
+	'resolution'	=> \$o_resolution,
+	'splash'	=> \$o_splash,
+	'kernel'	=> \$o_kernel,
+	'timeout'	=> \$o_timeout,
+	'bootloader'	=> \$o_bootloader,
+	'mbkopt'	=> \$o_mbkopt,
+	'ufs'		=> \$o_ufs
+);
+
+### startup banner
+sub print_banner {
+	print STDERR N("%s, version %s, %s
+%s
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+", $PROG_NAME, $PROG_VERSION, $URL, $COPYRIGHT);
+}
+
+### usage
+sub print_usage {
+	print STDERR N("Usage:
+   %s [options] <livecd-image>
+
+General Options:
+   --help                          Display this message
+   --version                       Display version information
+   --verbose                       Be verbose in output
+   --noclean                       Don't remove temporary files on exit.
+   --workdir                       Specify a working directory which will not
+                                   be cleaned.
+   --debug                         Display some extra debugging information
+                                   while building the CD. (Useful for bug
+                                   reports to the developers.)
+
+Image generation:
+   --root <rootdir>                Root directory of the live filesystem to use
+                                   as the for the image of the LiveCD.
+                                   (default: %s)
+   --tmp <tmpdir>                  Name of the directory to be used for
+                                   temporary file storage.
+                                   (default: %s)
+   --img <image>                   Name of the saved compressed image. When an
+                                   image by this name is found, it will not be
+                                   re-created or overwritten, rather the
+                                   existing image will be re-used, i.e. the
+                                   compressed image is not re-built.
+   --nofile <ex1>[,][...]          Excludes files from the final image. (Also
+                                   see the --nodir option for a full
+                                   description)
+   --nodir <ex1>[,][...]           Excludes directories from the final image.
+                                   Patterns passed to this option (as with the
+                                   --nofile option) should be valid in a grep(1)
+                                   search, e.g. --nodir=^/home/jaco,^/root/.mcop
+                                   will exclude both the /home/jaco and
+                                   /root/.mcop directories from the final
+                                   LiveCD.
+   --sort <file>                   Sort the files on the compressed iso image
+                                   according to the genisoimage-style sort specifier
+                                   as detailed in file.
+   --kernel <kernel>               Kernel to use as default for the LiveCD image.
+                                   (default: %s)
+   --gzip                          Use gzip compression for the image
+   --xz                            Use xz compression for the image
+   --nosplash                      Disable the use of boot splash (plymouth)
+
+Boot options:
+   --bootopt <option>              Specify an additional boot option to pass to
+                                   the kernel command-line.
+   --bootmsg <msg>                 Use 'msg' as the isolinux boot message.
+   --bootkey <key=msg>             Display 'msg' on key 'key' from isolinux.
+   --bootimg <img>                 Use 'img' (LSS format) as the isolinux.
+                                   background display image.
+   --bootloader <iso|grub|usb>     The bootloader to use on the livecd i.e. isolinux, 
+                                   GRUB or syslinux for usb stick
+   --bootmenu <file>               What boot menu definition file should be used
+                                   in case that bootloader option is set to iso or grub.
+                                   For iso this file must be named 'isolinux.cfg',
+                                   for grub the name must be 'menu.lst'.
+                                   Boot menu will be generated if not specified.
+   --bootlang <lang code>          Which language shound be used as default
+                                   in the boot menu.
+                                   Defaults to 'en'.
+   --mbkopt <kernel>               Create the ISO with multi boot kernel option.
+   --ufs <unionfs|overlayfs>       Specify the union file system. DISABLED (only overlayfs works)
+   --timeout <sec>                 Specify the default ISO Linux prompt timeout
+                                   in seconds.
+                                   (default: %s)
+   --noprompt                      Disable ISO Linux prompt (i.e. prompt 0).
+   --keyboard <mapping>            Specify a different keyboard layout as
+                                   default for the LiveCD.
+                                   (default: %s)
+   --resolution <res>              Specify the resolution for the framebuffer
+                                   output device. (Either resolution or normal)
+                                   (default: %s)
+   --splash <silent|verbose|no>    Create the LiveCD with bootsplash support if
+                                   available on the root filesystem.
+                                   (default: %s)
+   --fstab <options>               Override the default options for the fstab on
+                                   the LiveCD. Options are one or more of 'auto'
+                                   and 'rw', for example '--fstab=rw,auto' will
+                                   automatically mount all detected partitions
+                                   rw.
+   --nofinishinstall               Disables the automatic system setup screens on
+                                   first boot.
+   --nosyslog                      Disable common logs to speed boot.
+
+ISO Image options:
+   --isoextrafiles <path>          Add the files in 'path' to the root of the
+                                   LiveCD ISO image.
+   --application <id>              Use the specified iso application ID, as '-A'
+                                   option to genisoimage.
+   --volumeid <id>                 Use the specified iso volume ID, as a '-V'
+                                   option to genisoimage.
+   --preparer <prep>               Use the specified preparer ID, as a '-p'
+                                   option to genisoimage.
+   --publisher <pub>               Use the specified publisher ID, as a '-P'
+                                   option to genisoimage.
+   --md5sum                        Compute and implant the md5sum to verify media.
+   --memtest                       Use memtest86+ to check the system memory.
+   
+Behaviour:
+   --usbhome                       Use USB memory stick devices as a persistent
+                                   home when available/connected on bootup.
+
+Examples:
+    %s --nodir ^/usr/src/RPM,^/root/tmp livecd.iso
+    %s --splash=silent livecd.iso
+
+", $0, $o_root, $o_tmp, $o_kernel, $o_timeout, $o_keyboard, $o_resolution, $o_splash, $0, $0);
+	exit(1);
+}
+
+### format an elapsed time
+sub fmt_elapsed {
+	my ($t) = @_;
+	my $h = int($t/3600);
+	my $m = int(($t - $h*3600)/60);
+	my $s = int($t - $h*3600 - $m*60);
+	sprintf("%02d:%02d:%02d", $h, $m, $s);
+}
+
+### format a number
+sub fmt_number {
+	my ($n) = @_;
+	$n = $n/1000;
+	my $t = int($n/1000);
+	my $h = $n - $t*1000;
+	my $r = sprintf("%0.3f", $h);
+	$r =~ s/[.]/,/;
+	if ($t > 0) {
+		$r = "0$r" while (length($r) < 7);
+		$r = "$t,$r";
+	}
+	$r;
+}
+
+### progress bar globals
+my $PROGRESS_MAX     = 76;
+my $progress_max     : shared = 0;
+my $progress_inc     : shared = 0;
+my $progress_curr    : shared = 0;
+my $progress_start   : shared = 0;
+my $progress_tot     : shared = 0;
+my $progress_text    : shared = undef;
+my $progress_ttext   : shared = undef;
+my $progress_timer   : shared = -1; # 0 to active, -1 to deactivate
+my $progress_last    : shared = 0;
+
+### to be called before we use the progress bar
+sub start_progress {
+	my ($title, $max) = @_;
+	my $i = 0;
+	$| = 1;
+	print $title.":\n";
+	print "[";
+	print " " while ($i++ < $PROGRESS_MAX);
+	print "]";
+	$progress_max = $max;
+	$progress_inc = $progress_max/$PROGRESS_MAX;
+	$progress_start = time;
+	$progress_curr = 0;
+	$progress_tot = 0;
+	$progress_text = undef;
+	$progress_ttext = undef;
+	$progress_last = 0;
+	print $ESC."1A".$ESC."52G";
+	print "[  0.00% ".fmt_elapsed(0)."/".fmt_elapsed(0)."]";
+	start_thread();
+}
+
+### while we are progressing
+sub set_progress {
+	my ($curr, $text, $thr) = @_;
+	$progress_last = $curr;
+	$progress_last = $progress_max if ($progress_last > $progress_max);
+	my $num = int($progress_last/$progress_inc) - $progress_curr;
+	if (defined($opts{verbose}) && defined($text)) {
+		$text =~ s/\[//g;
+		$text =~ s/\]//g;
+		$text =~ s/\+//g;
+		if (!defined($progress_text) || !($text =~ m/^$progress_text$/)) {
+			if (defined($thr) || ($progress_timer == -1)) {
+				$progress_text = $text;
+				$progress_ttext = $text;
+				print "\n";
+				$progress_curr += $num;
+				print $ESC."1G";
+				chomp($text);
+				$text =~ s#\r?\n# #gs; # remove newlines in text
+				if (length($text) > 72) {
+					print "  ".pack("A72", $text)." ...";
+				}
+				else {
+					print "  ".pack("A76",$text);
+				}
+				print $ESC."1A";
+			}
+			else {
+				$progress_ttext = $text;
+			}
+		}
+	}
+	elsif ($num) {
+		if (defined($thr) || ($progress_timer == -1)) {
+			print "\n";
+			my $col = 2+$progress_curr;
+			$progress_curr += $num;
+			print $ESC.$col."G";
+			print "=" while ($num--);
+			print $ESC."1A";
+		}
+	}
+
+	if (defined($thr) || ($progress_timer == -1)) {
+		my $elapsed = time - $progress_start;
+		my $remain = 0;
+		if ($progress_curr < $PROGRESS_MAX) {
+			$remain = $progress_curr ? ($elapsed/$progress_curr)*($PROGRESS_MAX - $progress_curr) : 0;
+		}
+		print $ESC."52G";
+		print sprintf("[%6.2f%% ", $curr*100/$progress_max);
+		print fmt_elapsed($elapsed)."/".fmt_elapsed($remain+$elapsed)."]";
+	}
+}
+
+### to close off the progress bar
+sub end_progress {
+	end_thread();
+	set_progress($progress_max, $progress_text);
+	print "\n";
+	my $i = -2;
+	print " " while ($i++ < $PROGRESS_MAX);
+	print $ESC."1G";
+}
+
+### this is our timer thingy
+sub timer_progress {
+	while (($progress_timer > 0) && ($progress_timer < 2)) {
+		set_progress($progress_last, $progress_ttext, 1);
+		sleep(1);
+	}
+	$progress_timer = 0;
+}
+
+### start the progress thread
+sub start_thread {
+	if ($progress_timer > -1) {
+		$progress_timer = 1;
+		threads->new(\&timer_progress);
+	}
+}
+
+### end the progress thread
+sub end_thread {
+	if ($progress_timer > -1) {
+		$progress_timer = 2;
+		sleep(2) if ($progress_timer > 0);
+	}
+}
+
+### parse the command-line options
+sub parse_options {
+	GetOptions(\%opts,
+		'help',
+		'verbose+',
+		'noclean',
+		'workdir=s',
+		'debug',
+		'root=s',
+		'tmp=s',
+		'img=s',
+		'nofile=s@',
+		'nodir=s@',
+		'sort=s',
+		'kernel=s',
+		'lowmem',
+		'bootopt=s@',
+		'bootmsg=s',
+		'bootkey=s%',
+		'bootimg=s',
+		'timeout=i',
+		'noprompt',
+		'keyboard=s',
+		'resolution=s',
+		'splash=s',
+		'fstab=s',
+		'isoextrafiles=s',
+		'application=s',
+		'volumeid=s',
+		'preparer=s',
+		'publisher=s',
+		'bootloader=s',
+		'mbkopt=s',
+		'bootmenu=s',
+		'boottheme=s',
+		'bootlang=s',
+		'ufs=s',
+		'md5sum',
+		'memtest',
+		'gzip',
+		'xz',
+		'nosplash',
+		'nofinishinstall',
+		'nosyslog',
+		'usbhome'
+	);
+
+	# help and stuff
+	print_usage if (defined($opts{help}));
+
+	# mandatory stuff
+	$o_root =~ s|/$||;
+	$o_root .= "/";
+	die_(N("\nFATAL: Root directory (--root) '%s' does not exist\n", $o_root)) unless (-d $o_root);
+	$o_tmp =~ s|/$||;
+	$o_tmp .= "/";
+	$o_stage2 = get_exec("find $o_root/lib -name stage2_eltorito");
+	die_(N("\nFATAL: Temporary directory (--tmp) '%s' does not exist\n", $o_tmp)) unless (-d $o_tmp);
+
+	# optional stuff
+	die_(N("\nFATAL: Specified sort file (--sort) '%s' does not exist\n", $opts{sort})) if (defined($opts{sort}) && !(-f $opts{sort}));
+	die_(N("\nFATAL: Kernel (--kernel) '%s' not installed on the root image. (Directory '%s/lib/modules/%s' does not exist.)\n", $o_kernel, $o_root, $o_kernel)) if (!(-d $o_root."/lib/modules/".$o_kernel));
+	die_(N("\nFATAL: Extra ISO directory (--isoextrafiles) '%s' does not exist\n", $opts{isoextrafiles})) if (defined($opts{isoextrafiles}) && !(-d $opts{isoextrafiles}));
+	die_(N("\nFATAL: Unknown splash (--splash) option '%s'\n", $o_splash)) unless ($o_splash =~ /silent|verbose|no/);
+	die_(N("\nFATAL: Work directory (--workdir) '%s' does not exist\n", $opts{workdir})) if (defined($opts{workdir}) && !(-d $opts{workdir}));
+
+	# final iso name
+	if (scalar(@ARGV) > 0) {
+		die_(N("\nFATAL: Too many command-line arguments\n")) if (scalar(@ARGV) > 1);
+		$finaliso = $ARGV[0];
+	}
+	else {
+		#die_("\nFATAL: No final iso name specified\nUse --help for usage\n");
+		$finaliso = "livecd.iso";
+	}
+
+	# set some options
+	my $rhr = "$o_root/etc/redhat-release";
+	my $distro  = (-f $rhr) ? get_exec("gawk -F' ' '{ print \$1 \" \" \$2 }' $rhr") : "$PROG_NAME";
+	my $version = (-f $rhr) ? get_exec("gawk -F' ' '{ print \$4 \" \" \$5 }' $rhr") : "$PROG_VERSION";
+	my $date    = get_exec("date +\%Y\%m\%d_\%H\%M");
+	$opts{volumeid} = "livecd_$date" unless (defined($opts{volumeid}));
+	$opts{application} = "$distro $version LiveCD" unless (defined($opts{application}));
+	$opts{preparer} = "$PROG_NAME $PROG_VERSION" unless (defined($opts{preparer}));
+	$opts{publisher} = "$URL" unless (defined($opts{publisher}));
+	$opts{boottheme} = "Unity" unless (defined($opts{boottheme}));
+	$opts{bootlang} = "en" unless (defined($opts{bootlang}));
+
+	# create our working dir if none given
+	if ($opts{workdir}) {
+		$workdir = $opts{workdir};
+		$opts{noclean} = 1;
+	} else {
+		$workdir = $o_tmp."mklivecd.$$";
+	}
+	mkdir_p($workdir);
+	die_(N("\nFATAL: Unable to create working directory, '%s'\n", $workdir)) unless (-e $workdir);
+	print STDERR N("\nWARNING: The temporary directory '%s' will not be removed at exit, please do so manually", $workdir) if (defined($opts{noclean}));
+
+	# massage where we might have options csv
+	@{$opts{nofile}} = split(/,/, join(',', @{$opts{nofile}})) if (defined($opts{nofile}));
+	push @{$opts{nofile}}, split(/ /, $nofiles);
+	@{$opts{nodir}} = split(/,/, join(',', @{$opts{nodir}})) if (defined($opts{nodir}));
+	push @{$opts{nodir}}, split(/ /, $nodirs);
+
+	# setup executables
+	$loopcmp = "/usr/bin/mksquashfs";
+	$loopmod = "squashfs";
+
+	# do other things before starting
+	check_kernel();
+	check_resolution();
+	check_root();
+	check_apps();
+	check_services();
+
+	# pretty up
+	print "\n\n";
+}
+
+### check for the kernel version
+sub check_kernel {
+	# this should really be perl regex's
+
+	$kernel26 = 1;
+	$modfile = "/etc/modprobe.conf";
+	$depmod = "/sbin/depmod";
+	$modext = ".ko";
+
+	# check for identical kernels
+	if ($o_kernel eq $o_mbkopt) {
+		print "\n";
+		print N("\nThe LiveCD kernel and multi boot kernel are identical.\n");
+		print N("Please choose another kernel or use the --kernel option.\n");
+		print "\n";
+		cleanup ();
+		exit (1);
+	}
+}
+
+### checks the resolution given
+sub check_resolution {
+	if ($o_resolution =~ m/^normal/) {
+		$o_vgamode = "normal";
+		$o_splash = "no";
+	}
+	elsif ($o_resolution =~ m/^640x480/) {
+		$o_vgamode = 785;
+	}
+	elsif ($o_resolution =~ m/^800x600/) {
+		$o_vgamode = 788;
+	}
+	elsif ($o_resolution =~ m/^1024x768/) {
+		$o_vgamode = 791;
+	}
+	elsif ($o_resolution =~ m/^1280x1024/) {
+		$o_vgamode = 794;
+	}
+	elsif ($o_resolution =~ m/^1600x1200/) {
+		$o_vgamode = 797;
+	}
+	else {
+		die_(N("\nFATAL: Invalid resolution '%s' specified with '--resolution' option
+       Valid resolutions are:
+             normal
+            640x480
+            800x600
+           1024x768
+          1280x1024
+          1600x1200\n"), $o_resolution);
+	}
+}
+
+### see if we are indeed root
+sub check_root {
+	die_("\nFATAL: You have to be root to execute this program\n") if ($> > 0);
+}
+
+### see if we are indeed root
+sub check_apps {
+	die_("\nFATAL: The '/usr/bin/genisoimage' program is not available, please install the correct package\n") unless (-f '/usr/bin/genisoimage');
+	die_("\nFATAL: The 'md5sum' program is not available, please install the coreutils package\n") unless (-f '/usr/bin/md5sum');
+	if (($o_bootloader =~m/^grub/) && ($o_stage2 eq '')) {
+	    die("\nFATAL: The Grub program is not available, please install the correct package\n")
+	}
+	die_("\nFATAL: The '$loopcmp' program is not available, please install the correct package\n") unless (!defined($loopcmp) || -f $loopcmp);
+}
+
+sub check_services {
+	my $eachserv='';
+	# disable some services
+	print STDERR N("\nDisabling Services not needed on the LiveCD\n\n");
+	if (defined($opts{nosyslog})){
+		foreach $eachserv ('atd','crond','rsyslog','kheader','xinetd') {
+			(push(@services,$eachserv) and  services::do_not_start_service_on_boot($eachserv)) if (services::starts_on_boot($eachserv));
+		}
+	}
+}
+
+### execute a command
+sub do_cmd {
+	my ($cmd, $prog) = @_;
+	set_progress($prog-1, $cmd) if (defined($prog));
+	system($cmd) and die_(N("\nFATAL: Execution of '%s' failed\n", $cmd));
+	set_progress($prog, $cmd) if (defined($prog));
+}
+
+### copy a file
+sub do_copy {
+	my ($src, $mode, $dest, $prog) = @_;
+	my $cmd = ($mode > 0) ? "install -m $mode $src $dest" : "cp -aL $src $dest";
+	set_progress($prog-1, $cmd) if (defined($prog));
+	system($cmd);
+	set_progress($prog, $cmd) if (defined($prog));
+}    	
+
+### create an initrd image
+sub create_initrd {
+
+	my @INITRDDIRS = ("live");
+	# start progress bar
+	my $pos = 0;
+
+	# for primary boot kernel
+	if ($o_mbkopt ne "" && ! -d "/lib/modules/$o_mbkopt") {
+		start_progress(N("Creating %s initrd", $o_kernel), 120);
+	}
+    	# for multiple boot kernel
+	elsif  ($o_mbkopt ne "" && -d "/lib/modules/$o_mbkopt") {
+        	start_progress(N("Creating %s and %s initrd", $o_kernel, $o_mbkopt), 240);
+		push(@INITRDDIRS, "live2");
+	}
+	else {
+		start_progress(N("Creating initrd"), 120);
+	}
+
+	# create directories
+	my $initrddir = undef;
+	foreach $initrddir (@INITRDDIRS) {
+	# start
+	my $dir = $workdir."/".$initrddir.".dir";
+	mkdir_p("$dir/$_") foreach qw(bin dev etc/sysconfig etc/livecd/hwdetect etc/rc.d/ etc/profile.d proc sys lib lib64 ramfs sbin usr/bin usr/sbin modules usr/lib usr/lib64 usr/share/ldetect-lst usr/share/plymouth lib/plymouth lib64/plymouth lib/module-init-tools cdrom loopfs tmp ramfs);
+
+	# dropped modules parport pcmcia uwb
+	my @kernel_drivers = qw(ata block firewire message scsi usb);
+	my @kernel_fs = qw(fat isofs nls overlayfs squashfs);
+	my $kernel_dir = "lib/modules/${o_kernel}";
+	my $kmod_dir = "$kernel_dir/kernel";
+	mkdir_p("$dir/$kmod_dir/drivers/$_") foreach @kernel_drivers;
+	mkdir_p("$dir/$kmod_dir/fs/$_") foreach @kernel_fs;
+	mkdir_p("$dir/$kmod_dir/lib");
+	set_progress(++$pos, "mkdir -p $dir/...");
+
+	# copy files
+	do_copy($o_root."bin/busybox.static",            755, "$dir/bin/busybox",             ++$pos);
+	do_copy($o_root."usr/share/mklivecd/linuxrc",    755, "$dir/linuxrc",                 ++$pos);
+	do_copy($o_root."usr/share/mklivecd/rc.sysinit", 755, "$dir/etc/rc.d/rc.sysinit",     ++$pos);
+	do_copy($o_root."usr/share/mklivecd/fstab",      644, "$dir/etc/fstab",               ++$pos);
+
+	# lets start to question some of these..
+	#do_copy($o_root."usr/sbin/hwdetect2",                              755, "$dir/usr/sbin/hwdetect2",         ++$pos);
+	do_copy($o_root."usr/share/mklivecd/halt.local",                   755, "$dir/sbin/halt.local",            ++$pos);
+	do_copy($o_root."etc/inittab",                                     644, "$dir/etc/inittab",                ++$pos);
+	do_copy($o_root."sbin/init",                                       755, "$dir/sbin/init.dynamic",          ++$pos);
+	do_copy($o_root."lib/module-init-tools/ldetect-lst-modules.alias",   0, "$dir/lib/module-init-tools",      ++$pos);
+
+	do_copy($o_root."$kernel_dir/modules.dep",		0, "$dir/lib/modules",		++$pos);
+	#do_copy($o_root."$kernel_dir/modules.description",	0, "$dir/lib/modules",		++$pos);
+	do_copy($o_root."$kernel_dir/modules.alias",		0, "$dir/lib/modules",		++$pos);
+
+	do_copy($o_root."$kmod_dir/drivers/$_",			0, "$dir/$kmod_dir/drivers/$_",	++$pos) foreach @kernel_drivers;
+	do_copy($o_root."$kmod_dir/fs/$_",			0, "$dir/$kmod_dir/fs/$_",	++$pos) foreach @kernel_fs;
+	do_copy($o_root."$kmod_dir/lib/crc*",   		0, "$dir/$kmod_dir/lib",	++$pos);
+	
+	my $moduletest = $o_root."$kernel_dir/kernel/fs/overlayfs/overlay.ko.xz";
+   	# overlayfs kernel is essential for the mklivecd to boot, no kernel overlay??? you should exit
+	die_("\nFATAL: The overlayfs kernel module  $moduletest is missing, please check your kernel\n") unless (-f $moduletest);
+	
+	do_copy($o_root."usr/share/pci.ids",			0, "$dir/usr/share",		++$pos);
+	do_copy($o_root."usr/share/usb.ids",			0, "$dir/usr/share",		++$pos);
+	do_copy($o_root."usr/share/ldetect-lst/fallback-modules.alias",	0, "$dir/usr/share/ldetect-lst",	++$pos);
+	do_copy($o_root."usr/share/ldetect-lst/pcitable.gz",	644, "$dir/usr/share/ldetect-lst",	++$pos);
+	do_copy($o_root."usr/share/ldetect-lst/usbtable.gz",	644, "$dir/usr/share/ldetect-lst",	++$pos);
+	
+	my $LIBDIR = undef;
+	my $ARCHNUM = undef;
+	# x86_64 support
+	if (-e "$o_root/usr/lib64/drakx-installer-binaries/probe-modules") {
+		$LIBDIR = "lib64";
+		$ARCHNUM = "x86-64";
+		do_copy($o_root.$LIBDIR."/ld-linux-$ARCHNUM.so.2",	0, "$dir/$LIBDIR",	++$pos);
+	}
+	# i586 support
+	if (-e "$o_root/usr/lib/drakx-installer-binaries/probe-modules") {
+		$LIBDIR = "lib";
+		$ARCHNUM = "i586";
+		do_copy($o_root.$LIBDIR."/ld-linux.so.2",	0, "$dir/$LIBDIR",		++$pos);
+	}
+	do_copy($o_root."usr/${LIBDIR}/drakx-installer-binaries/probe-modules", 755, "$dir/bin/probe-modules",	++$pos);
+	do_copy($o_root."${LIBDIR}/libc.so.6",			0, "$dir/${LIBDIR}",		++$pos);
+	do_copy($o_root."${LIBDIR}/libkmod.so.2",		0, "$dir/${LIBDIR}",		++$pos);
+
+	#not sure why these were pulled in
+	#do_copy($o_root."${LIBDIR}/libext2fs.so.2",		644, "$dir/${LIBDIR}",		++$pos);
+	#do_copy($o_root."${LIBDIR}/libpopt.so.0",		0, "$dir/${LIBDIR}",		++$pos);
+	#do_copy($o_root."${LIBDIR}/libncurses.so.5",		644, "$dir/${LIBDIR}",		++$pos);
+	#do_copy($o_root."${LIBDIR}/libreadline.so.6",		0, "$dir/${LIBDIR}",		++$pos);
+
+	# Plymouth support
+	if (!defined($opts{nosplash})) {
+	do_copy($o_root."${LIBDIR}/libm.so.6",			0, "$dir/${LIBDIR}",		++$pos);
+	do_copy($o_root."usr/${LIBDIR}/libpng16.so.16",		0, "$dir/${LIBDIR}",		++$pos);
+	do_copy($o_root."${LIBDIR}/libply.so.*",		0, "$dir/${LIBDIR}",		++$pos);
+	do_copy($o_root."${LIBDIR}/libply-splash-core.so.*",	0, "$dir/${LIBDIR}",		++$pos);
+	do_copy($o_root."usr/${LIBDIR}/libply-boot-client.so.*",	0, "$dir/${LIBDIR}",	++$pos);	
+	do_copy($o_root."usr/${LIBDIR}/libply-splash-graphics.so.*",	0, "$dir/${LIBDIR}",	++$pos);	
+	do_copy($o_root."usr/${LIBDIR}/plymouth/text.so",	0, "$dir/${LIBDIR}/plymouth",	++$pos);
+	do_copy($o_root."usr/${LIBDIR}/plymouth/script.so",	0, "$dir/${LIBDIR}/plymouth",	++$pos);
+	do_copy($o_root."usr/${LIBDIR}/plymouth/details.so",	0, "$dir/${LIBDIR}/plymouth",	++$pos);
+	do_copy($o_root."usr/share/plymouth/*",			0, "$dir/usr/share/plymouth",	++$pos);
+	do_copy($o_root."bin/plymouth",				755, "$dir/bin/plymouth",	++$pos);
+	do_copy($o_root."sbin/plymouthd",			755, "$dir/bin/plymouthd",	++$pos);
+	#do_copy($o_root."sbin/nash",				755, "$dir/bin/nash",		++$pos);
+	# required by nash
+	do_copy($o_root."${LIBDIR}/libblkid.so.1",		644, "$dir/${LIBDIR}",		++$pos);
+	do_copy($o_root."${LIBDIR}/libdevmapper.so.1.02",	0, "$dir/${LIBDIR}",		++$pos);
+	do_copy($o_root."${LIBDIR}/libdl.so.2",			0, "$dir/${LIBDIR}",		++$pos);
+	do_copy($o_root."${LIBDIR}/libpthread.so.0",		0, "$dir/${LIBDIR}",		++$pos);
+	do_copy($o_root."${LIBDIR}/libresolv.so.2",		0, "$dir/${LIBDIR}",		++$pos);
+	do_copy($o_root."${LIBDIR}/librt.so.1",			0, "$dir/${LIBDIR}",		++$pos);
+	do_copy($o_root."${LIBDIR}/libudev.so.*",		644, "$dir/${LIBDIR}",		++$pos);
+	do_copy($o_root."${LIBDIR}/libuuid.so.1",		644, "$dir/${LIBDIR}",		++$pos);
+	#do_copy($o_root."usr/${LIBDIR}/libbdevid.so.6.0.93",	0, "$dir/${LIBDIR}",		++$pos);
+	do_copy($o_root."usr/${LIBDIR}/libelf.so.1",		0, "$dir/${LIBDIR}",		++$pos);
+	do_copy($o_root."usr/${LIBDIR}/libgcc_s.so.1",		0, "$dir/${LIBDIR}",		++$pos);
+	#do_copy($o_root."usr/${LIBDIR}/libnash.so.6.0.93",	0, "$dir/${LIBDIR}",		++$pos);
+	do_copy($o_root."usr/${LIBDIR}/libparted.so.2",		0, "$dir/${LIBDIR}",		++$pos);
+	}
+
+	do_cmd("cp -a $o_root/etc/sysconfig $dir/etc",		++$pos);
+	if (!defined($opts{nofinishinstall})){
+		do_copy($o_root."usr/share/mklivecd/finish-install",	755, "$dir/etc/sysconfig",	++$pos);
+	}
+	else {
+	open CFG, '>', "$dir/etc/sysconfig/finish-install";
+	print CFG "FINISH_INSTALL=no\n";
+	close CFG;
+	}
+	do_cmd("mknod $dir/dev/initrd b 1 250", ++$pos);
+	do_cmd("mknod $dir/dev/live b 1 250",	++$pos);
+	do_cmd("mknod $dir/dev/console c 5 1",  ++$pos);
+	do_cmd("mknod $dir/dev/fb c 29 0",      ++$pos);
+	do_cmd("mknod $dir/dev/null c 1 3",     ++$pos);
+	do_cmd("mknod $dir/dev/systty c 4 0",   ++$pos);
+	do_cmd("mknod $dir/dev/ram b 1 1",      ++$pos);
+	do_cmd("mknod $dir/dev/tty$_ c 4 $_",   ++$pos) foreach((0,1,2,3,4,5,6,7,8,9,10,11,12));
+	do_cmd("mknod $dir/dev/ttyS0 c 4 64",   ++$pos);
+	do_cmd("mknod $dir/dev/ttyS1 c 4 65",   ++$pos);
+	do_cmd("mknod $dir/dev/ttyS2 c 4 66",   ++$pos);
+	do_cmd("mknod $dir/dev/ttyS3 c 4 67",   ++$pos);
+	do_cmd("mknod $dir/dev/lvm b 109 0",    ++$pos);
+
+	# generate modules file
+	do_cmd(":>$dir$modfile", ++$pos);
+	my $cfg = defined($kernel26) ? "" : "--config $dir$modfile";
+	if ( $initrddir =~ m/^live$/ ) {
+		do_cmd("(depmod -a --basedir $dir ".$cfg." $o_kernel || cp -f $o_root/lib/modules/$o_kernel/modules.dep $dir/lib/modules/$o_kernel) 2>/dev/null", ++$pos);
+		do_cmd("(cp -f $dir/lib/modules/$o_kernel/modules.dep $dir/modules) 2>/dev/null",                 ++$pos);
+	} elsif ( $initrddir =~ m/^live2$/ ) {
+		do_cmd("(depmod -a --basedir $dir ".$cfg." $o_mbkopt || cp -f $o_root/lib/modules/$o_mbkopt/modules.dep $dir/lib/modules/$o_mbkopt) 2>/dev/null", ++$pos);
+	}
+	# get sizes$o_kernel
+	my $size = get_exec("du -ks $dir | awk '{print \$1}'");
+	$size = $size + 300;
+	set_progress(++$pos, "du -ks $dir");
+
+	# number of inodes
+	my $inodes = 1250;
+	my $num = get_exec("find $dir | wc -l");
+	$inodes = $inodes + $num;
+	$size = int($size + ($inodes / 10)) + 1; # 10 inodes needs 1K
+	set_progress(++$pos, "find $dir | wc -l");
+
+	# do magic
+	my $initrd = undef;
+	my $mnt = undef;
+	$initrd = "$workdir/livecd/isolinux/$initrddir";
+	$mnt = "$workdir/$initrddir.mnt";
+	do_cmd("mkdir -p $workdir/livecd/isolinux",                         ++$pos);
+	do_cmd("mkdir -p $workdir/livecd/boot/grub",                        ++$pos);
+	do_cmd("dd if=/dev/zero of=$initrd bs=1k count=$size 2> /dev/null", ++$pos);
+	do_cmd("mke2fs -q -m 0 -F -N $inodes -s 1 $initrd",                 ++$pos);
+	do_cmd("mkdir -p $mnt ; mount -o loop -t ext2 $initrd $mnt",        ++$pos);
+	do_cmd("rm -rf $mnt/lost+found",                                    ++$pos);
+	do_cmd("(cd $dir ; tar cf - .) | (cd $mnt ; tar xf -)",             ++$pos);
+	do_cmd("sleep 1 ; umount $mnt",                                     ++$pos);
+	do_cmd("(cd $workdir/livecd/isolinux ; gzip -9 $initrddir)",        ++$pos);
+
+	# make splash
+	if (($o_splash !~ m/no/) && (!defined($opts{nosplash}))&& ($initrddir !~ m/^live2$/) ) {
+		if (-e "/tmp/bootsplash/scripts/make-boot-splash") {
+		    do_cmd("rm -rf /tmp/bootsplash");
+       	}
+		# common splash setup
+		do_cmd("mkdir -p /tmp/bootsplash");
+		if (!defined($opts{nosplash})) {
+			do_cmd("cp -r $o_root/usr/share/bootsplash/scripts /tmp/bootsplash");
+			do_cmd("perl -pi -e 's#usr/share/bootsplash#tmp/bootsplash#' /tmp/bootsplash/scripts/make-boot-splash");
+			do_cmd("perl -pi -e 's#usr/share/bootsplash#tmp/bootsplash#' /tmp/bootsplash/scripts/make-boot-splash-raw");
+			do_cmd("perl -pi -e 's/^warn/#warn/' /tmp/bootsplash/scripts/remove-boot-splash");
+		}
+
+		do_cmd("[ -d $o_root/tmp ] || mkdir $o_root/tmp");
+		do_cmd("mv -f $initrd.gz /tmp");
+		if (!defined($opts{nosplash})) {
+			do_cmd("/tmp/bootsplash/scripts/make-boot-splash-raw $o_root/tmp/live.gz $o_theme");
+		}
+		do_cmd("mv -f $o_root/tmp/live.gz $workdir/livecd/isolinux", ++$pos);
+	}
+	
+  	# we are done
+	} # end
+	end_progress();
+}
+	
+### create the compressed image
+sub create_compressed {
+	if (defined($opts{img}) && (-f $opts{img})) {
+		do_cmd("ln $opts{img} $workdir/livecd/livecd.$o_looptype");
+	}
+	else {
+		my $pos = 0;
+		start_progress(N("Setting filesystem parameters"), 5);
+
+		# handle excludes
+		do_cmd(":>$workdir/excludes.list", ++$pos);
+		if (defined($opts{nodir})) {
+			my $ex = join("\n", @{$opts{nodir}});
+			do_cmd("(find $o_root -type d 2>/dev/null | sed -e 's,^$o_root,/,g' | grep '$ex' | sed 's,^/,$o_root,' >>$workdir/excludes.list)", ++$pos);
+
+		}
+		if (defined($opts{nofile})) {
+			my $ex = join("\n", @{$opts{nofile}});
+			do_cmd("(find $o_root -type f 2>/dev/null | sed -e 's,^$o_root,/,g' | grep '$ex' | sed 's,^/,$o_root,' >>$workdir/excludes.list)", ++$pos);
+		}
+
+		# handle sort
+		do_cmd(":>$workdir/sort.list", ++$pos);
+		do_cmd("cat ".$opts{sort}." >>$workdir/sort.list", ++$pos) if (defined($opts{sort}));
+		end_progress();	
+	
+		my $withcompression;
+		if (defined($opts{gzip})) {
+		$withcompression = ""
+		} elsif (defined($opts{xz})) {
+		$withcompression = "-comp xz -b 1M"
+		} else {
+		$withcompression = "-comp xz -b 1M -Xbcj x86"
+		}
+
+		$pos = 0;
+		if ($o_looptype =~ m/sqfs/) {
+			my @files = qx(find $o_root -type f 2>/dev/null);
+			my $total = scalar(@files);
+			start_progress(N("Creating compressed image"), $total+2);
+			my $iso = "$loopcmp $o_root $workdir/livecd/livecd.$o_looptype $withcompression -info -ef $workdir/excludes.list";
+			$iso = "$iso -sort $workdir/sort.list" if (defined($opts{sort}));
+			$iso = "$iso 2>&1";
+			print "DEBUG: $iso\n" if (defined($opts{debug}));
+			open CMP, "$iso |" or die_(N("\nFATAL: Unable to execute '%s'\n", $iso));
+			my $line;
+			my $linep = "";
+			while ($line = <CMP>) {
+				if ($line =~ m/mksquashfs: file/) {
+					$linep = $line;
+					$pos++;
+					set_progress($pos, $linep);
+				}
+				else {
+					if (defined($opts{debug})) {
+						print "$line\n" if ($line =~ m/Error/);
+					}
+				}
+				set_progress($pos, $linep);
+			}
+			close CMP;
+			do_cmd("chmod 644 $workdir/livecd/livecd.$o_looptype", $total+1); # Failure = out of space
+			do_cmd("ln $workdir/livecd/livecd.$o_looptype $opts{img}", $total+2) if (defined($opts{img}));
+			end_progress();
+		}
+		else {
+			start_progress(N("Creating loop image"), 10001);
+			my $iso = "genisoimage $genisoimage_opts -R -exclude-list $workdir/excludes.list -hide-rr-moved -cache-inodes -no-bak -pad -v -v";
+			$iso = "$iso -sort $workdir/sort.list" if (defined($opts{sort}));
+			$iso = "$iso -o $workdir/livecd/livecd.$o_looptype $o_root";
+			$iso = "($iso) 2>&1";
+			print "DEBUG: $iso\n" if (defined($opts{debug}));
+			open CMP, "$iso |" or die_(N("\nFATAL: Unable to execute '%s'\n", $iso));
+			my $line;
+			while ($line = <CMP>) {
+				if ($line =~ m/done, estimate/) {
+					$line =~ s/^ //g while ($line =~ m/^ /);
+					my ($per, @rest) = split(/ /, $line);
+					$per =~ s/%//;
+					$pos = int($per*100);
+				}
+				set_progress($pos, $line);
+			}
+			close CMP;
+			do_cmd("ln $workdir/livecd/livecd.$o_looptype $opts{img}", 10001) if (defined($opts{img}));
+			end_progress();
+		}
+	}
+}
+
+### create the isolinux stuff
+sub create_isolinux {
+	my $pos = 0;
+	start_progress(N("Creating isolinux boot"), 9);
+
+	# copy boot images
+	my $bin = $o_root."usr/lib/syslinux/isolinux.bin";
+	die_(N("\nFATAL: '%s' does not exist on your machine. You need to install the syslinux package.\n", $bin)) unless (-f $bin);
+	do_copy($bin, 644, "$workdir/livecd/isolinux/isolinux.bin", ++$pos);
+	do_copy($o_root."usr/lib/syslinux/vesamenu.c32", 644, "$workdir/livecd/isolinux/vesamenu.c32", ++$pos);
+	die_(N("\nFATAL: The kernel '%sboot/vmlinuz-%s' does not exist on your machine.\n", $o_root, $o_kernel)) unless (-f $o_root."boot/vmlinuz-$o_kernel");
+	do_copy($o_root."boot/vmlinuz-$o_kernel", 644, "$workdir/livecd/isolinux/vmlinuz", ++$pos);
+	if ($o_mbkopt ne "") {
+		do_copy($o_root."boot/vmlinuz-$o_mbkopt", 644, "$workdir/livecd/isolinux/vmlinuz2", ++$pos)
+	}
+	
+	# both mediacheck/md5sum & memtest are options
+	if (defined($opts{md5sum})) {
+		my $mediachecktest = $o_root."usr/bin/mediacheck";
+		die_("\nWARNING: mediacheck is missing, either install the package or remove --md5sum\n") unless ( -f $mediachecktest );
+		do_copy($o_root."usr/bin/mediacheck", 755, "$workdir/livecd/isolinux/mediacheck", ++$pos);
+	}
+
+	if (defined($opts{memtest})) {
+		my $memtesttest = $o_root."boot/memtest.bin";
+		die_("\nWARNING: memtest86+ is missing, either install the package or remove --memtest\n") unless ( -f $memtesttest );
+		do_copy($o_root."boot/memtest.bin", 644, "$workdir/livecd/isolinux/memtest", ++$pos);
+	}
+
+	if ($o_bootloader =~ m/^iso/) {
+		if (!defined($opts{nosplash})) {
+	   		my $bootsplashtest = $o_root."usr/share/bootsplash/themes/$opts{boottheme}/images/bootsplash-1024x768.jpg";
+	   		die_("\nWARNING: The boot theme is missing, please install a bootsplash theme\n") unless (-f $bootsplashtest);
+			do_copy($o_root."usr/share/bootsplash/themes/$opts{boottheme}/images/bootsplash-800x600.jpg", 644, "$workdir/livecd/isolinux/splash.jpg", ++$pos);
+		}
+	} else {
+	   	do_copy($o_stage2, 644, "$workdir/livecd/boot/grub/stage2_eltorito", ++$pos);
+	   	do_copy($o_root."boot/grub/*.xpm.gz", 644, "$workdir/livecd/boot/grub/livecd.xpm.gz", ++$pos);
+	   	do_copy($o_root."usr/share/gfxboot/themes/$opts{boottheme}/boot/*", 644, "$workdir/livecd/boot/grub", ++$pos);
+	}
+
+	# copy messages
+	if (defined($opts{bootimg})) {
+		do_copy($opts{bootmsg}, 644, "$workdir/livecd/isolinux/livecd.msg", ++$pos);
+		do_cmd("echo -n '' >$workdir/livecd/isolinux/livecd.msg", ++$pos);
+		do_cmd("echo -e '\\030livecd.lss' >>$workdir/livecd/isolinux/livecd.msg", ++$pos);
+		do_copy($opts{bootimg}, 644, "$workdir/livecd/isolinux/livecd.lss", ++$pos);
+	}
+
+	# write config
+	my $appopt;
+	$appopt = "initrd=live.gz root=/dev/sr0:CDLABEL=$opts{volumeid} ramdisk_size=32768 vga=$o_vgamode keyb=$o_keyboard nopat rd_NO_LUKS rd_NO_MD noiswmd";
+	#$appopt .= " splash=$o_splash" if ($o_splash !~ m/no/);
+	$appopt = "$appopt fstab=".$opts{fstab} if (defined($opts{fstab}));
+	$appopt = "$appopt home=usb" if (defined($opts{usbhome}));
+	$appopt = "$appopt $_" foreach (@{$opts{bootopt}});
+
+	open LANG, '>', "$workdir/livecd/isolinux/lang";
+	print LANG $opts{bootlang}."\n";
+	close LANG;
+
+	if (defined($opts{bootmenu}) && -f $opts{bootmenu} ) {
+		do_copy($opts{bootmenu}, 644, "$workdir/livecd/isolinux", ++$pos);
+	} else {
+		open CFG, '>', "$workdir/livecd/isolinux/isolinux.cfg";
+		print CFG "default vesamenu.c32\n";
+		print CFG "timeout $o_timeout\n";
+		print CFG "menu background splash.jpg\n" if (!defined($opts{nosplash}));
+		print CFG "menu title Welcome to Unity Linux 2012!\n";
+		print CFG "menu tabmsg Press [Tab] to edit options\n";
+		print CFG "menu passprompt Password required\n";
+		print CFG "menu autoboot Automatic boot in # second{,s}...\n";
+		print CFG "menu color border 0 #ffffffff #00000000\n";
+		print CFG "menu color sel 7 #ffffffff #ff000000\n";
+		print CFG "menu color title 0 #ffffffff #00000000\n";
+		print CFG "menu color tabmsg 0 #ffffffff #00000000\n";
+		print CFG "menu color unsel 0 #ffffffff #00000000\n";
+		print CFG "menu color hotsel 0 #ff000000 #ffffffff\n";
+		print CFG "menu color hotkey 7 #ffffffff #ff000000\n";
+		print CFG "menu color timeout_msg 0 #ffffffff #00000000\n";
+		print CFG "menu color timeout 0 #ffffffff #00000000\n";
+		print CFG "menu color cmdline 0 #ffffffff #00000000\n";
+
+		print CFG "\n";
+		print CFG "label linux0\n";
+		print CFG "menu label Launch system\n";
+		print CFG "kernel vmlinuz\n";
+		print CFG "append $appopt splash=$o_splash\n";
+
+		# missing install from cd boot stuff TODO
+		#print CFG "\n";
+		#print CFG "label linux0\n";
+		#print CFG "menu label Install system\n";
+		#print CFG "kernel vmlinuz\n";
+		#print CFG "append $appopt splash=$o_splash install\n";
+
+		print CFG "\n";
+		print CFG "label linux0\n";
+		print CFG "menu label Video safe boot\n";
+		print CFG "kernel vmlinuz\n";
+
+		print CFG "\n";
+		print CFG "label linux0\n";
+		print CFG "menu label Safe boot\n";
+		print CFG "kernel vmlinuz\n";
+		print CFG "append $appopt splash=$o_splash acpi=off noapic nolapic noscsi nopcmcia nopat\n";
+
+		print CFG "\n";
+		print CFG "label linux0\n";
+		print CFG "menu label Copy to RAM\n";
+		print CFG "kernel vmlinuz\n";
+		print CFG "append copy2ram $appopt splash=verbose\n";
+
+		if (defined($opts{md5sum})) {
+		print CFG "\n";
+		print CFG "label linux0\n";
+		print CFG "menu label Media Check\n";
+		print CFG "kernel vmlinuz\n";
+		print CFG "append md5sum $appopt splash=verbose\n";
+		}
+
+		if (defined($opts{memtest})) {
+		print CFG "\n";
+		print CFG "label linux0\n";
+		print CFG "menu label Memory Test\n";
+		print CFG "kernel memtest\n";
+		}
+
+		close CFG;
+	}
+
+	if ($o_bootloader =~ m/^grub/) {
+		if (defined($opts{bootmenu}) && -f $opts{bootmenu} )
+		{
+		    do_copy($opts{bootmenu}, 644, "$workdir/livecd/boot/grub", ++$pos);
+		} else {
+	open CFG, '>', "$workdir/livecd/boot/grub/menu.lst";
+	print CFG "default 0\n";
+	print CFG "timeout 30\n";
+	print CFG "gfxmenu (cd)/boot/grub/message\n\n";
+	print CFG "title LiveCD start\n";
+	print CFG "kernel (cd)/isolinux/vmlinuz $appopt\n";
+	print CFG "initrd (cd)/isolinux/live.gz\n\n";
+	print CFG "title Video safe mode - VESA\n";	
+	print CFG "kernel (cd)/isolinux/vmlinuz $appopt vesa\n";
+	print CFG "initrd (cd)/isolinux/live.gz\n\n";
+	print CFG "title Safe boot\n";	
+	print CFG "kernel (cd)/isolinux/vmlinuz acpi=off vga=normal noapic nolapic noscsi nopcmcia\n";
+	print CFG "initrd (cd)/isolinux/live.gz\n\n";
+	print CFG "title Copy to RAM\n";
+	print CFG "kernel (cd)/isolinux/vmlinuz copy2ram $appopt splash=verbose\n";
+	print CFG "initrd (cd)/isolinux/live.gz\n\n";
+	print CFG "title Media check\n";
+	print CFG "kernel (cd)/isolinux/vmlinuz md5sum $appopt splash=verbose\n";
+	print CFG "initrd (cd)/isolinux/live.gz\n\n";
+	print CFG "title Memory test\n";
+	print CFG "kernel (cd)/isolinux/memtest\n\n\n";
+	print CFG "#title LegacyKernel\n";
+	print CFG "#kernel (cd)/isolinux/vmlinuz2 initrd=live2.gz $appopt\n";
+	print CFG "#initrd (cd)/isolinux/live2.gz\n\n";
+	close CFG;
+		}
+    }
+
+	set_progress(++$pos, "$workdir/livecd/isolinux/isolinux.cfg");
+
+	if ($o_mbkopt ne "") {
+		if ($o_bootloader =~ m/^iso/) {
+		    do_cmd("perl -pi -e 's/live2.gz initrd=live.gz/live2.gz/' $workdir/livecd/isolinux/isolinux.cfg");
+	    	    do_cmd("perl -pi -e 's/#//' $workdir/livecd/isolinux/isolinux.cfg");
+		    if ($o_mbkopt !~ m/lgc/) {	
+			do_cmd("perl -pi -e 's/LiveCD/LiveCD-".$o_kernel."/' $workdir/livecd/isolinux/isolinux.cfg");
+		        do_cmd("perl -pi -e 's/LegacyKernel/Kernel-".$o_mbkopt."/' $workdir/livecd/isolinux/isolinux.cfg");
+		    }
+    	        } else {
+		    do_cmd("perl -pi -e 's/live2.gz initrd=live.gz/live2.gz/' $workdir/livecd/boot/grub/menu.lst");
+		    do_cmd("perl -pi -e 's/#//' $workdir/livecd/boot/grub/menu.lst");
+			if ($o_mbkopt !~ m/lgc/) {
+		        do_cmd("perl -pi -e 's/LiveCD/LiveCD-".$o_kernel."/' $workdir/livecd/boot/grub/menu.lst");
+			    do_cmd("perl -pi -e 's/LegacyKernel/Kernel-".$o_mbkopt."/' $workdir/livecd/boot/grub/menu.lst");
+		        }
+		}
+        }		
+	# create boot catalogue
+	do_cmd("dd if=/dev/zero of=$workdir/livecd/isolinux/boot.cat bs=1k count=2 2> /dev/null", ++$pos);
+
+	end_progress();
+}
+
+### create the final iso
+sub create_finaliso {
+	# create a sort-file
+	my $pos = 0;
+	start_progress(N("Creating final iso"), 10001);
+	open SORT, '>', "$workdir/sort_iso.list";
+	print SORT "$workdir/livecd/isolinux/isolinux.bin 500\n";
+	print SORT "$workdir/livecd/isolinux/isolinux.cfg 499\n";
+	print SORT "$workdir/livecd/isolinux/vmlinuz 498\n";
+	print SORT "$workdir/livecd/isolinux/live.gz 497\n";
+	print SORT "$workdir/livecd/isolinux/* 450\n";
+	print SORT "$workdir/livecd/livecd.$o_looptype 400\n";
+	close SORT;
+	set_progress(++$pos, "$workdir/sort_iso.list");
+
+	# create actual iso
+	$opts{isoextrafiles} = "" unless (defined($opts{isoextrafiles}));
+	if ($o_bootloader =~ m/^grub/) {
+		$loader = "boot/grub/stage2_eltorito";
+	}
+	elsif ($o_bootloader =~ m/^iso/) {
+		$loader = "isolinux/isolinux.bin";
+	}
+	my $cmd="genisoimage -pad -l -R -J -v -v \\\
+                  -V '".$opts{volumeid}."' \\\
+                  -A '".$opts{application}."' \\\
+                  -p '".$opts{preparer}."' \\\
+                  -P '".$opts{publisher}."' \\\
+                  -b $loader -c isolinux/boot.cat -hide-rr-moved -no-emul-boot -boot-load-size 4 -boot-info-table -sort $workdir/sort_iso.list -o $finaliso $workdir/livecd/ ".$opts{isoextrafiles}." 2>&1";
+          open ISO, "$cmd |" or die_(N("\nFATAL: Unable to execute '%s'\n", $cmd));
+          my $line;
+          while ($line = <ISO>) {
+		if ($line =~ m/done, estimate/) {
+			$line =~ s/^ //g while ($line =~ m/^ /);
+			my ($per, @rest) = split(/ /, $line);
+			$per =~ s/%//;
+			$pos = int($per*100)+1;
+		}
+		set_progress($pos, $line);
+	}
+	close ISO;
+	end_progress();
+}
+
+### create the embedded md5sum
+sub create_md5 {
+	my $isosize = get_exec("ls -al --block-size=1M $finaliso | awk '{print \$5 }'");
+	start_progress(N("Embedding MD5 checksum"), $isosize);
+	open MD5, "implantisomd5 $finaliso |" or die_(N("\nFATAL: Unable to execute 'implantisomd5'\n"));
+	my $line;
+	my $pos = 0;
+	while ($line = <MD5>) {
+		chomp($line);
+		if ($line =~ /^Read/) {
+			$pos = $line;
+			$pos =~ s/Read//;
+			$pos =~ s/MB//;
+			$pos =~ s/\s// while ($pos =~ /\s/);
+		}
+		set_progress($pos, $line);
+	}
+	close MD5;
+	end_progress();
+}
+
+
+### clean everything
+sub cleanup {
+	if (defined($workdir)) {
+		system("umount $workdir/live.mnt 2>/dev/null");
+		system("rm -rf $workdir") unless (defined($opts{noclean}));
+	}
+
+	# remove tmp bootspash files
+	if (-e "/tmp/bootsplash/scripts/make-boot-splash") {
+		do_cmd("rm -rf /tmp/bootsplash");
+	}
+
+	# enable back some disabled services
+	print STDERR N("\nRestoring Services on the installed system\n\n");
+	services::start_service_on_boot($_) foreach @services;
+}
+
+### signals
+sub die_ {
+	die('DIE', join(' ', @_));
+}
+sub do_signal {
+	my ($signal, $text) = @_;
+	end_thread();
+	my $to = $text ? $text : N("\nFATAL: Interrupted.\n");
+	chomp($to);
+	print pack("A80", $to)."\n";
+	cleanup();
+	exit(1);
+}
+
+### main program entry point
+MAIN: {
+	$SIG{INT} = \&do_signal;
+	$SIG{KILL} = \&do_signal;
+	$SIG{PIPE} = \&do_signal;
+
+	print_banner();
+	parse_options();
+
+	create_initrd();
+	create_compressed();
+	create_isolinux();
+	create_finaliso();
+	create_md5() if (defined($opts{md5sum}));;
+	cleanup();
+
+	my $finalsize = get_exec("ls -al $finaliso | awk '{print \$5 }'");
+	print N("\nCreated '%s' (%s bytes) in %s\n\n", $finaliso, fmt_number($finalsize), fmt_elapsed(time-$starttime));
+}

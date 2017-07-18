@@ -1,0 +1,358 @@
+#: ../mklivecd.in:104
+#, perl-format
+msgid ""
+"%s, version %s, %s\n"
+"%s\n"
+"\n"
+"This program is free software; you can redistribute it and/or\n"
+"modify it under the terms of the GNU General Public License\n"
+"as published by the Free Software Foundation; either version 2\n"
+"of the License, or (at your option) any later version.\n"
+msgstr ""
+
+#: ../mklivecd.in:117
+#, perl-format
+msgid ""
+"Usage:\n"
+"   %s [options] <livecd-image>\n"
+"\n"
+"General Options:\n"
+"   --help                          Display this message\n"
+"   --version                       Display version information\n"
+"   --verbose                       Be verbose in output\n"
+"   --noclean                       Don't remove temporary files on exit.\n"
+"   --workdir                       Specify a working directory which will "
+"not\n"
+"                                   be cleaned.\n"
+"   --debug                         Display some extra debugging information\n"
+"                                   while building the CD. (Useful for bug\n"
+"                                   reports to the developers.)\n"
+"\n"
+"Image generation:\n"
+"   --root <rootdir>                Root directory of the live filesystem to "
+"use\n"
+"                                   as the for the image of the LiveCD.\n"
+"                                   (default: %s)\n"
+"   --tmp <tmpdir>                  Name of the directory to be used for\n"
+"                                   temporary file storage.\n"
+"                                   (default: %s)\n"
+"   --img <image>                   Name of the saved compressed image. When "
+"an\n"
+"                                   image by this name is found, it will not "
+"be\n"
+"                                   re-created or overwritten, rather the\n"
+"                                   existing image will be re-used, i.e. the\n"
+"                                   compressed image is not re-built.\n"
+"   --nofile <ex1>[,][...]          Excludes files from the final image. "
+"(Also\n"
+"                                   see the --nodir option for a full\n"
+"                                   description)\n"
+"   --nodir <ex1>[,][...]           Excludes directories from the final "
+"image.\n"
+"                                   Patterns passed to this option (as with "
+"the\n"
+"                                   --nofile option) should be valid in a grep"
+"(1)\n"
+"                                   search, e.g. --nodir=^/home/jaco,^/root/."
+"mcop\n"
+"                                   will exclude both the /home/jaco and\n"
+"                                   /root/.mcop directories from the final\n"
+"                                   LiveCD.\n"
+"   --sort <file>                   Sort the files on the compressed iso "
+"image\n"
+"                                   according to the genisoimage-style sort "
+"specifier\n"
+"                                   as detailed in file.\n"
+"   --kernel <kernel>               Kernel to use as default for the LiveCD "
+"image.\n"
+"                                   (default: %s)\n"
+"   --lzma                          Use lzma compression for the image\n"
+"   --nosplash                      Disable the use of boot splash "
+"(plymouth)\n"
+"\n"
+"Boot options:\n"
+"   --bootopt <option>              Specify an additional boot option to pass "
+"to\n"
+"                                   the kernel command-line.\n"
+"   --bootmsg <msg>                 Use 'msg' as the isolinux boot message.\n"
+"   --bootkey <key=msg>             Display 'msg' on key 'key' from "
+"isolinux.\n"
+"   --bootimg <img>                 Use 'img' (LSS format) as the isolinux.\n"
+"                                   background display image.\n"
+"   --bootloader <iso|grub|usb>     The bootloader to use on the livecd i.e. "
+"isolinux, \n"
+"                                   GRUB or syslinux for usb stick\n"
+"   --bootmenu <file>               What boot menu definition file should be "
+"used\n"
+"                                   in case that bootloader option is set to "
+"iso or grub.\n"
+"                                   For iso this file must be named 'isolinux."
+"cfg',\n"
+"                                   for grub the name must be 'menu.lst'.\n"
+"                                   Boot menu will be generated if not "
+"specified.\n"
+"   --boottheme <name>              Which gfxboot theme should be used.\n"
+"                                   Defaults to 'Unity-Linux'\n"
+"   --bootlang <lang code>          Which language shound be used as default\n"
+"                                   in the boot menu.\n"
+"                                   Defaults to 'en'.\n"
+"   --mbkopt <kernel>               Create the ISO with multi boot kernel "
+"option.\n"
+"   --ufs <unionfs|aufs>            Specify the union file system. DISABLED "
+"(only aufs works)\n"
+"   --timeout <sec>                 Specify the default ISO Linux prompt "
+"timeout\n"
+"                                   in seconds.\n"
+"                                   (default: %s)\n"
+"   --noprompt                      Disable ISO Linux prompt (i.e. prompt "
+"0).\n"
+"   --keyboard <mapping>            Specify a different keyboard layout as\n"
+"                                   default for the LiveCD.\n"
+"                                   (default: %s)\n"
+"   --resolution <res>              Specify the resolution for the "
+"framebuffer\n"
+"                                   output device. (Either resolution or "
+"normal)\n"
+"                                   (default: %s)\n"
+"   --splash <silent|verbose|no>    Create the LiveCD with bootsplash support "
+"if\n"
+"                                   available on the root filesystem.\n"
+"                                   (default: %s)\n"
+"   --fstab <options>               Override the default options for the "
+"fstab on\n"
+"                                   the LiveCD. Options are one or more of "
+"'auto'\n"
+"                                   and 'rw', for example '--fstab=rw,auto' "
+"will\n"
+"                                   automatically mount all detected "
+"partitions\n"
+"                                   rw.\n"
+"   --nofinishinstall               Disables the automatic system setup "
+"screens on\n"
+"                                   first boot.\n"
+"   --nosyslog                      Disable common logs to speed boot.\n"
+"\n"
+"ISO Image options:\n"
+"   --isoextrafiles <path>          Add the files in 'path' to the root of "
+"the\n"
+"                                   LiveCD ISO image.\n"
+"   --application <id>              Use the specified iso application ID, as "
+"'-A'\n"
+"                                   option to genisoimage.\n"
+"   --volumeid <id>                 Use the specified iso volume ID, as a '-"
+"V'\n"
+"                                   option to genisoimage.\n"
+"   --preparer <prep>               Use the specified preparer ID, as a '-p'\n"
+"                                   option to genisoimage.\n"
+"   --publisher <pub>               Use the specified publisher ID, as a '-"
+"P'\n"
+"                                   option to genisoimage.\n"
+"   --md5sum                        Compute and implant the md5sum to verify "
+"media.\n"
+"   \n"
+"Behaviour:\n"
+"   --usbhome                       Use USB memory stick devices as a "
+"persistent\n"
+"                                   home when available/connected on bootup.\n"
+"\n"
+"Examples:\n"
+"    %s --nodir ^/usr/src/RPM,^/root/tmp livecd.iso\n"
+"    %s --splash=silent livecd.iso\n"
+"\n"
+msgstr ""
+
+#: ../mklivecd.in:435
+#, perl-format
+msgid ""
+"\n"
+"FATAL: Root directory (--root) '%s' does not exist\n"
+msgstr ""
+
+#: ../mklivecd.in:439
+#, perl-format
+msgid ""
+"\n"
+"FATAL: Temporary directory (--tmp) '%s' does not exist\n"
+msgstr ""
+
+#: ../mklivecd.in:442
+#, perl-format
+msgid ""
+"\n"
+"FATAL: Specified sort file (--sort) '%s' does not exist\n"
+msgstr ""
+
+#: ../mklivecd.in:443
+#, perl-format
+msgid ""
+"\n"
+"FATAL: Kernel (--kernel) '%s' not installed on the root image. (Directory "
+"'%s/lib/modules/%s' does not exist.)\n"
+msgstr ""
+
+#: ../mklivecd.in:444
+#, perl-format
+msgid ""
+"\n"
+"FATAL: Extra ISO directory (--isoextrafiles) '%s' does not exist\n"
+msgstr ""
+
+#: ../mklivecd.in:445
+#, perl-format
+msgid ""
+"\n"
+"FATAL: Unknown splash (--splash) option '%s'\n"
+msgstr ""
+
+#: ../mklivecd.in:446
+#, perl-format
+msgid ""
+"\n"
+"FATAL: Work directory (--workdir) '%s' does not exist\n"
+msgstr ""
+
+#: ../mklivecd.in:450
+msgid ""
+"\n"
+"FATAL: Too many command-line arguments\n"
+msgstr ""
+
+#: ../mklivecd.in:478
+#, perl-format
+msgid ""
+"\n"
+"FATAL: Unable to create working directory, '%s'\n"
+msgstr ""
+
+#: ../mklivecd.in:479
+#, perl-format
+msgid ""
+"\n"
+"WARNING: The temporary directory '%s' will not be removed at exit, please do "
+"so manually"
+msgstr ""
+
+#: ../mklivecd.in:517
+msgid ""
+"\n"
+"The LiveCD kernel and multi boot kernel are identical.\n"
+msgstr ""
+
+#: ../mklivecd.in:518
+msgid "Please choose another kernel or use the --kernel option.\n"
+msgstr ""
+
+#: ../mklivecd.in:555
+#, perl-format
+msgid ""
+"\n"
+"FATAL: Invalid resolution '%s' specified with '--resolution' option\n"
+"       Valid resolutions are:\n"
+"             normal\n"
+"            640x480\n"
+"            800x600\n"
+"           1024x768\n"
+"          1280x1024\n"
+"          1600x1200\n"
+msgstr ""
+
+#: ../mklivecd.in:586
+msgid ""
+"\n"
+"Disabling Services not needed on the LiveCD\n"
+"\n"
+msgstr ""
+
+#: ../mklivecd.in:598
+#, perl-format
+msgid ""
+"\n"
+"FATAL: Execution of '%s' failed\n"
+msgstr ""
+
+#: ../mklivecd.in:623
+#, perl-format
+msgid "Creating %s initrd"
+msgstr ""
+
+#: ../mklivecd.in:627
+#, perl-format
+msgid "Creating %s and %s initrd"
+msgstr ""
+
+#: ../mklivecd.in:631
+msgid "Creating initrd"
+msgstr ""
+
+#: ../mklivecd.in:879
+msgid "Setting filesystem parameters"
+msgstr ""
+
+#: ../mklivecd.in:909
+msgid "Creating compressed image"
+msgstr ""
+
+#: ../mklivecd.in:914 ../mklivecd.in:945 ../mklivecd.in:1146
+#, perl-format
+msgid ""
+"\n"
+"FATAL: Unable to execute '%s'\n"
+msgstr ""
+
+#: ../mklivecd.in:936
+msgid "Creating loop image"
+msgstr ""
+
+#: ../mklivecd.in:967
+msgid "Creating isolinux boot"
+msgstr ""
+
+#: ../mklivecd.in:971
+#, perl-format
+msgid ""
+"\n"
+"FATAL: '%s' does not exist on your machine. You need to install the syslinux "
+"package.\n"
+msgstr ""
+
+#: ../mklivecd.in:973
+#, perl-format
+msgid ""
+"\n"
+"FATAL: The kernel '%sboot/vmlinuz-%s' does not exist on your machine.\n"
+msgstr ""
+
+#: ../mklivecd.in:1121
+msgid "Creating final iso"
+msgstr ""
+
+#: ../mklivecd.in:1165
+msgid "Embedding MD5 checksum"
+msgstr ""
+
+#: ../mklivecd.in:1166
+msgid ""
+"\n"
+"FATAL: Unable to execute 'implantisomd5'\n"
+msgstr ""
+
+#: ../mklivecd.in:1197
+msgid ""
+"\n"
+"Restoring Services on the installed system\n"
+"\n"
+msgstr ""
+
+#: ../mklivecd.in:1209
+msgid ""
+"\n"
+"FATAL: Interrupted.\n"
+msgstr ""
+
+#: ../mklivecd.in:1235
+#, perl-format
+msgid ""
+"\n"
+"Created '%s' (%s bytes) in %s\n"
+"\n"
+msgstr ""

@@ -1,0 +1,1527 @@
+#!/bin/bash
+# MKliveCD Remastering script based on Grafisch remaster script
+# (C) Gettinther, Richjack, Unity-Linux.org
+# License GPL 2.0 or later
+
+#### Constants ####
+VERSION="0.6"
+LOG="/var/log/mkremaster"
+ICON="/usr/share/pixmaps/mkremaster.png"
+MONAME=mkremaster
+TMP="/tmp/unity.tmp"
+BRANDNAME=Unity
+DISKNAME=Unity.$$
+RPM_TMP=/tmp/Unity-RPMS.$$
+chrtopt="$RPM_TMP /bin/su root -c"
+FIRST_ELEMENT_LIST="perl rpm bootloader-utils smart"
+SMART_ERROR=
+FIX_SUCCESS=
+	
+#gnome-menus
+#gnome-mount
+#install-detasks
+#jpeg-progs
+#libggi
+#libmtp-utils
+#libpthread-stubs
+#newt
+#perl-RPM
+#perl-String-CRC32
+#perl-Tk
+#poppler-data
+#pwdb-conf
+#python-dbus
+#python-distutils
+#python-gnome-menus"
+
+
+
+DEFAULT_OPTIONS="--nofile=^/etc/sysconfig/hardrake2/kernels \
+--nofile=^/usr/share/icons/*/*.cache \
+--nofile=^/var/log/* \
+--nofile=^/var/log/ConsoleKit/* \
+--nofile=^/var/log/cron/* \
+--nofile=^/var/log/cups/* \
+--nofile=^/var/log/daemons/* \
+--nofile=^/var/log/gdm/* \
+--nofile=^/var/log/kernels/* \
+--nofile=^/var/log/lpr/* \
+--nofile=^/var/log/mail/* \
+--nofile=^/var/log/ppp/* \
+--nofile=^/root/.bash_history \
+--nofile=^/home/guest/.bash_history \
+--nofile=^/var/spool/repackage/* \
+--nofile=^/var/lib/smart/packages/* \
+--nofile=^/var/lib/speedboot/status \
+--nodir=^/root/.thumbnails"
+
+
+# This function to give the script i18n support
+__ () {
+	local gettextopts="-d $MONAME -e --"
+        local TEXT=`gettext $gettextopts "$1"`		# Unfortunately `` and $() remove any trailing newlines
+							# so, if one is present, it must be restored.
+							# Please, note that if more newlines are present
+							# they will be reduced to one.
+	[ "$(echo $1|grep "\\\n$")" ] && TEXT="$TEXT\n"	# If $1 ends with /n append /n to TEXT
+	[[ $1 = *$'\n' ]] && TEXT="$TEXT\n"		# If $1 ends with newline append /n to TEXT
+	shift
+	printf -- "$TEXT" "$@"
+}	
+
+# At some points, the script relies on the output of other programs such fdisk.
+# We can't rely on the English version of the messages, because, depending on the system, 
+# they might be translated into the system locale. This function retrieves the translated 
+# version of a given message $2 (if such translation exists) for the domain $1.
+fetchmsg() {
+	local gettextopts="-d $1 -e --"
+	shift
+        local TEXT=`gettext $gettextopts "$1"`
+	shift
+	printf -- "$TEXT" "$@"
+}
+
+# Remove any temp files/dirs from previous aborted attempts
+initialize(){
+if [ -d /mnt/usbstick ]; then
+	umount -vdlf /mnt/usbstick >> $LOG 2>&1
+	rmdir -v /mnt/usbstick >> $LOG 2>&1
+fi
+if [ -d /mnt/loop ]; then
+	umount -vdlf /mnt/loop >> $LOG 2>&1
+	rmdir -v /mnt/loop >> $LOG 2>&1
+fi
+}
+
+exit_script() {
+	zenity --info --text="$(__ "You chose not to continue...")" --title="$TITLE" --window-icon=$ICON
+}
+
+#### Command
+cmd() {
+echo "> $1 " >>  "$TMP"
+$1 2>"$TMP"
+OK=$?
+RESULT="$(<$TMP)"
+echo "OK = $OK"  >>"$TMP"
+if [ "$OK" != "0" ]; then         # Haarlem, we have a problem
+        if [ "$3" = "WARN" ]; then
+                zenity --warning --text="$2" --window-icon=$ICON
+        elif [ "$3" = "STOP" ]; then  # Bad error - stop
+                error "$(__ "ERROR:%s" "$2: $RESULT")" # Send to error func
+                exit 0
+        fi
+fi
+}
+
+# Function to unmount usb dev partition when required
+unmount_usb() {
+MOUNTED=$(df | grep $USB | awk '{print $6}')
+if [ "$MOUNTED" != "" ]; then
+	printf "Mounted partition(s) = %s. Unmounting now...\n" "$MOUNTED" >> $LOG
+	umount -vdlf ${DEVICE}* >> $LOG && wait
+	MOUNTED=$(df | grep $USB | awk '{print $6}')
+	if [ "$MOUNTED" != "" ]; then
+		error "$(__ "Cannot unmount %s. It may be busy or some other application may be controlling it.
+Try unmounting using your file manager or failing that unplug it, then re-run the script again.
+Now exiting..." "$USB")"
+		exit 1
+	fi
+fi
+}
+
+# Tidy up after a critical error
+liveusb_goodbye() {
+echo "##### CRITICAL ERROR #####" >> $LOG
+[ -n "$USB" ]  && umount -vdlf "$USB" >> $LOG 2>&1
+umount -vdlf $USBMNT >> $LOG 2>&1
+rmdir -v $USBMNT >> $LOG 2>&1
+if [ -d /mnt/loop ]; then
+	umount -vdlf /mnt/loop >> $LOG 2>&1
+	rmdir -v /mnt/loop >> $LOG 2>&1
+fi
+if [ -d /tmp/gfxboot ]; then
+	rm -fv /tmp/gfxboot/* >> $LOG 2>&1
+	rmdir -v /tmp/gfxboot >> $LOG 2>&1
+fi
+STOPTIME=$(date +%T)
+printf "Script stopped due to a critical error *or* user intervention at %s\n" "$STOPTIME" >> $LOG
+exit 1
+}
+
+# Report error (reason for stopping) and exit
+error() {
+echo "##### ERROR #####" >> $LOG
+echo "$1" >> $LOG 2>&1
+STOPTIME=$(date +%T)
+printf "Script stopped by user at %s\n" "$STOPTIME" >> $LOG
+zenity --error --title="$TITLE" --width=200 --text="$1" --window-icon=$ICON
+}
+
+# Find the usb devices #
+selectusbdevice() {
+# First try to find devices auto-mounted under /media (at least that's where Thunar mounts external devices)
+# Remove mounted CDs which are/should be mounted at /dev/sr# or /dev/scd#
+# If nothing is found, go with the tried and tested fdisk -l method
+MEDIA=$(df -h | grep -v -e "/dev/sr.*" -e "/dev/scd.*" | grep /media | awk '{print $1 " " $2 "B " $6}')
+printf "Device(s) found = %s\n" "$MEDIA" >> $LOG
+
+if [[ "$MEDIA" == "" ]]; then
+	printf "Not found any drives - rescanning\n" >> $LOG
+	zenity --question --title="$TITLE" --ok-label="$(__ "Show all")" --cancel-label="$(__ "Rescan")" \
+	       --window-icon=$ICON --width=450 \
+	       --text="$(__ "\nNo mounted removable devices found in /media.\n
+Reinsert your device, let the OS detect it and then click 'Rescan'.\n
+If it does not mount, click on 'Show all' to show all devices, mounted or otherwise.\n")"
+
+        if [ "$?" = "1" ]; then
+		MEDIA=$(df -h | grep /media | awk '{print $1 " " $2 "B " $6}')
+		printf "Device(s) found = %s\n" "$MEDIA" >> $LOG
+		if [[ "$MEDIA" == "" ]]; then
+			MEDIA=$(fdisk -l | grep "/dev/*d*" | sed 's/*//g' | \
+			grep -v "$(fetchmsg util-linux-ng "\nDisk %s: %ld.%ld GB, %lld bytes\n" 0 0 0 | head -2 | tail -1 | sed 's/0: 0\.0/\.\*/' | sed 's/0/\.\*/')" | \
+			grep -v "$(fetchmsg util-linux-ng "\nDisk %s: %ld MB, %lld bytes\n" 0 0 0 | head -2 | tail -1 | sed 's/0: 0\.0/\.\*/' | sed 's/0/\.\*/')" | \
+			grep -v "$(fetchmsg util-linux-ng "W95 Ext'd (LBA)")" | grep -v "$(fetchmsg util-linux-ng "Linux extended")" | grep -v "$(fetchmsg util-linux-ng "Extended")" | \
+			awk '{printf "%s\t%.2f GB\t%s.%s\n", $1, ($4/1048576),  $6, $7}' | \
+			sed "s|GB|$(__ "GB")|")
+			printf "Showing all devices: Found = %s\n" "$MEDIA" >> $LOG
+		fi
+        else
+		MEDIA=$(fdisk -l|grep -e '[[:space:]]/dev/'|sed -e 's/[:]//;s/,//'|awk '{print $2 " " $3 $4 " " $1}')
+		printf "Showing all devices: Found = %s\n" "$MEDIA" >> $LOG
+	fi
+fi
+
+#### SCREEN 2 - DEVICE SELECTION ####
+USB=$(zenity --list --title="$TITLE" --width=450 --height=300 \
+	       --window-icon=$ICON \
+	       --column="$(__ "Device or Partition")" $MEDIA \
+	       --column="$(__ "Size")" --column="$(__ "Information")" \
+	       --text "$(__ "Please select a USB device or a bootable primary partition to install onto.
+Make sure *not* to select an internal SATA hard disk, an external
+large hard disk or a CD/DVD device.\n")" )
+        if [[ "$USB" == "" ]]; then
+		error "$(__ "Exiting. You chose not to continue.\nNo changes have been made to your device.")"
+		exit 0
+        fi
+
+echo "##### USER INPUT #####" >> $LOG
+printf "Chosen device and partition is %s\n" "$USB" >> $LOG
+# Convert partition to device node eg /dev/sda1 to /dev/sda
+DEVICE=$(echo $USB | sed 's/[0-9]//;s/[0-9]//')
+printf "Chosen device node is %s\n" "$DEVICE" >> $LOG
+}
+
+livesource() {
+#### SCREEN 3 - SELECT LIVE SYSTEM TO CLONE ####
+LIVE="$(__ "The current live system")"
+ISO="$(__ "From an ISO file")"
+CD="$(__ "From CD/DVD")"
+
+# Check whether or not we're running in live mode.
+if [ -d "/union" ]; then
+	printf "Running in live mode...\n" >> $LOG
+	SRC=$(zenity --list --radiolist --title="$TITLE" --width=450 --height=250 \
+		     --window-icon=$ICON \
+		     --column="" --column="$(__ "Source")" --column="$(__ "Choice")" --hide-column=3 --print-column=3 \
+		       TRUE "$LIVE" LIVE FALSE "$ISO" ISO FALSE "$CD" CD \
+		     --text="$(__ "You are currently running a live operating system.
+You can create a live USB installation of the live OS,
+or from a downloaded ISO file or from a CD/DVD.\n
+Please choose:\n")" )
+
+else
+	printf "Running in installed mode...\n" >> $LOG
+		SRC=$(zenity --list --radiolist --title="$TITLE" --width=450 --height=250 \
+		     --window-icon=$ICON \
+		     --column="" --column="$(__ "Source")" --column="$(__ "Choice")" --hide-column=3 --print-column=3 \
+		       TRUE "$ISO" ISO FALSE "$CD" CD \
+		     --text="$(__ "You are currently running from an installed operating system.
+You can create a live USB installation from a downloaded ISO
+file or from a CD/DVD.\n
+Please choose:\n")" )
+fi
+
+case "$SRC" in
+	"LIVE")
+		IMAGE="/initrd/cdrom"
+		printf "Copying from %s" "/initrd/cdrom\n" >> $LOG
+		ISOSize=$(du -s --block-size 1048576 /initrd/cdrom | awk '{print $1}')
+		printf "ISO SIZE = %s\n" "$ISOSize" >> $LOG
+		;;
+	"ISO")
+		zenity --info --title="$TITLE" --text="$(__ "Please select an ISO file on the next screen that contains the operating system you want to install.")" \
+		       --window-icon=$ICON
+		if [ "$?" != "0" ]; then
+			error "$(__ "Exiting. You chose not to continue.\nNo changes have been made to your device.")"
+			exit 0
+		fi
+		LIVECD=$(zenity --file-selection --title="$(__ "Please select the downloaded iso file:")" \
+		                --file-filter="*.iso" \
+				--window-icon=$ICON)
+		printf "Selected ISO = %s\n" "$LIVECD" >> $LOG
+		if [ "$LIVECD" == "" ]; then
+			error "$(__ "Exiting. You have not selected an ISO file to create the live system from. Cannot continue.")"
+			exit 0
+		fi
+		mkdir -vp /mnt/loop >> $LOG 2>&1
+		mount -o loop -v "$LIVECD" /mnt/loop >> $LOG 2>&1
+		IMAGE="/mnt/loop"
+		printf "Copying from %s\n" "$LIVECD" >> $LOG
+		ISOSize=$(ls -s --block-size 1048576 $LIVECD | awk '{print $1}')
+		printf "ISO SIZE = %s\n" "$ISOSize" >> $LOG
+		;;
+	"CD")
+		zenity --info --title="$TITLE" --window-icon=$ICON \
+		       --text="$(__ "Please select a mounted CD/DVD directory on the next screen that contains the operating system you want to install.\n
+Open the directory.
+If you can see the boot and isolinux directories and a greyed out livecd.sqfs file, click on OK!")" 
+		if [ "$?" != "0" ]; then
+			error "$(__ "Exiting. You chose not to continue.\nNo changes have been made to your device.")"
+			exit 0
+		fi
+		IMAGE=$(zenity --file-selection --title="$(__ "Please select a mounted CD/DVD:")" \
+		               --directory --filename="/media/" \
+			       --window-icon=$ICON)
+		printf "Live CD/DVD source = %s\n" "$LIVECD" >> $LOG
+		if [ "$IMAGE" == "" ]; then
+			error "$(__ "Exiting. You have not selected a valid CD/DVD directory to create the live system from. Cannot continue.")"
+			exit 0
+		fi
+		printf "Copying from %s\n" "$IMAGE" >> $LOG
+		ISOSize=$(df --block-size=1048576 | grep "$IMAGE" | awk '{print $3}')
+		printf "ISO SIZE = %s\n" "$ISOSize" >> $LOG
+		;;
+	*)
+		error "$(__ "Exiting. You have not selected a live system source. Cannot continue.")"
+		exit 0
+		;;
+esac
+}
+
+formatchoice() {
+echo "##### FORMAT CHOICE #####" >> $LOG
+#### SCREEN 5 - FORMAT CHOICE ####
+## See if user wants to format the stick or if they have already done it
+FORMAT=$(zenity --list --radiolist --title="$TITLE" \
+		--window-icon=$ICON \
+		--text="$(__ "Do you want to format the device: %s and make it bootable?
+Formatting is desirable, but you can continue without formatting
+if you have already prepared your device with a FAT32 or linux
+filesystem and there is a bootable primary partition:
+
+* Do you want to use remaining space on the device in Windows(TM)?
+   Formats and creates a FAT32 filesystem (ALL DATA WILL BE LOST).
+   The changes file is limited to 4GB.
+* OR are you are only going to use the device in Linux?
+   Formats and creates an ext3 filesystem (ALL DATA WILL BE LOST).
+   There is no limit to changes file size but you need 50MB free
+   space to accomodate the journal.
+* OR the device is already bootable and you wish to proceed
+   with installation without formatting (NO DATA WILL BE ERASED).
+" "$DEVICE")" \
+		--column="" --column="$(__ "Format device?")" --column="$(__ "Compatibility")" --column="" \
+	          TRUE "$(__ "YES. Format %s compatible with:" "$DEVICE")" "$(__ "Windows(TM)")" "windows" \
+		  FALSE "$(__ "YES. Format %s compatible only with:" "$DEVICE")" "$(__ "Linux")" "linux" \
+		  FALSE "$(__ "NO. Do not format.")" "$(__ "Pre-formatted")" "none" \
+		--width=500 --height=400 --print-column=4 --hide-column=4 )   
+
+if [[ "$FORMAT" == "" ]]; then
+	error "$(__ "Exiting. You chose not to continue.\nNo changes have been made to your device.")"
+	exit 0
+else
+	printf "Format choice = %s\n" "$FORMAT" >> $LOG
+fi	
+}
+
+# Mount partition if it isn't already mounted
+mount_usb1() {
+USBMNT=$(mount -l | grep $USB | awk '{print $3}')
+if [[ $USBMNT == "" ]]; then
+	# Partition isn't mounted, force unmount (just in case) and try a standard mount and hope for the best
+	# This doesn't work well with ext4 partitions
+	USBMNT="/mnt/usbstick"
+	mkdir -pv $USBMNT >> $LOG 2>&1
+	umount -fv $USB >> $LOG 2>&1
+	mount -v $USB $USBMNT >> $LOG 2>&1
+	USBMNT2=$(mount -l | grep $USB | awk '{print $3}')
+	if [[ $USBMNT2 == "" ]]; then
+		error "$(__ "Tried to mount %s, but could not determine filesystem.
+Reinsert your device and let the OS mount it, then re-run the script again.
+You might try formatting using the Unity Control Center.\n
+Exiting..." "$USB")"
+		liveusb_goodbye
+	fi
+	
+else
+	printf "Device %s is already mounted at %s\n" "$USB" "$USBMNT" >> $LOG
+fi
+}
+
+# Check that the partition/device is big enough for the chosen options
+checkpartsize() {
+echo "##### CHECK PARTITION SIZE #####" >> $LOG
+# Requires that the partition be mounted first
+# Check size of partition: partition size if partition is to be formatted, else available space
+
+if [[ "$FORMAT" != "none" ]]; then
+	# If formatting allow 1% for the new filesystem
+	capacity=$(df $USB -B 1048576 | grep -v "$(fetchmsg coreutils " %4s-blocks      Used Available Use%%" "....")" |  awk '{print int($2*(99/100))}')
+else
+	# If not formatting take 2MB off available space for good measure!
+	capacity=$(df $USB -B 1048576 | grep -v "$(fetchmsg coreutils " %4s-blocks      Used Available Use%%" "....")" |  awk '{print ($4-2)}')
+fi
+
+printf "%s capacity = %s\n" "$USB" "$capacity" >> $LOG
+FreeSpace=$(($capacity - $ISOSize))
+printf "Free space = %s\n" "$FreeSpace" >> $LOG
+
+if [ $FreeSpace -lt 1 ]; then
+	printf "Not enough freespace for installation.\n" >> $LOG
+	error "$(__ "There is not enough free space on %s to install the live system.
+There is %s MB free space on %s but the live OS size is %s MB.
+Delete some files or format the partition then re-run the script again.
+Note: with ext3 up to 8 percent of the filesystem size can be taken up by the journal. Consider formatting as FAT32 if you believe the live OS should fit.
+Cannot continue... no changes have been made to your device." "$USB" "$FreeSpace" "$USB" "$ISOSize")"
+	exit 1
+elif [ $FreeSpace -lt 32 ]; then
+	printf "Not enough space to create changes file\n" >> $LOG
+	zenity --info --title="$TITLE" --ok-label="$(__ "Install")" --cancel-label="$(__ "Cancel")" \
+	       --window-icon=$ICON \
+	       --text="$(__ "There is not enough free space on %s to set up a changes file but you can still install and run the live OS.
+There is %s MB free space on %s but the minimum space needed is 32 MB *after* formatting.\n
+Proceed with installation of live system anyway? You will not be able to boot the live USB with persistency.\n
+* Press 'Install' to proceed with installation.
+* Press 'Cancel' to close without making any changes to your device.\n" "$USB" "$FreeSpace" "$USB")"
+	if [ "$?" = "1" ]; then
+		error "$(__ "Exiting. You chose not to continue.\nNo changes have been made to your device.")"
+		exit 0
+	else
+		printf "Installing without persistency.\n" >> $LOG
+	fi
+else
+	printf "Enough space for a changes file.\n" >> $LOG
+fi
+}
+
+persistency() {
+#### SCREEN 4B - PERSISTENCY OPTION ####
+# User can choose whether or not to setup loop changes file
+MESSAGE4="$(__ "This wizard helps you to create a Linux Live 'changes' file
+on %s in order to work with persistent system wide changes.
+NOTE: the changes file size is limited to 4GB on FAT32 partitions.\n
+This will take up more space on your device.
+You can choose how much space on the next screen.\n
+* Press 'Next' to enable persistency.
+* Press 'Skip' if you do not want to enable persistency." "$DEVICE")"
+
+zenity --question --title="$TITLE" --no-wrap --ok-label="$(__ "Next")" --cancel-label="$(__ "Skip")" \
+       --window-icon=$ICON \
+       --text="$MESSAGE4"
+if [ "$?" = "1" ]; then
+	zenity --info --title="$TITLE" --window-icon=$ICON \
+	       --text="$(__ "Skipping this step - you chose not to create a changes file.")"
+	CHOICE=""
+	FILESIZE=0
+else
+	CHOICE="persistent"
+fi
+}
+
+loopsize() {
+# Ask user size of the changes loop file
+# If on a FAT32 partition, size is limited to 4GB
+if [[ "$FORMAT" == "windows" ]]; then
+	if [ $FreeSpace -gt 4095 ]; then
+		MAX=4095
+	else
+		MAX=$FreeSpace
+	fi
+else
+	MAX=$FreeSpace
+fi
+MID=$(($MAX/2))
+GB=$(echo "scale=2; $FreeSpace/1024" | bc)
+
+#### SCREEN 4B - CHOOSE CHANGES FILE SIZE ####
+FILESIZE=$(zenity --scale --title="$TITLE" --min-value=10 --max-value=$MAX --value=$MID --step=1 \
+                  --window-icon=$ICON \
+                  --text "$(__ "How much space would you like to use for the loopfs file (in MB)?
+* Minimum size = 10 MB
+* Maximum size = %s MB (%s GB)" "$FreeSpace" "$GB")")
+   if [ "$?" == "1" ]; then
+	error "$(__ "Exiting. You chose not to continue.\nNo changes have been made to your device.")"
+	exit 0
+   fi
+printf "Changes loop file size is %s MB\n" "$FILESIZE" >> $LOG
+}
+
+formatstick() {
+echo "##### FORMATTING #####" >> $LOG
+# Work out best filesystem to use
+if [[ "$FORMAT" == "windows" ]]; then
+	# Currently NTFS not supported by Grub legacy, might be in Grub 2
+	FT="c"
+	FS="vfat"
+elif [[ "$FORMAT" == "linux" ]]; then
+	# If freespace is minimal (<50MB) then don't use journalling as it takes up valuable space, use fat32
+	EmptySpace=$(($FreeSpace - $FILESIZE))
+	if [ $EmptySpace -gt 50 ]; then
+		FT="83"
+		FS="ext3"
+	else
+		FT="c"
+		FS="vfat"
+	fi
+fi
+printf "Filesystem to create = %s\n" "$FS" >> $LOG
+
+if [[ "$FS" != "" ]]; then
+	#### SCREEN 5B - LAST CHANCE TO QUIT ####
+	zenity --question --title="$TITLE" --ok-label="$(__ "Format")" --cancel-label="$(__ "Quit")" \
+	--window-icon=$ICON \
+	--width=450 --text="$(__ "LAST CHANCE TO QUIT!\n
+Are you sure you want to format %s?
+This will DELETE ALL partitions and files on the device!
+
+* Press 'Format' to continue. The device will be formatted
+   and the live OS installed.
+* Press 'Quit' to close this wizard without making any
+   changes to your device." "$DEVICE")"
+	if [ "$?" == "1" ]; then
+		error "$(__ "Exiting. You chose not to continue.\nNo changes have been made to your device.")"
+		exit 0
+	fi
+	
+	#### SCREEN 6 - FORMAT DEVICE PROGRESS BAR ####
+	(
+	echo "$(__ "# Unmounting %s. Please wait..." "$DEVICE")"
+	unmount_usb
+	echo "5"
+	sleep 5
+	echo "10"
+	echo "$(__ "# Erasing partition table of %s. Please wait..." "$DEVICE")"
+	# Delete all partitions on device
+	{ seq -f d$'\n'%g 64 -1 1 
+	echo "w"
+	} | fdisk $DEVICE >& /dev/null 
+	sleep 10
+	# Clean MBR
+	echo "20"
+	echo "$(__ "# Cleaning Master Boot Record. Please wait...")"
+	dd if=/dev/zero of=$DEVICE bs=512 count=1 >> $LOG 2>&1 
+	echo "$(__ "# Close any windows if your OS automounts the new partition.")"
+	sleep 10
+	echo "40"
+# Probably safer not to indent this bit
+# Create new filesystem and make bootable
+fdisk $DEVICE >/dev/null 2>&1 <<EOF
+o
+n
+p
+1
+
+
+t
+$FT
+a
+1
+w
+
+EOF
+	echo "$(__ "# Creating new bootable partition: %s. Please wait..." "$USB")" 
+	sleep 7
+	unmount_usb
+	echo "60"
+	sleep 8
+	echo "75"
+	echo "$(__ "# Formatting %s as %s. Please wait..." "$USB" "$FS")"
+	if [[ "$FS" == "vfat" ]]; then
+		mkdosfs -F32 -n UnityLive -v $USB >> $LOG 2>&1
+	elif [[ "$FS" == "ext3" ]]; then
+		mkfs.ext3 -L UnityLive -v $USB >> $LOG 2>&1
+	fi
+	echo "90"
+	echo "$(__ "# Initializing new filesystem. Please wait...")"
+	sleep 10
+	if [[ "$FS" == "ext3" ]]; then
+		tune2fs -i0 -c0 $USB >> $LOG 2>&1
+	fi
+	echo "99"
+	fdisk -l $DEVICE >> $LOG 2>&1
+	sleep 2
+	)| zenity --progress --title="$TITLE" --text="$(__ "Preparing %s before formatting..." "$DEVICE")" \
+	          --window-icon=$ICON \
+	          --auto-close --percentage=0 --width=450
+
+	if [ "$?" = 1 ] ; then
+		error "$(__ "Exiting. You chose not to continue. Cancelling format...")"
+		killall fdisk
+		liveusb_goodbye
+	fi
+	
+else
+	# Check for NTFS partition
+	NTFS=$(fdisk $DEVICE -l | grep $USB | grep "HPFS/NTFS")
+	if [[ "$NTFS" != "" ]]; then
+		error "$(__ "Fdisk reports that the chosen partition is an NTFS partition.
+NTFS is not a supported filesystem. You need to use FAT32 or a linux filesystem eg ext2/3/4 or reiserfs.
+Exiting...")"
+		liveusb_goodbye
+	else
+		# Continue to use selected partition, but device must have a bootable primary partition (will be checked later)
+		#### SCREEN 5C - DECLINED TO FORMAT ####
+		zenity --question --title="$TITLE" --ok-label="$(__ "Install")" --cancel-label="$(__ "Quit")" \
+		       --window-icon=$ICON --width=450 \
+		       --text="$(__ "\nYou have decided not to format %s.
+The live OS will be installed onto %s.
+Your device must have a bootable primary partition.\n
+The Grub bootloader will be installed to the Master Boot Record. This will DELETE any existing boot loader, but your filesystem and data will remain intact.
+
+* Press 'Install' to continue. The live OS will be installed.
+* Press 'Quit' to close this wizard without installing anything
+   on your device." "$DEVICE" "$USB")"
+		if [ "$?" == "1" ]; then
+			error "$(__ "Exiting. You chose not to continue.\nNo changes have been made to your device.")"
+			exit 0
+		fi
+	fi
+fi
+}
+
+mount_usb2() {
+echo "##### MOUNTING DEVICE #####" >> $LOG
+## Mount the device at the standard mount point
+case "$FS" in
+	"ext3" | "vfat")
+		unmount_usb
+		USBMNT="/mnt/usbstick"
+		mkdir -pv $USBMNT >> $LOG 2>&1
+		mount -t $FS -v $USB $USBMNT >> $LOG 2>&1;;
+	*)
+		# Device/partition is preformatted, so first check if it is already mounted and use that mount point
+		USBMNT=$(mount -l | grep $USB | awk '{print $3}')
+		if [[ $USBMNT == "" ]]; then
+			# Partition isn't mounted, force unmount (just in case) and try a standard mount and hope for the best
+			USBMNT="/mnt/usbstick"
+			mkdir -pv $USBMNT >> $LOG 2>&1
+			umount -fv $USB >> $LOG 2>&1
+			mount -v $USB $USBMNT >> $LOG 2>&1
+			USBMNT2=$(mount -l | grep $USB | awk '{print $3}')
+			if [[ $USBMNT2 == "" ]]; then
+				error "$(__ "Tried to mount %s, but could not determine filesystem.
+Reinsert your device and let the OS mount it, then re-run the script again.\n
+Exiting..." "$USB")"
+				liveusb_goodbye	
+			fi
+		fi
+		;;
+esac
+}
+
+checkfilesystem() {
+# Simple checks to ensure filesystem is mounted, writeable and bootable	
+# Is it mounted?
+ISMNT=$(mount -l | grep "$USBMNT" | awk '{print $1}')
+if [[ "$ISMNT" != "$USB" ]]; then
+	error "$(__ "Could not detect mount point of %s so cannot continue.
+Check /var/log/mkremaster to see detailed output.\n
+Try reinserting the device and allow your OS to mount it, then re-run the script again." "$DEVICE")"
+	liveusb_goodbye
+else 
+	# Try creating a 0 byte file
+	touch $USBMNT/.test
+	test=$(du $USBMNT/.test)
+	if [ "$test" != "0" ]; then
+		printf "Filesystem correctly created and mounted\n" >> $LOG
+		rm -fv $USBMNT/.test >> $LOG 2>&1
+		# Check the device has a bootable partition
+		boot=$(fdisk -l $DEVICE | grep "*" | grep $DEVICE | awk '{print $1}')
+		if [[ $boot != "" ]]; then
+			printf "Filesystem has correct boot flag on %s\n" "$bootpart" >> $LOG
+		else
+			error "$(__ "Error: Cannot identify which partition on %s is bootable.
+Try formatting your device using diskdrake in the Unity Control Centre and then re-running this script.
+Exiting..." "$DEVICE")"
+			liveusb_goodbye
+		fi
+
+	else
+		error "$(__ "Error: For some reason the filesystem was not properly created.
+The LiveUSB creation can not continue.
+Try formatting your device using diskdrake in the Unity Control Centre and then re-running this script.
+Exiting...")"
+		liveusb_goodbye
+	fi
+fi
+}
+
+loopcreate() {
+echo "##### CREATE CHANGES #####" >> $LOG
+# Check size of changes file and if <50MB use non-journalling filesystem ext2 to maximise space
+if [ $FILESIZE -lt 32 ]; then
+	LF="mke2fs"
+	printf "Formatting changes as ext2 due to file size <50MB\n" >> $LOG
+	EXT="2"
+else
+	LF="mkfs.ext3"
+	printf "Formatting changes as ext3 due to file size >50MB\n" >> $LOG
+	EXT="3"
+fi
+#### SCREEN 7 - CHANGES FILE CREATION PROGRESS ####
+(
+TranSize1=1
+sleep 5
+echo "$(__ "# Created 0 MB of %s MB changes file. Please wait..." "$FILESIZE")"
+dd if=/dev/zero of=$USBMNT/changesloopfile bs=1M count=$FILESIZE >> $LOG 2>&1 &
+while [[ $TranSize1 -lt $FILESIZE ]]; do
+	sleep 5
+	TranSize1=$(ls -s --block-size 1048576 $USBMNT/changesloopfile | awk '{print $1}')
+	let prog1="(($TranSize1*80)/$FILESIZE)"
+	echo $prog1
+	echo "$(__ "# Created %s MB of %s MB changes file. Please wait..." "$TranSize1" "$FILESIZE")"
+done
+echo "82"
+echo "$(__ "# Created %s MB of %s MB changes file. Please wait..." "$FILESIZE" "$FILESIZE")"
+sleep 5
+echo "$(__ "# Formatting changes file as %s. This will take some time..." "ext$EXT")"
+sleep 5
+echo "85"
+echo 'y' | $LF $USBMNT/changesloopfile >> $LOG 2>&1
+echo "95"
+echo "$(__ "# Initializing new changes loop filesystem. Please wait...")"
+tune2fs -i0 -c0 $USBMNT/changesloopfile >> $LOG 2>&1
+sleep 5
+echo "99"
+sleep 3
+)| zenity --progress --title="$TITLE" --text="$(__ "Creating Changes File on %s. This will take some time..." "$USB")" \
+	  --window-icon=$ICON \
+          --auto-close --percentage=0 --width=450
+
+if [ "$?" = 1 ]; then
+	error "$(__ "Exiting. You chose not to continue. Trying to stop all processes and unmout device...")"
+	killall dd
+	liveusb_goodbye
+fi
+}
+
+install_on_usb() {
+#### SCREEN 8 - INSTALL LIVE FILESYSTEM AND BOOTLOADER WITH PROGRESS ####
+# Copying the files
+echo "##### INSTALLATION #####" >> $LOG
+# Convert partition number to hd0,x and name to /dev/sdax
+PARTNAME=$(echo $USB | sed 's!/dev/sd[a-z]!/dev/sda!')
+PARTNUM=$(echo $USB | sed 's!/dev/sd[a-z]!!')
+hd=$(($PARTNUM-1))
+printf "Partition %s converted to grub device %s, %s\n" "$USB" "$hd" "$PARTNAME" >> $LOG
+
+(
+sleep 5
+echo "1"
+mkdir -vp $USBMNT/isolinux >> $LOG 2>&1
+echo "$(__ "# Copying vmlinuz. Please wait...")"
+cp -v "$IMAGE"/isolinux/vmlinuz $USBMNT/isolinux >> $LOG 2>&1
+echo "3"
+echo "$(__ "# Copying initrd.gz. Please wait...")"
+cp -v "$IMAGE"/isolinux/memtest $USBMNT/isolinux >> $LOG 2>&1
+cp -v "$IMAGE"/isolinux/initrd.gz $USBMNT/isolinux >> $LOG 2>&1
+echo "7"
+echo "$(__ "# Creating bootloader. Please wait...")"
+
+# installing GRUB
+mkdir -vp $USBMNT/boot/grub >> $LOG 2>&1
+cp -v /lib/grub/i386-mandriva/* $USBMNT/boot/grub >> $LOG 2>&1
+# copy gxmenu file from either livecd or current install
+if [[ $IMAGE == "/initrd/cdrom" ]]; then
+	cp -v /union/boot/gfxmenu $USBMNT/boot >> $LOG 2>&1
+else
+	printf "Create graphical boot menu on the fly\n" >> $LOG
+	mkdir -vp /tmp/gfxboot >> $LOG 2>&1
+	cp -fv /usr/share/gfxboot/themes/unity/boot/message /tmp/gfxboot >> $LOG 2>&1
+	(cd /tmp/gfxboot && cpio -iv < message) >> $LOG 2>&1
+	rm -fv /tmp/gfxboot/message >> $LOG 2>&1
+	rm -fv /tmp/gfxboot/back.jpg >> $LOG 2>&1
+	cp -fv "$IMAGE"/isolinux/back.jpg /tmp/gfxboot >> $LOG 2>&1
+	(cd /tmp/gfxboot && ls | cpio -ov > gfxmenu) >> $LOG 2>&1
+	cp -fv /tmp/gfxboot/gfxmenu $USBMNT/boot >> $LOG 2>&1
+	rm -fv /tmp/gfxboot/* >> $LOG 2>&1
+	rmdir -v /tmp/gfxboot >> $LOG 2>&1
+fi
+echo "(hd0) $DEVICE">$USBMNT/boot/grub/device.map
+echo "10"
+echo "$(__ "# Probing devices. This may take a while. Please wait...")"
+
+# echo " Setting up boot loader on $DEVICE"
+grub-install --root-directory=$USBMNT $DEVICE >> $LOG 2>&1
+echo "15"
+
+#creating bootloader config file (menu.lst)
+touch $USBMNT/boot/grub/menu.lst
+echo "$(__ "# Creating graphical boot menu. Please wait...")"
+
+#did we create loop 'changes'
+if [ "$CHOICE" != "" ]; then
+printf "Creating grub menu.lst with persistent boot options\n" >> $LOG
+cat >"$USBMNT/boot/grub/menu.lst"<<EOF
+timeout 10
+color black/cyan yellow/cyan
+gfxmenu (hd0,${hd})/boot/gfxmenu
+
+title LiveUSB_persist
+kernel (hd0,${hd})/isolinux/vmlinuz livecd=livecd initrd=initrd.gz root=/dev/rd/3 acpi=on vga=791 keyb=us splash=silent fstab=rw,auto fromusb changes=$PARTNAME/changesloopfile
+initrd (hd0,${hd})/isolinux/initrd.gz
+
+title LiveUSB_persist_with_hwdetect
+kernel (hd0,${hd})/isolinux/vmlinuz livecd=livecd initrd=initrd.gz root=/dev/rd/3 acpi=on vga=791 keyb=us splash=verbose fstab=rw,auto fromusb changes=$PARTNAME/changesloopfile hwdetect=yes
+initrd (hd0,${hd})/isolinux/initrd.gz
+
+title VideoSafeModeVesa_persist
+kernel (hd0,${hd})/isolinux/vmlinuz livecd=livecd initrd=initrd.gz root=/dev/rd/3 acpi=on vga=788 keyb=us splash=silent fstab=rw,noauto vesa fromusb changes=$PARTNAME/changesloopfile
+initrd (hd0,${hd})/isolinux/initrd.gz
+
+title VideoSafeModeNormal_persist
+kernel (hd0,${hd})/isolinux/vmlinuz livecd=livecd initrd=initrd.gz root=/dev/rd/3 acpi=on vga=normal keyb=us splash=quiet fstab=rw,noauto fromusb changes=$PARTNAME/changesloopfile
+initrd (hd0,${hd})/isolinux/initrd.gz
+
+title Safeboot_no_persist
+kernel (hd0,${hd})/isolinux/vmlinuz livecd=livecd root=/dev/rd/3 acpi=off vga=normal keyb=us noapic nolapic noscsi nopcmcia fromusb changes=$PARTNAME/changesloopfile
+initrd (hd0,${hd})/isolinux/initrd.gz
+
+title BootToConsole
+kernel (hd0,${hd})/isolinux/vmlinuz initrd=initrd.gz root=/dev/rd/3 acpi=on vga=788 keyb=us splash=verbose fstab=rw,noauto 3
+initrd (hd0,${hd})/isolinux/initrd.gz
+
+title Memtest
+kernel (hd0,${hd})/isolinux/memtest
+EOF
+
+else
+printf "Creating grub menu.lst without persistent boot options\n" >> $LOG
+cat >"$USBMNT/boot/grub/menu.lst"<<EOF
+timeout 10
+color black/cyan yellow/cyan
+gfxmenu (hd0,${hd})/boot/gfxmenu
+
+title LiveUSB
+kernel (hd0,${hd})/isolinux/vmlinuz livecd=livecd initrd=initrd.gz root=/dev/rd/3 acpi=on vga=791 keyb=us splash=silent fstab=rw,auto fromusb
+initrd (hd0,${hd})/isolinux/initrd.gz
+
+title VideoSafeModeVesa
+kernel (hd0,${hd})/isolinux/vmlinuz livecd=livecd initrd=initrd.gz root=/dev/rd/3 acpi=on vga=788 keyb=us splash=silent fstab=rw,noauto vesa
+initrd (hd0,${hd})/isolinux/initrd.gz
+
+title VideoSafeModeNormal
+kernel (hd0,${hd})/isolinux/vmlinuz livecd=livecd initrd=initrd.gz root=/dev/rd/3 acpi=on vga=normal keyb=us splash=quiet fstab=rw,noauto
+initrd (hd0,${hd})/isolinux/initrd.gz
+
+title Safeboot
+kernel (hd0,${hd})/isolinux/vmlinuz livecd=livecd root=/dev/rd/3 acpi=off vga=normal keyb=us noapic nolapic noscsi nopcmcia
+initrd (hd0,${hd})/isolinux/initrd.gz
+
+title BootToConsole
+kernel (hd0,${hd})/isolinux/vmlinuz initrd=initrd.gz root=/dev/rd/3 acpi=on vga=788 keyb=us splash=verbose fstab=rw,noauto 3
+initrd (hd0,${hd})/isolinux/initrd.gz
+
+title Memtest
+kernel (hd0,${hd})/isolinux/memtest
+EOF
+fi
+
+echo "20"
+echo "$(__ "# Copying livecd.sqfs. Please wait...")"
+TranSize2=1
+sqfsSize=$(ls -s --block-size 1048576 "$IMAGE"/livecd.sqfs | awk '{print $1}')
+sleep 3
+echo "$(__ "# Transferred 0 MB of %s MB. Please wait..." "$sqfsSize")"
+
+cp -v "$IMAGE"/livecd.sqfs $USBMNT/livecd.sqfs >> $LOG 2>&1 &
+while [[ $TranSize2 -lt $sqfsSize ]]; do
+	sleep 5
+	TranSize2=$(ls -s --block-size 1048576 $USBMNT/livecd.sqfs | awk '{print $1}')
+	let prog="(($TranSize2*75)/($sqfsSize)+20)"
+	echo $prog
+	echo "$(__ "# Transferred %s MB of %s MB. Please wait..." "$TranSize2" "$sqfsSize")"
+done
+echo "97"
+echo "$(__ "# Transferred %s MB of %s MB. Please wait..." "$sqfsSize" "$sqfsSize")"
+sleep 5
+echo "$(__ "# Please wait while file transfer is finalized...")"
+# Unmount device to ensure completion of copy command
+# Important not to use umount -f otherwise copy might be truncated
+umount -v $USBMNT && wait >> $LOG 2>&1
+if [ -d /mnt/loop ]; then
+	umount -v /mnt/loop >> $LOG 2>&1
+fi
+sleep 3
+echo "$(__ "# Nearly there! Unmounting %s. Please wait..." "$DEVICE")"
+echo "99"
+sleep 3
+)| zenity --progress --title="$TITLE" --text="$(__ "Copying live system. This may take some time...")" \
+          --window-icon=$ICON \
+	  --auto-close --width=450 --percentage=0
+
+if [ "$?" = 1 ] ; then
+	killall cp
+	error "$(__ "Exiting. You chose not to continue. Trying to stop copy and unmount all...")"
+	liveusb_goodbye
+fi
+}
+
+cleanup_dirs() {
+# Clean up mount points and log finish time
+echo "##### CLEAN UP #####" >> $LOG
+rmdir -v $USBMNT >> $LOG 2>&1
+rmdir -v /mnt/loop >> $LOG 2>&1
+STOPTIME=$(date +%T)
+printf "Script complete at %s\n" "$STOPTIME" >> $LOG
+}
+
+liveusb_finish() {
+#### SCREEN 8 - FINISHED ####
+printf "Live system installed.\n" >> $LOG
+
+MESSAGE5="$(__ "\nUnityLive USB successfully created on %s.\n
+You can unplug it now.\n
+When rebooting, please check your BIOS settings while the device is inserted!\n
+Press 'FINISH' to exit or 'LOG' to view detailed output." "$DEVICE")"
+
+# Finish or view log file
+zenity --question --title="$TITLE" --width=450 --text="$MESSAGE5" \
+       --ok-label="$(__ "Finish")" --cancel-label="$(__ "Log")" \
+       --window-icon=$ICON
+if [[ "$?" == "1" ]]; then
+	cleanup
+	cat /var/log/mkremaster | \
+	zenity --text-info --title="$(__ "UnityLive /var/log/mkremaster Detailed Output")" \
+               --width=450 --height=450 \
+               --window-icon=$ICON
+else
+	cleanup
+fi
+
+exit 0
+}
+
+Auto_Needed_Space() {
+	# Set needed space on the temporary partition...
+	ROOTSPACE=$(df -h / | grep / | cut -b28-34 | sed s/G/*1024/\;s/M//\;s/,/./ | bc)
+	if [ -d "/union" ]; then
+	UNIONSPACE=$(df -h /union | grep /union | cut -b28-34 | sed s/G/*1024/\;s/M//\;s/,/./ | bc)
+	else 
+	UNIONSPACE=0
+	fi
+	NEEDSPACE=$(echo "{($ROOTSPACE+$UNIONSPACE*2.1)/1}" |bc)
+	__ "Needed space on temporary partition: %s kB" "$NEEDSPACE"; echo
+    
+	# Check if TMPPART has enough space to do the remaster (at least the value of NEEDSPACE)
+	FREESPACE=$(df -h $TMPPART | grep $TMPPART | cut -b35-40 | sed s/G/*1024/\;s/M//\;s/,/./ | bc)
+	FREESPACE=$(echo "{$FREESPACE/1}" | bc)
+	__ "Chosen partition has %s kB of free space..." $FREESPACE; echo 
+}
+
+Ask_Needed_Space() {
+	# Ask for a place for the temporary files
+        TMPDEV=$(df -h --exclude-type=vfat --exclude-type=ntfs | grep 'hd\|sd' |
+        zenity --list --title="$TITLE" --text="$(__ "Select a partition for the temporary files.")" --width=500 --height=200 \
+        --column="$(__ "Partition Name ( Size - Used - Free - Percentage Used - Mount Point )")" \
+        --window-icon=$ICON)
+	
+	# If a user pressed the cancel button, just quit
+        if [ "$?" == "1" ]; then
+	    cleanup_dirs
+            exit 0
+        fi
+        TMPDEV=$(echo "$TMPDEV" | cut -b1-9)
+        TMPPART=$(mount | grep $TMPDEV | cut -f 3 -d ' ')
+	Auto_Needed_Space
+	
+        if [ "$FREESPACE" -gt "$NEEDSPACE" ]; then
+		# TRANSLATORS: The message continues from "Chosen partition has %s kB of free space... "
+		__ "that should be enough."; echo
+        else
+		# TRANSLATORS: The message continues from "Chosen partition has %s kB of free space... "
+		__ "that is NOT enough."; echo
+		zenity --error --title="$TITLE" --text="$(__ "Chosen partition has not enough free space left\nYou will need at least %s kB free!" "$NEEDSPACE")" \
+		--window-icon=$ICON
+		cleanup_dirs
+		exit 1
+        fi
+}
+
+install_first_rpms_element() {
+	OUTPUT=$(smart -o rpm-root=$RPM_TMP install --dump $RPM_ELEMENT 2>&1 1>/dev/null)
+	if [ $? -eq 0 ]; then
+	zenity --title "$TITLE" --question --text "$(__ "The resolution of %s dependency failed.\n
+This might be due to an out of date repository information.\n
+If problem persist, please contact the Unity-Linux dev team.\n\n
+Would you like to try to update smart and try again?" "$RPM_ELEMENT")" --window-icon=$ICON
+
+		if [ "$?" == "0" ]; then
+		smart update
+		OUTPUT=$(smart -o rpm-root=$RPM_TMP install --dump $RPM_ELEMENT 2>&1 1>/dev/null)
+			if [ $? -eq 0 ]; then
+			zenity --title="$TITLE" --error --text="$(__ "Sorry, the resolution failed again. Please try again later")" --window-icon=$ICON
+			exit 1
+			else
+			FIX_SUCCESS=1
+			fi
+		else
+		FIX_SUCCESS=0
+		fi
+		
+		if [ "$FIX_SUCCESS" == "0" ]; then
+		exit 1
+		fi
+	fi
+		
+	RPMS_DOWNLOAD=$(smart download $OUTPUT)
+	if [ $? -eq 0 ]; then
+	zenity --title "$TITLE" --question --text "$(__ "The download of %s rpms failed.\n
+This might be due to an error with the network connection or a dependency error.\n
+If problem persist, please contact the Unity-Linux dev team.\n\n
+Would you like to try again?" "$RPM_ELEMENT")" --window-icon=$ICON
+
+		if [ "$?" == "0" ]; then
+		smart update
+		RPMS_DOWNLOAD=$(smart download $OUTPUT)
+			if [ $? -eq 0 ]; then
+			zenity --title="$TITLE" --error --text="$(__ "Sorry, the download failed again. Please try again later")" --window-icon=$ICON
+			exit 1
+			else
+			FIX_SUCCESS=1
+			fi
+		else
+		FIX_SUCCESS=0
+		fi
+		
+		if [ "$FIX_SUCCESS" == "0" ]; then
+		exit 1
+		fi
+	fi
+	
+	RPM_INSTALL=$(rpm --root=$RPM_TMP -Uvh --replacepkgs *.rpm)
+	if [ $? -eq 1 ]; then
+		zenity --title="$TITLE" --error --text="$(__ "Sorry, the install of the rpms failed. Please ensure plf is not enabled and the repo has not changed since the last time you updated smart")" --window-icon=$ICON
+		exit 1	
+	fi
+}
+
+install_rpms_element() {
+	OUTPUT=$(smart -o rpm-root=$RPM_TMP install --dump $RPM_ELEMENT 2>&1 1>/dev/null)
+	if [ $? -eq 0 ]; then
+	zenity --title "$TITLE" --question --text "$(__ "The resolution of %s dependency failed.\n
+This might be due to an out of date repository information.\n
+If problem persist, please contact the Unity-Linux dev team.\n\n
+Would you like to try to update smart and try again?" "$RPM_ELEMENT")" --window-icon=$ICON
+
+		if [ "$?" == "0" ]; then
+		smart update
+		OUTPUT=$(smart -o rpm-root=$RPM_TMP install --dump $RPM_ELEMENT 2>&1 1>/dev/null)
+			if [ $? -eq 0 ]; then
+			zenity --title="$TITLE" --error --text="$(__ "Sorry, the resolution failed again. Please try again later")" --window-icon=$ICON
+			exit 1
+			else
+			FIX_SUCCESS=1
+			fi
+		else
+		FIX_SUCCESS=0
+		fi
+		
+		if [ "$FIX_SUCCESS" == "0" ]; then
+		exit 1
+		fi
+	fi
+		
+	RPMS_DOWNLOAD=$(smart download $OUTPUT)
+	if [ $? -eq 0 ]; then
+	zenity --title "$TITLE" --question --text "$(__ "The download of %s rpms failed.\n
+This might be due to an error with the network connection or a dependency error.\n
+If problem persist, please contact the Unity-Linux dev team.\n\n
+Would you like to try again?" "$RPM_ELEMENT")" --window-icon=$ICON
+
+		if [ "$?" == "0" ]; then
+		smart update
+		RPMS_DOWNLOAD=$(smart download $OUTPUT)
+			if [ $? -eq 0 ]; then
+			zenity --title="$TITLE" --error --text="$(__ "Sorry, the download failed again. Please try again later")" --window-icon=$ICON
+			exit 1
+			else
+			FIX_SUCCESS=1
+			fi
+		else
+		FIX_SUCCESS=0
+		fi
+		
+		if [ "$FIX_SUCCESS" == "0" ]; then
+		exit 1
+		fi
+	fi
+	
+	RPM_INSTALL=$(rpm --root=$RPM_TMP -Uvh *.rpm)
+	if [ $? -eq 1 ]; then
+		zenity --title="$TITLE" --error --text="$(__ "Sorry, the install of the rpms failed. Please ensure plf is not enabled and the repo has not changed since the last time you updated smart")" --window-icon=$ICON
+		exit 1	
+	fi
+}	
+
+LiveRPM_install_RPMS() {
+	echo "10"
+	# Install minimum set of rpms & flatten
+	smart download xz shadow-utils tcb setup coreutils rpm-helper grep li*pcre0 coreutils
+	for tmp in $(ls *rpm); do rpm2cpio $tmp | cpio -ivd; done
+	mkdir dev proc sys	
+	
+	echo "20"
+	# First we need our compiler to prevent ordering errors
+	RPM_ELEMENT=gcc
+	install_first_rpms_element
+	rm -fr *rpm
+	
+	echo "40"
+	# Install our basic system
+	for RPM_ELEMENT in $FIRST_ELEMENT_LIST; do
+	install_rpms_element
+	rm -fr *rpm
+	done
+
+	echo "50"
+	# Create /usr/share/ldetect-lst/pcitable.gz (and other tables) since they were not created
+	cp -r $RPM_TMP/usr/share/ldetect-lst/dmitable.d/90default.lst.gz $RPM_TMP/usr/share/ldetect-lst/dmitable.gz
+	cp -r $RPM_TMP/usr/share/ldetect-lst/pcitable.d/90default.lst.gz $RPM_TMP/usr/share/ldetect-lst/pcitable.gz
+	cp -r $RPM_TMP/usr/share/ldetect-lst/usbtable.d/90default.lst.gz $RPM_TMP/usr/share/ldetect-lst/usbtable.gz
+	cp -r $RPM_TMP/usr/share/ldetect-lst/isatable.d/90default.lst $RPM_TMP/usr/share/ldetect-lst/isatable
+	gzip $RPM_TMP/usr/share/ldetect-lst/isatable
+	cp -r $RPM_TMP/usr/share/ldetect-lst/pcmciatable.d/90default.lst $RPM_TMP/usr/share/ldetect-lst/pcmciatable
+	gzip $RPM_TMP/usr/share/ldetect-lst/pcmciatable
+	
+	echo "60"
+	# Complete installation process
+	for RPM_ELEMENT in $SECOND_ELEMENT_LIST; do
+	install_rpms_element
+	rm -fr *rpm
+	done
+	
+	# Required to fix policykit taking over some files
+	smart download policykit
+	smart download polkit
+	rpm --root=$RPM_TMP -Uvh --replacepkgs *.rpm
+	rm -fr *rpm
+	
+	smart download hal
+	rpm --root=$RPM_TMP -Uvh --replacepkgs *.rpm
+	rm -fr *rpm
+	
+	smart download dbus
+	rpm --root=$RPM_TMP -Uvh --replacepkgs *.rpm
+	rm -fr *rpm
+	
+	echo "100"
+}
+LiveRPM_change_settings() {
+	echo "10"
+	# Set root password & guest account
+	# TRANSLATORS: Do not translate 'root' and 'guest'
+	__ "Please select the root and guest passwords."; echo
+	chroot $chrtopt "echo root | passwd --stdin root"
+	chroot $chrtopt "useradd -m -r -u 500 -p guest guest"
+	chroot $chrtopt "echo guest | passwd --stdin guest"
+	
+	echo "30"
+	# Setup smart for first run
+	chroot $chrtopt "smart-setup-auto"
+	
+	# Some basic configuration setup
+	sed -i 's/=mdk/=Unity/g' $RPM_TMP/usr/share/gdm/defaults.conf
+	sed -i 's/=mdk/=Unity/g' $RPM_TMP/usr/share/gdm/factory-defaults.conf
+	sed -i 's/startopenbox/openbox-session/g' $RPM_TMP/etc/X11/wmsession.d/25openbox
+	rm -rf $RPM_TMP/home/Development
+	
+	echo "70"
+	# Setup inittab and the various services
+	sed -i 's/id:3:initdefault/id:5:initdefault/g' $RPM_TMP/etc/inittab
+	chroot $chrtopt "chkconfig --add dm"
+	chroot $chrtopt "chkconfig --add acpid"
+	chroot $chrtopt "chkconfig --add netfs"
+	chroot $chrtopt "chkconfig --add network"
+	chroot $chrtopt "chkconfig --add network-auth"
+	chroot $chrtopt "chkconfig --add network-up"
+	chroot $chrtopt "chkconfig --add netconsole"
+	chroot $chrtopt "chkconfig --add partmon"
+	
+	cat >> $RPM_TMP/etc/sysconfig/network << "EOF"
+NETWORKING=yes
+CRDA_DOMAIN=US
+EOF
+	chmod +x $RPM_TMP/etc/sysconfig/network
+	echo "100"
+}
+
+LiveRPM_Create_livecd() {
+	echo "10"
+	# Create livecd
+	chroot $chrtopt "mklivecd --root=/ --tmp=/tmp --$DEFAULT_LIVERPM_OPTIONS $DEFAULT_OPTIONS $BRANDNAME.iso"
+	mv -f $RPM_TMP/$BRANDNAME.iso $RPMISOFILE
+	echo "100"
+}
+
+CDlive() {
+	TITLE="$(__ "LiveCD creator")"
+
+	# First question
+	zenity --title "$TITLE" --question --text "$(__ "You're about to create a LiveCD ISO.\n
+* The compressed image of the running system will be created on a chosen partition.\n
+* Requirements: min. 2 GB free space on the chosen partition.\n
+* A Windows FAT filesystem can't be used.\n\n
+Would you like to provide some advanced options?")" \
+	--window-icon=$ICON
+
+	if [ "$?" == "0" ]; then
+	
+	LIVECD_OPTIONS=$(zenity --list --title="$TITLE" --text "$(__ "Please select options:")" \
+		--width 600 --height 250 --checklist --separator=" --" --column "$(__ "Checkbox")" --column \
+		"$(__ "mklivecd option")" --column "$(__ "Description")" \
+		TRUE "fstab=rw,noauto" "$(__ "Without auto mounting of drives")" \
+		TRUE "lzma" "$(__ "enable lzma compression")" \
+		FALSE "nofinishinstall"	"$(__ "Livecd without finish install")" \
+		FALSE "md5sum" "$(__ "embed the md5sum in the iso")" \
+		FALSE "splash=verbose" "$(__ "Disable boot splash screen")" \
+		FALSE "nosyslog" "$(__ "Disable log system to speed up livecds")" \
+		--window-icon=$ICON);
+		if [ "$?" == "1" ]; then
+		LIVECD_OPTIONS="fstab=rw,noauto --lzma"
+		fi
+	
+	CUSTOM_OPTIONS=$(zenity --title="$TITLE" --entry --text="$(__ "Please enter your custom options if required (press cancel to skip)\n
+Note that any wrong option will result in a failed liveCD\n
+For Example:
+--nodir=^/home/guest
+--nofile=^/var/state/apt/lists/*.*
+
+The '--' is required and separate multiple options with a blank space.
+
+Insert your mklivecd options here:")" \
+	--window-icon=$ICON)
+
+	else
+	    LIVECD_OPTIONS="fstab=rw,noauto --lzma"
+	fi
+	echo $LIVECD_OPTIONS
+	echo $CUSTOM_OPTIONS
+
+    
+	if [ -d "/union" ]; then
+		# No need to auto check if we are in live mode
+		Ask_Needed_Space
+	else
+		# Let's see if we have the space in / first in auto mode
+   
+		TMPPART="/"
+		Auto_Needed_Space
+    
+		if [ "$FREESPACE" -gt "$NEEDSPACE" ]; then
+			# TRANSLATORS: The message continues from "Chosen partition has %s MB of free space... "
+			__ "that should be enough."; echo
+		else
+			# Nope, we don't have enough space
+			Ask_Needed_Space
+		fi
+
+	fi
+	# Check if /tmp directory exist on device
+	if [ -d "$TMPPART/tmp" ]; then
+		TMPDIR="$TMPPART/tmp"
+	else
+		TMPDIR="$TMPPART"
+	fi
+
+	# Remove any pre-existing mkremaster temporary directories
+	testmklivecd=$(echo $TMPDIR"mklivecd.*");
+	rm -rf $testmklivecd
+
+	# Ask where to put the remaster
+	ISOFILE=$(zenity --title="$TITLE" --file-selection --save --filename=$TMPPART/$BRANDNAME.iso);
+	if [ "$?" == "1" ]; then
+		__ "Cancelled!"; echo
+		exit 1
+	fi
+
+	# Fix halt if running from livecd so new remaster ejects the cd at shutdown
+	if [ -e /initrd/loopfs/etc/rc.d/init.d/halt ]; then
+		mv -f /union/etc/rc.d/init.d/halt /tmp/halt.bak
+		cp -f /initrd/loopfs/etc/rc.d/init.d/halt /union/etc/rc.d/init.d/halt
+	fi
+
+	__ "Running mklivecd to create the remaster..."; echo
+	xterm +sb -e mklivecd --root=$ROOT --tmp=$TMPDIR --$LIVECD_OPTIONS $CUSTOM_OPTIONS $DEFAULT_OPTIONS $ISOFILE >/dev/null 2>&1
+
+	ISOFILEMD5=$(echo $ISOFILE | sed 's|.iso|.md5|g')
+
+	# Change halt back if running livecd so cd ejects at shutdown
+	if [ -e /tmp/halt.bak ]; then
+		mv -f /tmp/halt.bak /union/etc/rc.d/init.d/halt
+	fi
+
+	# Check if the remaster iso actually exists, and if yes, calculate the md5-sum.
+	if [ -f $ISOFILE ]; then
+		( md5sum $ISOFILE > $ISOFILEMD5 ) 2>&1 | zenity --progress --title="$TITLE" --text="$(__ "Creating MD5SUM check file")" \
+							 --pulsate --auto-close --window-icon=$ICON
+		__ "creating md5sum..."; echo
+	else
+		zenity --title="$TITLE" --error --text="$(__ "Something went wrong!")" --window-icon=$ICON
+		exit 1
+	fi
+
+	# Popup notification, tell the user that we're done
+	ISOMD5=$(cat $ISOFILEMD5 | cut -b1-32);
+	zenity --info --title="$TITLE" --width 400 --height 150 --text="$(__ "The LiveCD was created successfully!\n\nIt was created as %s.\nThe MD5 sum of the file is:\n%s" "$ISOFILE" "$ISOMD5")" \
+	--window-icon=$ICON
+}	
+
+USBlive() {
+# Send critical errors to goodbye function
+trap liveusb_goodbye 1 2 3 15
+
+TITLE="$(__ "LiveUSB creator")"
+
+#### SCREEN 1 - INTRODUCTION ####
+
+zenity --question --title="$TITLE" --width=550 --no-wrap \
+       --ok-label="$(__ "Next")" --cancel-label="$(__ "Cancel")" \
+       --window-icon=$ICON \
+       --text="$(__ "This wizard creates a bootable Linux 'live' system on your chosen USB device.
+
+Before proceeding PLEASE READ CAREFULLY:
+
+1. This wizard requires a device with an empty partition large enough to hold the live
+    filesystem with a bootable primary partition.
+
+2. This wizard can format your device, BUT YOU WILL LOSE ALL THE DATA ON THE DEVICE.
+
+3. Alternatively you can install on a prepared FAT32 or ext2/3 partition. Be sure that
+    the boot flag is set on a primary partition. (You can use the Unity Control Center
+    for partitioning).
+
+4. Plug your device in now (if it is not already) and wait for your OS to mount it.
+    If it cannot be detected, all flash drives, external harddrives and internal sata
+    disks will be shown. Before proceeding, make sure which device is the correct one.
+    Use the Unity Control Center or the command line: fdisk -l as root.
+
+5. Files from either the current live session, a CD/DVD or from an ISO file can be copied
+    to the device.
+
+6. There is an option to enable a persistent operating system (one that saves any changes
+    you make) by creating a loop changes file. The size on FAT32 is limited to 4GB.
+
+7. Any remaining space on the device can then be used as normal in Linux or Windows(TM).
+
+    ****** Unity Linux accepts no responsibility for data loss or hardware damage! ******
+
+8. Please verify that your usb flash drive is plugged in and press 'Next' to proceed.")"
+
+if [ "$?" != "0" ]; then
+        error "$(__ "Exiting. You chose not to continue.\nNo changes have been made to your device.")"
+        exit 0
+fi
+
+echo "##### STARTING LIVEUSB SCRIPT #####" >> $LOG
+
+initialize
+selectusbdevice
+livesource
+formatchoice
+mount_usb1
+checkpartsize
+if [ $FreeSpace -ge 32 ]; then
+	persistency
+fi
+if [[ "$CHOICE" == "persistent" ]]; then
+	loopsize
+fi
+formatstick
+mount_usb2
+checkfilesystem
+if [[ "$CHOICE" == "persistent" ]]; then
+	loopcreate
+fi
+install_on_usb
+liveusb_finish
+}	
+
+RPMlive() {
+	TITLE="$(__ "LiveRPM creator")"
+	
+	# First question
+	zenity --title "$TITLE" --question --text "$(__ "You are about to create a LiveCD ISO from RPMS.\n
+Requirements:\n
+* min. 2 GB free space on the host system.\n
+* You must have a working Smart system and internet connectivity\n
+* Smart must not be used for the duration of the livecd creation\n
+* Make sure the plf repository is not enabled (not supported at present)")"
+
+	if [ "$?" == "1" ]; then
+		exit_script
+		exit 0
+	fi
+
+	DEFAULT_LIVERPM_OPTIONS=$(zenity --list --title="$TITLE" --text "$(__ "Please select options:")" \
+		--width 600 --height 250 --checklist --separator=" --" --column "$(__ "Checkbox")" --column \
+		"$(__ "mklivecd option")" --column "$(__ "Description")" \
+		TRUE "fstab=rw,noauto" "$(__ "Without auto mounting of drives")" \
+		TRUE "lzma" "$(__ "enable lzma compression")" \
+		FALSE "nofinishinstall"	"$(__ "Livecd without finish install")" \
+		FALSE "md5sum" "$(__ "embed the md5sum in the iso")" \
+		FALSE "splash=verbose" "$(__ "Disable boot splash screen")" \
+		FALSE "nosyslog" "$(__ "Disable log system to speed up livecds")" \
+		--window-icon=$ICON);
+		
+		if [ "$?" == "1" ]; then
+		DEFAULT_LIVERPM_OPTIONS="fstab=rw,noauto --lzma"
+		fi
+
+	# Ask where to put the iso
+	RPMISOFILE=$(zenity --title="$TITLE" --file-selection --save --filename=$TMPPART/$BRANDNAME.iso --window-icon=$ICON);
+	if [ "$?" == "1" ]; then
+		__ "Cancelled!"; echo
+		exit 1
+	fi
+
+	# Create build location
+	mkdir $RPM_TMP
+	cd $RPM_TMP
+	
+	DEFAULT_ELEMENT_LIST=$(zenity --list --title="$TITLE" --text "$(__ "Please select elements to be added:")" \
+		--width 600 --height 250 --checklist --separator=" " --column "$(__ "Checkbox")" --column \
+		"$(__ "System Element")" --column "$(__ "Description")" \
+		TRUE "kernel-latest" "$(__ "Kernel, the core of your linux system")" \
+		TRUE "kernel-devel-latest" "$(__ "Provides kernel support for dkms")" \
+		TRUE "unity-core" "$(__ "minimal items required for a bootable X system")" \
+		TRUE "unity-drivers" "$(__ "Common drivers and firmware not included in the kernel")" \
+		TRUE "unity-control" "$(__ "Drakxtools and Installer")" \
+		TRUE "unity-desktop" "$(__ "Default desktop applications for Unity")" \
+		TRUE "unity-locales" "$(__ "Default Unity locales for international support")" \
+		TRUE "unity-mime" "$(__ "Basic mime support")" \
+		TRUE "unity-ppp" "$(__ "Basic Modem support")" \
+		TRUE "unity-wireless" "$(__ "Extended wireless support, WPA")" \
+		TRUE "x11-driver-video" "$(__ "Most common X11 drivers")" \
+		TRUE "unity-x11-extra" "$(__ "extra X11 drivers for uncommon equipment")" \
+		TRUE "unity-iso" "$(__ "Extra elements for a basic Unity livecd")" \
+		TRUE "unity-theme-plymouth" "$(__ "Default Unity plymouth theme")" \
+		--window-icon=$ICON);
+		if [ "$?" == "1" ]; then
+		DEFAULT_ELEMENT_LIST="kernel-latest kernel-devel-latest unity-core unity-drivers unity-control unity-desktop unity-locales unity-mime unity-ppp unity-wireless unity-x11-extra unity-iso unity-theme-plymouth"
+
+		fi
+	
+	CUSTOM_ELEMENT=$(zenity --title="$TITLE" --entry --text="$(__ "Please enter your additional rpm names if required (press cancel to skip)\n
+Note that any wrong option will result in a failed liveCD\n
+For Example:
+dkms-nvidia-current
+task-kde4
+
+Please separate multiple options with a blank space.")" \
+	--window-icon=$ICON);
+
+	
+	SECOND_ELEMENT_LIST="$DEFAULT_ELEMENT_LIST $CUSTOM_ELEMENT"
+
+	( LiveRPM_install_RPMS ) | zenity --progress --title="$TITLE" --width 400 --height 150 --text="$(__ "Downloading and installing rpms\n\n
+This is going to take a long time, you may go for a coffee")" --percentage=0 --auto-close --window-icon=$ICON
+		if [ "$?" == "1" ]; then
+		__ "Cancelled!"; echo
+		exit 1
+		fi
+	
+	( LiveRPM_change_settings ) | zenity --progress --title="$TITLE" --width 400 --height 150 --text="$(__ "Updating system settings")" --percentage=0 --auto-close \
+				      --window-icon=$ICON
+		if [ "$?" == "1" ]; then
+		__ "Cancelled!"; echo
+		exit 1
+		fi
+		
+	( LiveRPM_Create_livecd ) | zenity --progress --title="$TITLE" --width 400 --height 150 --text="$(__ "Creating livecd")" --percentage=0 --auto-close --pulsate \
+				    --window-icon=$ICON
+		if [ "$?" == "1" ]; then
+		__ "Cancelled!"; echo
+		exit 1
+		fi
+	
+	if [ -f $RPMISOFILE ]; then
+	zenity --info --title="$TITLE" --width 400 --height 150 --text="$(__ "The LiveRPM ISO was created successfully!")" --window-icon=$ICON
+	exit 0
+	fi
+	exit 1
+}	
+
+############################################### BEGIN ##############################################
+
+TITLE="$(__ "UnityLive Remastering Tool")"
+
+#### Check for root and zenity! ####
+if [ ! -e /usr/bin/zenity ]; then
+	xmessage "$(__ "UnityLive: mkremaster:\n\nZenity is required to run this application.\nPlease install it using Smart Package Manager.\n")" -center -buttons exit
+fi 
+if [ "$UID" != "0" ]; then
+        zenity --error --title="$TITLE" --text="$(__ "This script must be run as root.")" \
+	       --window-icon=$ICON
+        exit 1
+fi
+
+#### Create empty temp file ####
+[ -e $TMP ] && rm -f $TMP
+touch $TMP
+
+#### Create log file if it doesn't exist, or add new entry if it does ####
+if [ ! -e $LOG ]; then
+	echo "##################################
+UnityLive: mkremaster ver $VERSION
+##################################" > $LOG
+else
+	echo " " >> $LOG
+	echo "##################################
+UnityLive: mkremaster ver $VERSION
+##################################" >> $LOG
+fi
+date >> $LOG
+
+# Check wether or not we're running in live mode.
+LiveMode=0
+
+if [ -d "/union" ]; then
+    __ "Running in live mode..."; echo
+    ROOT=/union
+    LiveMode=1
+else
+    __ "Running in installed mode..."; echo
+    ROOT=/
+    LiveMode=0
+fi
+
+REPLY=$(zenity --title="$TITLE" --list --width 600 --height 315 --text="$(__ "What type of remaster would you like to create?\n\n
+- The LiveCD mode allows you to build an ISO suitable for cdrom\n
+- The LiveUSB mode allows you to transfer a LiveCD ISO onto a USB key\n
+- The LiveRPM mode allows you to create a LiveCD ISO from RPMS only\n")" \
+	--column="$(__ "Checkbox")" --column="$(__ "Label")" --radiolist \
+	true "LiveCD" \
+	false "LiveUSB" \
+	false "LiveRPM" \
+	--window-icon=$ICON);
+
+if [ "$?" == "1" ]; then
+    exit_script
+    exit 0
+fi
+
+case $REPLY in
+    LiveCD)
+	CDlive
+	;;
+    LiveUSB)
+	USBlive
+	cleanup_dirs
+	;;
+    LiveRPM)
+	RPMlive
+	;;
+esac
+
+exit 0

@@ -1,0 +1,523 @@
+#define _requires_exceptions perl-base
+%define _requires_exceptions perl
+
+Summary:	Builds a LiveCD from an existing Unity-Linux installation
+Name:		mklivecd
+Version:	@MKLIVECDVER@
+Release:	@MKLIVECDREL@
+License:	GPLv2
+Group:		System/Configuration/Boot and Init
+URL:		http://livecd.berlios.de/
+Source0:	%{name}-%{version}.tar.xz
+BuildRequires:	intltool
+Requires:	busybox-static >= 1.18.4
+Requires:	cdrkit-genisoimage
+Requires:	squashfs-tools >= 4.2
+Requires:	syslinux >= 4.00
+Requires:	kmod(overlayfs)
+Requires:	drakx-installer-binaries-probe
+Suggests:	plymouth
+
+%description
+The mklivecd tools are dedicated to providing you with the capability to
+create your own LiveCD or LiveDVD from a currently installed Unity 
+distribution.  It can be used to create your own travelling Unity-based 
+LiveCD, specialised LiveCD featuring custom-developed applications or to 
+put together a demo disk to show off the power of our favourite OS. The 
+possibilities are endless!
+
+Created CD's feature automatic hardware detection and setup. In addition, 
+it utilises compression technology allowing you to build a LiveCD from a 
+partition much larger than will typically fit on a CD or DVD.(Up to 2GB 
+for a normal 650MB CD or around 10GB for a normal 4GB DVD) When booting 
+from this LiveCD, the data is transparently decompressed as needed with 
+almost no performance impact.
+
+%prep
+%setup -q
+
+%build
+%make
+
+%install
+%makeinstall
+
+%find_lang mklivecd
+%find_lang mkremaster
+cat mklivecd.lang mkremaster.lang >> %{name}.list
+
+%files -f %{name}.list
+%doc AUTHORS COPYING CHANGELOG FAQ README README.BOOTCODES README.USB TODO
+%{_sbindir}/mklivecd
+%{_sbindir}/hwdetect2
+%{_sbindir}/mkremaster
+%dir %{_datadir}/mklivecd
+%{_datadir}/mklivecd/linuxrc
+%{_datadir}/mklivecd/halt.local
+%{_datadir}/mklivecd/rc.sysinit
+%{_datadir}/mklivecd/gfxboot.cfg
+%{_datadir}/mklivecd/fstab
+%{_datadir}/mklivecd/finish-install
+%{_datadir}/applications/mkremaster-kde.desktop
+%{_datadir}/applications/mkremaster.desktop
+%{_datadir}/applications/mkremaster-tinyme.desktop
+%{_datadir}/pixmaps/mkremaster.png
+
+%changelog
+* Tue May 22 2012 Matthew Dawkins <mattydaw@gmail.com> 0.9.4-1
+- update for libkmod, libparted
+
+* Wed Feb 08 2012 Matthew Dawkins <mattydaw@gmail.com> 0.9.2-1
+- new version for a new kernel
+- kmod overlayfs is built in the kernel now
+
+* Mon Jan 25 2012 Matthew Dawkins <mattydaw@gmail.com> 0.9.1-1
+- change req from busybox to busybox-static to avoid uclibc libs
+- fix what libs get pulled into the initrd
+- updated kmods for 3.2.x in linuxrc
+- removed ide dir and copy
+- removed copy of modules.description (missing)
+- switche from aufs to overlayfs
+
+* Sun Sep 25 2011 Matthew Dawkins <mattydaw@gmail.com> 0.9.0-3-unity2011
+- a few fixes with libmodprobe0 for 64bit
+- more tests to see if switch from initrd to live is fixed
+
+* Sat Sep 10 2011 Matthew Dawkins <mattydaw@gmail.com> 0.9.0-2-unity2011
+- a few fixes for the compression options
+	+ freedomrun fix for requires
+
+* Thu Sep 08 2011 Matthew Dawkins <mattydaw@gmail.com> 0.9.0-1-unity2011
+- a few fixes
+
+* Mon Apr 25 2011 Gianvacca <gianvacca@unity-linux.org> 0.9.0-1-unity2011
+- support of initscripts 9.25
+
+* Wed Feb 02 2011 Gianvacca <gianvacca@unity-linux.org> 0.8.3-1-unity2011
+- new version 0.8.3
+        - mklivecd: full Italian translation achieved
+        - mkremaster: full Spanish translation achieved
+
+* Thu Jan 13 2011 David Smid <david@unity-linux.org> 0.8.2-1-unity2011
+- new bugfix version 0.8.2
+	- hwdetect2: fixed en_US.UTF-8 bug in get_locales_from_isolinux
+
+* Sun Dec 26 2010 Gianvacca <gianvacca@unity-linux.org> 0.8.1-1-unity2011
+- new bugfix version 0.8.1
+	- mkremaster: fixed fatal syntax error
+	- mkremaster: fixed wrong function call
+
+* Sun Nov 21 2010 Gianvacca <gianvacca@unity-linux.org> 0.8.0-1-unity2010
+- new version 0.8.0
+	- Major code clean up (by mdawkins)
+	- Added switch for no splash (by mdawkins)
+	- Added check for aufs2 module (by mdawkins)
+	- Added check for memtest.bin and gfxboot (by mdawkins)
+	- Provided mklivecd with i18n support
+
+* Wed Nov 10 2010 Gianvacca <gianvacca@unity-linux.org> 0.7.100-1-unity2010
+- new version 0.7.100
+	- mklivecd: corrected value of DEF_VGAMODE (791 instead of meaningless 792)
+	- mkremaster: fixed few syntax errors
+	- Full Italian translation achieved
+
+* Tue Nov 02 2010 Gettinther <gettinther@unity-linux.org> 0.7.99-1-unity2010
+- new version 0.7.99
+	- Fix location of /etc/sysconfig/finish-install
+	- Modify liverpm to fix ordering error between policykit, hal and dbus
+	- Make nosplash an option for building livecds
+	- Add nopat option by default
+	- Dropped standalone liveusb script, now fully integrated into mkremaster (by Gianvacca)
+	- mkremaster: cleaned up screen messages and updated po files (by Gianvacca)
+	- Full German translation achieved (thanks Yogibaer) (by Gianvacca)
+	- Added po for French (by Gianvacca)
+
+* Sat Oct 23 2010 Gianvacca <gianvacca@unity-linux.org> 0.7.98-1-unity2010
+- new version 0.7.98
+	- Modify search call to support unetbootin (patch from gettinther)
+	- Modify liverpm to make all packages optional and allow for extra rpms to be added (patch from gettinther)
+	- Notify users of download failure of rpms (patch from gettinther)
+	- Fixed script failure on systems where the output of df is localized
+	- Updated po files and added po for German
+
+* Fri Oct 15 2010 Gianvacca <gianvacca@unity-linux.org> 0.7.97-1-unity2010
+- new test version 0.7.97
+	- changed mklivecd to fix the finishinstall script (patch from gettinther)
+	- changed the list of RPMs for liverpm section of mkremaster (patch from gettinther)
+	- integrated liveusb into mkremaster
+	- new icon for mkremaster (taken from stand-alone liveusb)
+	- plymouth turned from Req to Suggest now supported by smart
+	
+* Mon Oct 11 2010 Gianvacca <gianvacca@unity-linux.org> 0.7.96-1-unity2010
+- new version 0.7.96
+	- liveusb script improvements:
+	* Creates gfxmenu on the fly if not installing current live system
+	* background image 'back.jpg' copied from [livecd]/isolinux dir and merged with 'message' cpio archive 
+	from current install found at /usr/share/gfxboot/themes/unity/boot/ (thanks Jeremiah for advice)
+	* Removed CD-ROMs from device search path
+	* Overhaul of script with creation of functions
+	* Better checking of filesystems before copy
+	* Created new icon
+	* Created desktop entry
+	
+* Sun Sep 19 2010 Gianvacca <gianvacca@unity-linux.org> 0.7.95-1-unity2010
+- new version 0.7.95
+	- included a new version of liveusb which des not required KDE anymore
+- removed desktop files creation from the spec, they are already installed with make install
+
+* Mon Sep 14 2010 mdawkins <mattydaw@gmail.com> 0.7.94-1-unity2010
+- new version 0.7.94
+- added changes for new squashfs-tools
+- added changes from pclos for services
+- added changes for tmp bootsplash files
+
+* Fri Sep 11 2010 mdawkins <mattydaw@gmail.com> 0.7.93-2-unity2010
+- rebuild to use non dkms squashfs-tools with lzma patch
+
+* Sun Jul 18 2010 Gettinther <gettinther@unity-linux.org> 0.7.93-1-unity2010
+- Complete rewrite of mkremaster interface which now provides for building liveusb and livecd_from_rpms.
+- Add nofinishinstall support for liveUSB systems.
+- Various fixes in the mklivecd code
+- Cleanup of mklivecd to remove redundant functions
+
+* Wed Jun 30 2010 Gettinther <gettinther@unity-linux.org> 0.7.92-1-unity2010
+- Fixed internationalisation of gdm and finish-install based on cmdline info
+
+* Tue May 11 2010 Gettinther <gettinther@unity-linux.org> 0.7.91-1-unity2010
+- Fixed debug option
+- Updated plymouth libraries to match latest update
+
+* Sat Apr 10 2010 Gettinther <gettinther@unity-linux.org> 0.7.9-1-unity2010
+- Added support for plymouth
+- Rewrote the detection method to use the probe-modules function developed by Mandriva
+
+* Sat Feb 20 2010 Gettinther <gettinther@unity-linux.org> 0.7.5-2unity2010
+- Add smart setup support as part of finish-install
+- Disable the in-kernel squashfs module since it conflicts
+
+* Thu Jan 21 2010 Gettinther <gettinther@unity-linux.org> 0.7.5-1unity2010
+- Rebuild hwdetect against new hardrake code
+- Fix VESA support
+
+* Wed Dec 30 2009 Gettinther <gettinther@unity-linux.org> 0.7.4-4unity2009
+- Add aufs and kernel module libs to default lists.
+
+* Tue Dec 22 2009 David Smid <david@unity-linux.org> 0.7.4-3unity2009
+- Excluded /etc/sysconfig/clock and /etc/localtime to fix http://issues.unity-linux.org/index.php?do=details&task_id=269
+
+* Fri Nov 12 2009 Gettinther <gettinther@unity-linux.org> 0.7.4-2unity2009
+- Removed hotplug call
+
+* Thu Nov 11 2009 Gettinther <gettinther@unity-linux.org> 0.7.4-1unity2009
+- Added 64bit support
+- Cleaned modules calls
+
+* Tue Sep 01 2009 Gettinther <gettinther@unity-linux.org> 0.7.3-4unity2009
+- Remove all redundant code from hwdetect.in, switch to system rc.sysinit to carry out the detection
+- Add support for syslinux > 0.63
+- Fix modprobe.conf generation
+- Add lzma compression capability
+- Add LOW_SCSI for older systems (older systems fail to boot with extended module call)
+- Reassign nosci cheatcode since all cdroms are treated as scsi with kernels 2.6.29 and higher (re-assigned noscsi to LOW_SCSI)
+
+* Tue Jun 16 2009 Gettinther <gettinther@unity-linux.org> 0.7.3-3unity2009
+- Fix udev calls
+- Fix module loading
+- Add splashy support (phase 1)
+- Add gfxboot support for new syslinux version
+- Disable bootsplash code since it's obsolete
+- Update cdrom call as per 2.6.28 and higher kernels
+
+* Sat May 03 2009 mdawkins <mattydaw@gmail.com> 0.7.3-2unity2009
+- commented out dkms-lzma, lzma now supported in the kernel
+- commented out dkms-squashfs-lzma, currently broken
+
+* Mon Apr 20 2009 Gianvacca <gianvacca@unity-linux.org> 0.7.3-1unity2009
+- Add localization support to liveusb and mkremaster
+- Fix a bug in liveusb which occurs when the output of fdisk -l is localized
+
+* Wed Apr 15 2009 David Smid <david@unity-linux.org> 0.7.2-2unity2009
+- Imported to Unity SVN as a project
+- Added spaces to default bootmenu titles to make them more human readable
+- Set the correct version 7.4.2 in Rules.mk
+
+* Fri Mar 27 2009 Gettinther <gettinther@unity-linux.org> 0.7.2-1unity2009
+- Rebuilt for Unity
+
+* Wed Mar 11 2009 etjr 0.7.1-24pclos2007
+- mklivecd.in - add ^/etc/udev/rules.d/70-persistent* per Texstar
+
+* Fri Jan 09 2009 Gettinther <gettinther@gmail.com> 0.7.1-23pclos2007
+- Provide script to accomodate gzip/lzma compression option
+
+* Wed Sep 10 2008 Gettinther <gettinther@gmail.com> 0.7.1-21pclos2007
+- Add lzma compression support, Thank you Nico
+
+* Sat Sep 06 2008 Gettinther <gettinther@gmail.com> 0.7.1-20pclos2007
+- Code cleanup
+
+* Thu Sep 04 2008 Gettinther <gettinther@gmail.com> 0.7.1-19pclos2007
+- Load sata specific modules to try to bypass usb card readers
+
+* Wed Sep 03 2008 Gettinther <gettinther@gmail.com> 0.7.1-18pclos2007
+- Added satacd boot code
+
+* Sun Aug 31 2008 Gettinther <gettinther@gmail.com> 0.7.1-17pclos2007
+- reinstated support for usb-cdrom in linuxrc
+
+* Sat Jun 28 2008 etjr
+- hwdetect.in - add network config
+- linuxrc.in - add dpt_i2o to SCSI_MODULES=
+
+* Sat May 31 2008 etjr
+- mklivecd.in - fix initrd2
+- mklivecd.in - fix both initrd percent
+
+* Sun May 11 2008 etjr
+- rc.sysinit.in - fix typo
+- hwdetect.in - remove /proc/bus/usb from fstab
+
+* Sat Apr 26 2008 etjr
+- halt.local.in change <STDIN> for eject
+
+* Mon Apr 21 2008 etjr
+- change ide-cd to ide-cd_mod in Modules.mk
+- remove liveusb from menu
+
+* Mon Apr 14 2008 etjr
+- minor spec change
+
+* Sun Apr 13 2008 etjr
+- minor spelling fixes to bootcodes README
+
+* Sat Apr 12 2008 ikerekes
+- updated bootcodes README with the new bootcodes
+- fixed linuxrc parameter parsing with "fromusb" parameter
+
+* Fri Apr 11 2008 etjr
+- add modules for ide modules
+- add Provides for perl
+
+* Mon Apr 7  2008 ikerekes
+- fixed bootfromiso code
+
+* Tue Apr 1  2008 ikerekes
+- linuxrc total overhaul of the $CDROM_LIST creation (to eliviate [h,s]d[a-t][0-99] problem)
+-         total overhaul of the fromusb code (not using load_usb and load_scsi any more, the probe-modules loads those modules)
+-         total overhaul of parameter parsing
+-         modified livecd= to specify the the cloop file name (as opposed to hard-coded livecd.sqfs) as per c-chan
+-         modified the bootfrom to read as bootfromiso= meaning only the iso name without the device portion
+-
+- rc.sysinit     eliminated changes= cheatcode, implemented changes_dev and changes_file instead
+-                the changes_dev is device independent (takes the LABEL= or UUID= mount code
+-                the changes_file (if specified) describes a loop mounted changes file (system)
+-                total overhaul of parameter parsing 
+
+* Mon Mar 31 2008 texstar
+- remove touch fstab/mtab
+- add requires drakx-installer-binaries-probe
+
+* Sun Mar 30 2008 ikerekes
+- first trial of including prob-modules
+
+* Fri Mar 29 2008 texstar
+- add requires to new module-init and libzlib1
+
+* Fri Jan 18 2008 etjr
+- add back BusLogic module
+- updated liveusb per Jeremiah
+
+* Tue Jan 15 2008 etjr
+- updated liveusb per Ivan
+
+* Sun Jan 13 2008 etjr
+- rc.sysinit "changes" patch per Ivan
+
+* Sat Jan 12 2008 etjr
+- updated liveusb per Ivan
+- added zenity percentage to mkchgsloop
+
+* Wed Jan 07 2008 etjr
+- add another alias to config_modprobeconf per Texstar
+- add mkchgsloop
+
+* Thu Dec 27 2007 etjr
+- add config_modprobeconf per Texstar
+- change mkremaster menu entry to Make LiveCD
+
+* Sun Dec 2 2007 ikerekes
+- improve sata drive search (extend beyond sd[a-b]
+- improve changes=loopfile (don't limit to ext2)
+
+* Fri Nov 30 2007 ikerekes
+- change=<dev>/<loopfile> ext2 loopmounted file, can reside on vfat (usb stick) or any linux fs.
+- Brian's bootfrom mod in the halt.local
+
+* Wed Oct 24 2007 etjr
+- more changes in mkremaster.in
+
+* Mon Oct 22 2007 etjr
+- i18n-framework from i18n team at mypclinuxos.com
+
+* Thu Oct 17 2007 etjr
+- remove BusLogic from modules.mk for vmware server 1.0.4
+
+* Mon Oct 08 2007 etjr
+- mkremaster.in
+-   more terminals for mklivecd
+
+* Sun Sep 23 2007 etjr
+- updated to work with both pclos and tinyme
+- mkremaster.in
+-  changes for shutdown in livecd
+
+* Mon Sep 17 2007 etjr
+- updated mkremaster.in
+- added mkremaster and liveusb menu entry in spec
+
+* Sun Aug 19 2007 etjr
+- corrected usb-storage and bootsplash per Ivan
+
+* Fri Aug 17 2007 etjr
+- More changes by Ivan
+
+* Tue Aug 14 2007 etjr
+- Many changes by Ivan
+
+* Wed Aug 08 2007 etjr
+- bootfrom /dev/loop fix per Ivan
+
+* Mon Aug 06 2007 etjr
+- updated Modules.mk per Ivan
+
+* Wed Jul 25 2007 etjr
+- tweak Makefile and Rules.mk
+- added liveusb and mkremaster
+- option to create iso's with 2 kernels
+
+* Tue Jul 24 2007 etjr
+- change the spec back for make rpm
+
+* Fri Jul 20 2007 ocilent1 <ocilent1 at gmail dot com>
+- some further insmod cleanups
+- tweak spec file a bit
+
+* Fri Jul 20 2007 etjr
+- fix insmod for new modules-init-tools-3
+
+* Tue Jul 10 2007 etjr
+- changes to use mdev or udevstart
+
+* Sun Jul 8 2007 etjr
+- changes for mdev (busybox mdev) - Thanks Gentoo
+
+* Sat Jun 2 2007 etjr
+- hwdetect.in
+- changes in nofinishinstall
+- removed "&" from config_*()
+
+* Fri May 11 2007 Texstar <texstar@gmail.com> 
+- add VideoSafeModeFBDev and VideoSafeModeVesa
+- in mklivecd and hwdetect
+
+* Fri May 11 2007 Texstar <texstar@gmail.com> 
+- change safe mode to use vesa driver instead of fbdev
+
+* Sun May 6 2007 etjr
+- hwdetect.in
+-  added "&" to config_*(); to suppress verbose bootup  warnings
+-  remove duplicate "my $modules_conf" & "my %cmdline" entries
+-  remove "my $cdsymlinks" /etc/udev/scripts/cdsymlinks.sh deprecated?
+-  fixed - mkdir_p("$prefix/etc/livecd/hwdetect/");
+- mklivecd.in
+-  added /media$ to $nodirs
+- linuxrc.in
+-  added mkdir -p /media
+
+* Sat May 5 2007 etjr
+- merge in sata changes in hwdetect per Ivan
+
+* Thu May 3 2007 etjr
+- changes for moved modules with kernel 2.6.20
+- removed 2.4 kernel modules
+- removed more unused code
+
+* Mon Apr 30 2007 Texstar <texstar@gmail.com> 
+- merge in changes to hwdetect per Ivan
+
+* Wed Mar 28 2007 etjr
+- moved /dev/sd[a-b][0-99] first for usb per Nico
+- ramdisk size change from 1/3 to 1/2 per Nico
+
+* Sat Mar 24 2007 etjr
+- add changelog to spec file
+
+* Tue Mar 6 2007 etjr
+- suppress "bootsplash not found ..." warning
+- remove some unused code
+- --ufs defaults to aufs
+
+* Sat Feb 3 2007 etjr
+- hwdetect.in
+- changed back config_network();
+- hwdetect-lang.in
+- changed back 'network probe'
+
+* Fri Feb 2 2007 etjr
+- mklivecd.in
+- added more excluded files
+- change mkisofs to genisoimage
+- change blocksize to 224
+- change default bootloader back to iso
+- change label Framebuffer to VideoSafeMode in iso and grub
+- hwdetect.in
+- remove config_network();
+- hwdetect-lang.in
+- remove 'network probe'
+- linuxrc.in
+- moved "##Probe the scsi devices." section per Ivan
+- Cleaned out some unused lines 
+
+* Tue Dec 12 2006 etjr
+- added option --ufs to create livecd with unionfs or aufs
+- added rc.sysinit.aufs.in
+- rc.sysinit.in - create ifcfg-eth0
+- hwdetect.in - Texstar's config_network fix
+- mklivecd.in
+- exclude files ifcfg-eth0, 61-*config.rules, and modprobe.conf
+- gfxboot changes
+- default to grub
+
+Jaco Greeff <jaco@puxedo.org> 0.6.0-20070506.1
+- version 0.6.0-20070506
+- updated description
+- added squashfs-tools require
+- updated requires to include version numbers where earlier versions won't work
+
+* Wed Dec 03 2003 Peroyvind Karlsen <peroyvind@linux-mandrake.com> 0.5.6-2mdk
+- spec fixes
+- fix unowned dir
+
+* Mon Oct  6 2003 Jaco Greeff <jaco@linuxminicd.org> 0.5.6-1mdk
+- version 0.5.6
+- spec fixes by Buchan Milne <bgmilne@cae.co.za>
+
+* Sat Sep 27 2003 Tibor Pittich <Tibor.Pittich@phuture.sk> 0.5.5-2mdk
+- rebuild
+
+* Thu Sep 25 2003 Jaco Greeff <jaco@linuxminicd.org> 0.5.5-1mdk
+- version 0.5.5
+
+* Wed Sep 24 2003 Tibor Pittich <Tibor.Pittich@phuture.sk> 0.5.4-2mdk
+- spec fixes
+
+* Tue Sep 23 2003 Jaco Greeff <jaco@linuxminicd.org> 0.5.4-1mdk
+- version 0.5.4
+- removed patch0, fixed upstream
+
+* Mon Sep 22 2003 Tibor Pittich <Tibor.Pittich@phuture.sk> 0.5.3-1mdk
+- initial import into contrib, based on spec file from Jaco Greeff
+- fixed requires (mkisofs)
+- temporary locale fix to correct calculate initrd size
+- correct mdk group name
+- some macroszification

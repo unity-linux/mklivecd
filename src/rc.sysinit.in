@@ -1,0 +1,394 @@
+#!/live/bin/ash
+#
+# LiveCD init (rc.sysinit) script
+#
+# Copyright (C) 2003-2004, Jaco Greeff <jaco@puxedo.org>
+# Copyright (C) 2004, Tom Kelly  <tom_kelly33@yahoo.com>
+#
+#    This program is free software; you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation; either version 2 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program; if not, write to the Free Software
+#    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+
+export PATH=/live/bin:/live/sbin:/live/usr/bin:/live/usr/sbin:/bin:/sbin:/usr/bin:/usr/sbin
+
+#common variables
+
+MNTCDROM=/live/cdrom
+MNTLIVECD=/live/loopfs
+KERNELVER=`uname -r`
+MNTRAMDISK=/ramfs
+hostname=
+HWDETECT=
+nodetect=
+DEBUG=
+
+### progress indicator
+progress_num=0
+progress_full=20
+progress_max=32768
+
+### screen colors
+RES_COL=65
+MOVE_TO_COL="echo -en \\033[${RES_COL}G\\033[K"
+SETCOLOR_OK="echo -en \\033[1;32m"
+SETCOLOR_FAIL="echo -en \\033[1;31m"
+SETCOLOR_NORMAL="echo -en \\033[0;39m"
+
+#common (library) functions
+
+### print a success msg
+printok() {
+	$MOVE_TO_COL
+	echo -n "[  "
+	$SETCOLOR_OK
+	echo -n "OK"
+	$SETCOLOR_NORMAL
+	echo "  ]"
+	return 0
+}
+
+### print a loaded success msg
+printloaded() {
+	$MOVE_TO_COL
+	echo -n "["
+	$SETCOLOR_OK
+	echo -n "LOADED"
+	$SETCOLOR_NORMAL
+	echo "]"
+	return 0
+}
+
+### print a failure msg
+printfail() {
+	$MOVE_TO_COL
+	echo -n "["
+	$SETCOLOR_FAIL
+	echo -n "DONE"
+	$SETCOLOR_NORMAL
+	echo "]"
+	return 0
+}
+
+### print error message and exit to limited shell
+printfatal() {
+	printfail
+	$SETCOLOR_FAIL
+	echo ""
+	echo "$1"
+	shift
+	while [ $# -gt 0 ]; do
+		echo "$1"
+		shift
+	done
+	echo ""
+	echo "       Dropping you to a limited shell."
+	$SETCOLOR_NORMAL
+	execshell
+}
+
+### execute a command/commands printing the success or failure msg on completion
+docmd() {
+	if [ -n "$DEBUG" ]; then
+		echo -n "$1: "
+		shift
+		CMD="($1)"
+		shift
+		while [ $# -gt 0 ]; do
+			CMD="$CMD && ($1)"
+			shift
+		done
+		(eval "$CMD") 2>&1 >/dev/null && printok || printfail
+	else
+		TITLE="($1)"
+		shift
+		CMD="($1)"
+		shift
+		while [ $# -gt 0 ]; do
+			CMD="$CMD && ($1)"
+			shift
+		done
+		(eval "$CMD") 2>&1 >/dev/null
+	fi 
+}
+
+### set progress bar
+set_progress() {
+	if [ -e /proc/splash ] && [ -n "$silent" ]; then
+		progress_num=$(($progress_num+1));
+		progress=$(($progress_max*($progress_num+1)/$progress_full));
+		echo "show $progress" >/proc/splash
+	fi
+}
+
+dbg() {
+	if [ -n "$DEBUG" ]; then
+		$SETCOLOR_FAIL
+		echo -e "DBG: ${@}"
+		$SETCOLOR_NORMAL
+	fi
+}
+
+### this is if we are to execute a limited shell
+execshell() {
+	export HOSTNAME="localhost.localdomain"
+	export PS1="$ "
+	export PS2="> "
+	export PS4="+ "
+	echo "6" >/proc/sys/kernel/printk
+
+	# find the best shell available to us at this point
+	if [ -e /bin/bash ]; then
+		echo "  Loading /bin/bash"
+		export PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/X11R6/bin:/usr/local/bin:/usr/local/sbin
+		SHELL="/bin/bash"
+	elif [ -e /live/bin/ash ]; then
+		echo "  Loading /live/bin/ash"
+		export PATH=/live/bin:/live/sbin:/live/usr/bin:/live/usr/sbin
+		SHELL="/live/bin/ash"
+	else
+		export PATH=/bin:/sbin:/usr/bin:/usr/sbin
+		if [ -e /bin/ash ]; then
+			echo "  Loading /bin/ash"
+			SHELL="/bin/ash"
+		else
+			echo "  Loading /bin/busybox ash"
+			SHELL="/bin/busybox ash && <dev/tty >dev/console 2>&1"
+		fi
+	fi
+	exec $SHELL
+}
+
+mountit(){
+# Usage: mountit src dst "options"
+	#BUILTIN_FS="iso9660 vfat ext4 ext3 ext2 msdos reiserfs ntfs"
+	#for fs in $BUILTIN_FS; do
+	#	test -b $1 && mount -t $fs $3 $1 $2 >/dev/null 2>&1 && return 0
+	test -b $1 && mount $3 $1 $2 >/dev/null 2>&1
+	#done
+	#return 1
+}
+
+#--------------------------------------------------------------------#
+# rc.sysinit subroutines                                             #
+# Display debugging info if debug is on. Allow extended echo chars.  #
+#--------------------------------------------------------------------#
+
+### setup for init of the actual mdk image
+setupinit() {
+	echo "6" >/proc/sys/kernel/printk
+	# perform hwdetect if not disabled
+	#if [ ! -d $CHANGES/etc ]; then
+	#	if [ "$HWDETECT" = "no" ] || [ -n "$nodetect" ]; then
+	#		SKIP="yes"
+	#	fi
+	#else
+	#	if [ "$HWDETECT" = "yes" ]; then
+	#		SKIP="no"
+	#	else
+	#		SKIP="yes"
+	#	fi
+	#fi
+	#if [ "$SKIP" = "yes" ]; then
+	#	if [ -n "$DEBUG" ]; then
+	#		echo "-- rc.sysinit: Skipping hwdetect -----------"
+	#	fi
+	#else
+	#	if [ -e /live/usr/sbin/hwdetect2 ]; then
+	#		if [ -n "$DEBUG" ]; then
+	#			echo "-- rc.sysinit: Starting hwdetect -----------"
+	#		fi
+	#		OLDPATH=$PATH
+	#		export PATH=/sbin:/usr/sbin:/bin:/usr/bin
+	#		/live/usr/sbin/hwdetect2
+	#		export PATH=$OLDPATH
+	#		if [ -n "$DEBUG" ]; then
+	#			echo "-- rc.sysinit: Done with hwdetect ----------"
+	#		fi
+	#	else
+	#		if [ -n "$DEBUG" ]; then
+	#			echo "-- rc.sysinit: Missing hwdetect ------------"
+	#		fi
+	#	fi
+	#fi
+	# Don't run depmod (must be run before imaging system)
+	/bin/sed -i -e 's/action.*depmod/true/g' /etc/rc.d/rc.sysinit
+
+	# Do various other configuration tasks (now that /etc is available)
+	if [ -z "$hostname" ]; then
+		/bin/sed -i.livecd -e "s/\(\S*HOSTNAME=\).*/\1${hostname}/g" /etc/sysconfig/network
+	fi
+	# Add fstab & finish-install
+	cp -f /live/etc/sysconfig/finish-install /etc/sysconfig/finish-install
+	cp -f /live/etc/fstab /etc
+
+	# clean up the shutdown sequence:
+	/bin/sed -i.livecd -e 's,\(.*\S*awk\S*.*\)\(\/.*\)\/.*\({next}.*$\),\1\2|\^\\\/live\\\/\.\*\/\3,;s,/sbin/halt.local,/live/sbin/halt.local,g;s,^\(runcmd.*mount.*proc.*\),#\1,g;s,   /live/sbin/halt.local,   exec /live/sbin/halt.local \$command,g;s,!\/\^#,!\/\(\^#\|loopfs\),g' /etc/rc.d/init.d/halt
+	[ -f /etc/rc.d/init.d/netfs ] && /bin/sed -i.livecd -e 's,!\/\^#,!\/\(\^#\|loopfs\),g' /etc/rc.d/init.d/netfs
+
+	# make sure we get halt and reboot binaries
+	cp -f /sbin/halt /sbin/reboot /live/sbin
+
+	# restart the splash before MDK init (this is very hacky)
+	if [ $progress_max -eq 65534 ] && [ -e /proc/splash ] && [ -n "$silent" ]; then
+		echo 0 > /proc/splash
+		echo "silent" >/proc/splash
+	fi
+
+	# do we just want to complete the initrd (debug)?
+	if [ `/bin/grep -iq livecd=live /proc/cmdline` ]; then
+		execshell
+	fi
+
+	# clean up /sys (init mounts it via rc.sysinit)
+	docmd   "  Unmounting /sys filesystem" \
+		"umount /sys"
+
+	# clean up /proc/bus/usb (needed to be able to clean up /proc) quetly
+	echo "0" >/proc/sys/kernel/printk
+	umount /proc/bus/usb  >/dev/null 2>&1
+	echo "6" >/proc/sys/kernel/printk
+
+	# clean up /proc (init mounts it via rc.sysinit)
+	docmd   "  Unmounting /proc filesystem" \
+		"umount /proc"
+
+	# display some info
+	#distro=`/bin/cat /etc/redhat-release | awk '{ print $1 }'`
+	# moved to end echo "  Starting $distro Linux init sequence ..."
+
+	# setup the full path as now available and start distro boot
+	export PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/X11R6/bin:/usr/local/bin:/usr/local/sbin
+	# moved to end /etc/rc.d/rc.sysinit
+}
+
+do_union () {
+	if [ -n "$DEBUG" ]; then
+		echo -e "\nSetting up union file system\n"
+	fi
+
+	mkdir /union
+	mkdir /live/changes
+	CHANGES=/changes  #Defaults to the /changes directory in memory
+
+	dbg "The CHANGES_DEV is $CHANGES_DEV, the CHANGES_FILE is $CHANGES_FILE \n"
+
+	if [ -n "$CHANGES_FILE" ]; then #The changes= describes a loop mounted persistent changes
+		mkdir -p /part1
+		if [ -z "$CHANGES_DEV" ]; then #empty $CHANGES_DEV means try the boot media
+			IMAGEDIR="/live/cdrom/"
+			LOOPIMG2=$IMAGEDIR$CHANGES_FILE
+		else
+			mount -t auto $CHANGES_DEV /part1 && LOOPFOUND=1
+			IMAGEDIR=/part1
+		fi
+		losetup /dev/loop3 $IMAGEDIR$CHANGES_FILE
+		if mountit /dev/loop3 /live/changes; then
+			CHANGES=/live/changes/changes
+		else
+			echo "ERROR: Unable to mount $CHANGES_FILE"
+			umount /part1
+		fi	
+	else 
+		if [ -n "$CHANGES_DEV" ]; then
+			mount -t auto $CHANGES_DEV /live/changes
+			dbg "`mount`"
+			type=$(mount|grep changes|awk '/ext2|ext3|ext4|reiserfs|xfs/ {print $5}')
+			if [ -n "$type"  ]; then #the $CHANGES_FILE is empty but the chnages_dev is a Linux partition
+				CHANGES=/live/changes/changes
+			else
+				echo "ERROR: The $CHANGES_DEV has to be a Linux file system"
+				umount /live/changes
+			fi
+		fi
+	fi
+
+	dbg "The CHANGESDEV is $CHANGES_DEV, the CHANGES is $CHANGES \n"
+	mkdir $CHANGES
+
+	#mount -t aufs -o dirs=$CHANGES=rw:/live/loopfs=ro none /union
+	docmd   "  Mounting unioning filesystem" \
+	"mount -t overlayfs -o lowerdir=/live/loopfs,upperdir=$CHANGES 'overlayfs:$CHANGES' /union"
+
+	export PATH=/bin:/sbin:/usr/bin:/usr/sbin:$PATH
+	echo "6" > /proc/sys/kernel/printk # enable kernel messages
+
+	## Make the directories writeable
+	for d in $MNTLIVECD/*; do
+		d=${d#$MNTLIVECD/}
+		if [ -d $MNTLIVECD/$d ]; then
+			case $d in
+				dev|proc|sys|media|mnt|tmp|udev|live|var/run|var/lock|home/guest/tmp|changes)  	# Remain in RAM
+			;;
+				*)					# Any extra/custom dirs
+				rm -f $d && ln -s /union/$d /$d		# Replace link
+			;;
+			esac
+		else
+			ln -s /union/$d /$d  ## link the files
+		fi
+	done
+
+	## fix /var/tmp
+	rm -f /var/tmp; ln -s /tmp /var/tmp
+	rm -fr /modules
+	rm -fr /live/modules
+	rm -fr /live/lib
+
+	return 0
+
+	## Testing section
+	echo "Starting a shell for testing purposes."
+	echo -n "Enter '"
+	$SETCOLOR_OK
+	echo -n "exit"
+	$SETCOLOR_NORMAL
+	echo -n "' to continue booting."
+	execshell
+	### End of testing section
+}
+
+###### MAIN ######
+if [ `/bin/grep -iq debug /proc/cmdline` ]; then
+	DEBUG=y
+fi
+if [ -n "$DEBUG" ]; then
+	echo "--- MKLIVECD RC.SYSINIT ------------"
+fi
+# parameter parsing
+for x in $(cat /proc/cmdline); do
+	case $x in
+		debug) DEBUG=y; ;;
+		md5sum) domd5=y; ;;
+		splash=silent) silent=y; ;;
+		live) live=y; ;;
+		nodetect) nodetect=y; ;;
+		hwdetect=*) HWDETECT="{x#hwdetect=}"; ;;
+		hostname=*) hostname="{x#hostname=}"; ;;
+		changes_dev=*) CHANGES_DEV="${x#changes_dev=}"; ;;
+		changes_file=*) CHANGES_FILE="${x#changes_file=}"; ;;
+	esac
+done
+
+do_union ""
+
+setupinit ""
+
+if [ -n "$DEBUG" ]; then
+	echo "--- Exiting MKLIVECD RC.SYSINIT ----"
+fi
+
+# Comment out the line that invokes rc.sysinit instead of deleting it
+cat /etc/inittab | sed -e /^si/'s/si/# si/' >/inittab;mv /inittab /etc/inittab
+exec /etc/rc.d/rc.sysinit <dev/console >dev/console 2>&1
+exit 0

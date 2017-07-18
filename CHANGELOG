@@ -1,0 +1,792 @@
+# Changelog:
+* Wed Feb 02 2011 Gianvacca
+- mklivecd: full Italian translation achieved
+- mkremaster: full Spanish translation achieved
+
+* Thu Jan 13 2011 David Smid
+- hwdetect2: fixed en_US.UTF-8 bug in get_locales_from_isolinux
+
+* Wed Dec 29 2010 Mdawkins
+- mklivecd: change the way the default kernel is found uname is not reliable inside chroots where the default 
+            host OS can be different
+- mklivecd: added correct path for root
+
+* Sun Dec 26 2010 Gianvacca
+- mkremaster: fixed fatal syntax error
+- mkremaster: fixed wrong function call
+
+* Sun Nov 21 2010 Gianvacca
+- Makefile: extensive modifications aimed at maintenance (see make maintenance-help for a complete explanation). New rules:
+-           make spec-update: to log your changes into the spec
+-           make spec-merge: to merge back the new changelog into the spec template
+-           make lang-update: to update all language files (pot and po)
+-           make tar: to generate the tarball (also the specfile will be generated)
+- Makefiles: output improved
+
+* Fri Nov 19 2010 Gianvacca
+- Provided mklivecd.in with i18n support
+
+* Tue Nov 16 2010 Mdawkins
+- Major code clean up
+- Added switch for no splash
+- Added check for aufs2 module
+- Added check for memtest.bin and gfxboot
+
+* Wed Nov 10 2010 Gianvacca
+- Rules.mk - Corrected value of DEF_VGAMODE (791 instead of meaningless 792)
+- mkremaster.in - Fixed few syntax errors
+- Full Italian translation achieved
+
+* Tue Nov 02 2010 Gettinther
+- Fix location of /etc/sysconfig/finish-install
+- Modify liverpm to fix ordering error between policykit, hal and dbus
+- Make nosplash an option for building livecds
+- Add nopat option by default
+- Dropped standalone liveusb script, now fully integrated into mkremaster
+- mkremaster.in - cleaned up screen messages and updated po files
+- Full German translation achieved (thanks Yogibaer)
+- Added po for French
+
+* Sat Oct 23 2010 Gianvacca
+- linuxrc.in - Modify search call to support unetbootin (patch from Gettinther)
+- mkremaster.in - Modify liverpm to make all packages optional and allow for extra rpms to be added (patch from Gettinther)
+- mkremaster.in - Notify users of download failure of rpms (patch from Gettinther)
+- mkremaster.in - Fixed script failure on systems where the output of df is localized
+- Updated po files and added po for German
+
+* Fri Oct 15 2010 Gianvacca
+- mklivecd.in - fix the finishinstall script (patch from Gettinther)
+- mkremaster.in - changed the list of RPMs for liverpm section of mkremaster (patch from Gettinther)
+- mkremaster.in - integrated liveusb by RichJack into mkremaster
+- mkremaster.in - new icon (taken from stand-alone liveusb)
+- plymouth turned from Req to Suggest now supported by smart
+
+* Mon Oct 11 2010 RichJack
+- liveusb.in - Creates gfxmenu on the fly if not installing current live system background image 'back.jpg' copied from [livecd]/isolinux dir and merged with 'message' cpio archive 
+               from current install found at /usr/share/gfxboot/themes/unity/boot/ (thanks Jeremiah for advice)
+- liveusb.in - Removed CD-ROMs from device search path
+- liveusb.in - Overhaul of script with creation of functions
+- liveusb.in - Better checking of filesystems before copy
+- liveusb.in - Created new icon
+- liveusb.in - Created desktop entry
+
+* Sun Sep 19 2010 Gianvacca
+- included a new version of liveusb (by RichJack) which des not required KDE anymore
+- removed desktop files creation from the spec, they are already installed with make install
+
+* Tue Sep 14 2010 Matthew Dawkins
+- fixed lzma code for new squashfs-tools
+- added services from pclos
+- added removal of tmp bootsplash files from pclos
+- changed the filename for the md5sum
+
+* Thu Jul 15 2010 Gettinther
+- Fixed code against new busybox code
+- Removed redundant code
+- Completed support for plymouth
+- Switch to Mandriva detection method
+- Redesigned mkremaster interface
+
+* Thu Nov 05 2009 Gettinther
+- Added support for 32/64bit architecture
+- Cleaned up modules list
+
+* Tue Sep 01 2009 Gettinther
+- Remove all redundant code from hwdetect.in, switch to system rc.sysinit to carry out the detection.
+- Add support for syslinux > 0.63
+- Fix modprobe.conf generation
+- Add lzma compression capability
+- Add LOW_SCSI for older systems (older systems fail to boot with extended module call)
+- Reassign nosci cheatcode since all cdroms are treated as scsi with kernels 2.6.29 and higher (re-assigned noscsi to LOW_SCSI).
+
+* Mon Apr 20 2009 Gianvacca
+- Added localization support to liveusb and mkremaster
+- Changed the directory tree of the package to separate the po files
+- Modified Makefile, Rules.mk keep up with the modifications
+- Added gettext and intltool depends in the spec file
+- The desktop file creation is handled by the Makefile(s), not anymore by the spec file
+- Fixed a bug in liveusb which occurs when the output of fdisk -l is localized
+
+* Wed Apr 15 2009 David Smid
+- Added spaces to default bootmenu titles to make them more human readable
+- Set the correct version 7.4.2 in Rules.mk
+
+* Fri Mar 27 2009 Gettinther
+- Rebuilt for Unity-Linux
+- Changed versioning to avoid issues with pclos version
+
+* Sat Jun 28 2008 etjr
+- hwdetect.in - add network config
+- linuxrc.in - add dpt_i2o to SCSI_MODULES=
+
+* Sat May 31 2008 etjr
+- mklivecd.in - fix initrd2
+- mklivecd.in - fix both initrd percent
+
+* Sun May 11 2008 etjr
+- rc.sysinit.in - fix typo
+- hwdetect.in - remove /proc/bus/usb from fstab
+
+* Sat Apr 26 2008 etjr
+- halt.local.in change <STDIN> for eject
+
+* Mon Apr 21 2008 etjr
+- change ide-cd to ide-cd_mod in Modules.mk
+- remove liveusb from menu
+
+* Mon Apr 14 2008 etjr
+- minor spec change
+
+* Sun Apr 13 2008 etjr
+- minor spelling fixes to bootcodes README
+
+* Sat Apr 12 2008 ikerekes
+- updated bootcodes README with the new bootcodes
+- fixed linuxrc parameter parsing with "fromusb" parameter
+
+* Fri Apr 11 2008 etjr
+- add modules for ide modules
+- add Privides for perl
+
+* Mon Apr 7  2008 ikerekes
+- fixed bootfromiso code
+
+* Tue Apr 1  2008 ikerekes
+- linuxrc total overhaul of the $CDROM_LIST creation (to eliviate [h,s]d[a-t][0-99] problem)
+-         total overhaul of the fromusb code (not using load_usb and load_scsi any more, the probe-modules loads those modules)
+-         total overhaul of parameter parsing
+-         modified livecd= to specify the the cloop file name (as opposed to hard-coded livecd.sqfs) as per c-chan
+-         modified the bootfrom to read as bootfromiso= meaning only the iso name without the device portion
+-
+- rc.sysinit     eliminated changes= cheatcode, implemented changes_dev and changes_file instead
+-                the changes_dev is device independent (takes the LABEL= or UUID= mount code
+-                the changes_file (if specified) describes a loop mounted changes file (system)
+-                total overhaul of parameter parsing 
+
+* Mon Mar 31 2008 texstar
+- remove touch fstab/mtab
+- add requires drakx-installer-binaries-probe
+
+* Sun Mar 30 2008 ikerekes
+- first trial of including prob-modules
+
+* Fri Mar 29 2008 texstar
+- add requires to new module-init and libzlib1
+
+* 2008-01-18 add back BusLogic module
+             updated liveusb per Jeremiah
+
+* 2008-01-15 updated liveusb per Ivan
+
+* 2008-01-13 rc.sysinit "changes" patch per Ivan
+
+* 2008-01-12 updated liveusb per Ivan
+             added zenity percentage to mkchgsloop
+
+* 2008-01-07 add another alias to config_modprobeconf per Texstar
+             add mkchgsloop
+
+* 2007-12-27 add config_modprobeconf per Texstar
+             change mkremaster menu entry to Make LiveCD
+
+* 2007-12-02 improve sata drive search (extend beyond sd[a-b]
+             improve changes=loopfile (don't limit to ext2)
+
+* 2007-11-30 changes=loop_file_name bootfrom modification from Brian
+
+* 2007-10-22 more changes in mkremaster.in
+
+* 2007-10-22 i18n-framework from i18n team at mypclinuxos.com
+
+* 2007-10-18 remove BusLogic from modules.mk
+
+* 2007-10-08 mkremaster.in
+               more terminals for mklivecd
+
+* 2007-09-23 updated to work with both pclos and tinyme
+             mkremaster.in
+               changes for shutdown in livecd
+
+* 2007-09-17 updated mkremaster.in
+             added mkremaster menu entry in spec
+
+* 2007-08-19 corrected usb-storage and bootsplash per Ivan
+
+* 2007-08-17 more changes by Ivan
+
+* 2007-08-14 many changes by Ivan
+
+* 2007-08-06 bootfrom /dev/loop fix per Ivan
+
+* 2007-08-06 updated Modules.mk per Ivan
+
+* 2007-07-25 tweak Makefile and Rules.mk
+             added liveusb and mkremaster
+	     option to create iso's with 2 kernels
+
+* 2007-07-24 change the spec back for make rpm
+
+* 2007-07-20 some further insmod cleanups
+             tweak spec file a bit
+
+* 2007-07-20 fix insmod for new modules-init-tools-3
+
+* 2007-07-10 changes to use mdev or udevstart
+
+* 2007-07-08 changes for mdev (busybox mdev) - Thanks Gentoo
+
+* 2007-06-02 hwdetect.in
+                changes in nofinishinstall
+                removed "&" from config_*()
+
+* 2007-05-11 add VideoSafeModeFBDev and VideoSafeModeVesa
+             in mklivecd and hwdetect
+
+* 2007-05-11 change safe mode to use vesa driver instead of fbdev
+
+* 2007-05-06 hwdetect.in
+                added "&" to config_*(); to suppress verbose bootup warnings
+                remove duplicate "my $modules_conf" & "my %cmdline" entries
+	        remove "my $cdsymlinks" /etc/udev/scripts/cdsymlinks.sh deprecated?
+                fixed - mkdir_p("$prefix/etc/livecd/hwdetect/");
+             mklivecd.in
+                added /media$ to $nodirs
+             linuxrc.in
+                added mkdir -p /media
+
+* 2007-05-05 merge in sata changes to hwdetect per Ivan
+
+* 2007-05-03 changes for moved modules with kernel 2.6.20
+             removed 2.4 kernels modules
+             removed more unused code
+
+* 2007-04-30 merge in changes to hwdetect per Ivan
+
+* 2007-03-28 linuxrc.in
+                moved /dev/sd[a-b][0-99] first for usb per Nico
+                ramdisk size change from 1/3 to 1/2 per Nico
+
+* 2007-03-24 add changelog to spec file
+
+* 2007-03-06 suppress "bootsplash not found ..." warning
+             remove some unused code
+	     --ufs defaults to aufs
+	     
+* 2007-02-03 hwdetect.in
+	        changed back config_network();
+	     hwdetect-lang.in
+	        changed back 'network probe'
+
+* 2007-02-02 mklivecd.in
+		added more excluded files
+		change mkisofs to genisoimage
+		change blocksize to 224
+		change default bootloader back to iso
+		change label Framebuffer to VideoSafeMode in iso and grub
+	     hwdetect.in
+	        remove config_network();
+	     hwdetect-lang.in
+	        remove 'network probe'
+	     linuxrc.in
+	        moved "##Probe the scsi devices." section per Ivan
+	     Cleaned out some unused lines 
+		
+* 2006-12-27 added option --ufs to create livecd with unionfs or aufs
+	     added rc.sysinit.aufs.in
+	     rc.sysinit.in - create ifcfg-eth0
+	     hwdetect.in - Texstar's config_network fix
+	     mklivecd.in -
+		exclude files ifcfg-eth0, 61-*config.rules, and modprobe.conf
+	    	gfxboot changes
+		default to grub
+		
+* 2005-06-28 Out of Space error added
+* 2006-06-26 Grub updates, Brian Burns patches
+* 2006-04-22 added Ivan as author, various changes
+             cut new release 0.6.0
+* 2005-06-19 added cdrom to Modules.mk (safe if missing)
+	     hwdetect:resolution check pclos/mandriva
+	     mklivecd - add safeboot, remove cow references
+             rc.sysinit.in - default use unionfs unless unionfs=no	
+
+* 2005-06-02 added sata_sis to the satalist in hwdetect as per Texstar request
+* 2005-06-01 applied Texstar�s fixes to hwdetect, to fix xres and MS wireless mouse not able to move the cursor 			sidewise
+
+* 2005-03-13 removed cdrom from modules list, shortened SATA 
+	     list in hwdetect
+* 2005-03-01 [hwdetect] added ata_piix, thanks Yoshinori Okuji
+* 2005-02-26 [rc.sysinit.in] skip unionfs test/debug section 
+		"   mtab typo fixed
+	     [linuxrc.in] increase delays while finding devices
+		
+* 2005-02-25 [mklivecd] another keyboard link correction: Ikerek
+* 2005-02-18 [hwdetect] corrected net-pf-10 off bug, thanks to Tex & Ikerek
+* 2005-02-17 [hwdetect & livecd-install] add sata_nv, thanks to Ocilent
+* 2005-02-13
+	[linuxrc.in] added usb devices to search list
+	[hwdetect] if 'noscsi' => no SATA check
+	[mklivecd] psmouse.proto=imps - laptop fix from Texstar
+* 2005-02-07
+	[rc.sysinit.in] - unionfs - fix /var/tmp, thanks to Ikerek 
+	[linuxrc.in] - chmod 1777 on /tmp
+* 2005-02-05
+	[mklivecd] - fix keyboard links
+	[rc.sysinit.in] - add unionfs option
+* 2005-01-27 [mklivecd] - ln -fs NOT sf [alaa]
+* 2005-01-24
+	[mklivecd] - added keyboard/kdm fix [alaa, ikerek]
+	[rc.sysinit.in] - added gnome to special dir list [alaa, ikerek]
+* 2005-01-20
+	[hwdetect] - fix errors in sata loader
+* 2005-01-15
+	[hwdetect] - run /etc/udev/cdsymlinks.sh
+	[rcsysinit] - added etjr change for nxserver
+	- added Ross's patch for /var/log/messages
+	[linuxrc.in] - added Emre's patch for dos-swap option
+* 2005-01-14
+	all - updated Jaco's email to jaco@puxedo.org
+	[hwdetect] - added sata loading
+	- added Chris usb fix for keyboard/mouse
+	- added "not loaded" for modules
+* 2005-01-09 [mklivecd] restored md5sum as an option
+* 2005-01-01
+	[mklivecd]
+	- added syslinux >= 1.76-15mdk as a requirement
+	- commented out halt file copy 
+	- readjusted step count for progress bar
+* 2004-12-29,30,31
+	[mklivecd]
+	- adjusted step counter for initrd progress
+	- commented out some of TV's patches
+	[hwdetect]
+	- fixed $rawX call (parameter list changed)
+	- ignore devfs if kernel 26
+	- removed old getpersistent code
+	[linuxrc.in]
+	- added ide devices hda to hdt
+* 2004-12-22 [mklivecd] - added "--noprompt" boot option from Ross Thomas
+* Dec 20th, 2004
+	[mklivecd]: 
+	- added 'nomce acpi=ht' to append options
+	- added keyboard patch (Thierry Vignaud)
+	- reduced $o_timeout to 150
+	[linuxrc]
+	- changed ramsize from totalmem/5 to /3
+	- added scsi_cdrom check for /dev/sr[0-99] (Yoshinori Okuji)
+	[rc.sysinit] 
+	- removed chmod a+rw after /etc copy
+	[hwdetect]
+	- removed call to hwdetect_getpersistent 
+	- fstab changes (Texstar)
+	- usbdevfs changed to usbfs 
+
+* Oct 6th. 2004 
+  many changes to get to this point. Release 0.5.8 was
+  the last for MDK 10.0. 
+
+* Fri, Feb 27, 2004, 0.5.7-cvs
+  + Buchan Milne <bgmilne@obsidian.co.za>:
+    [halt.local]:
+      - Added for custom commands to be executed at shutdown, eg.
+        CD eject ('noeject' boot option disables CD eject)
+    [linuxrc]:
+      - Fix error on illegal attempt to unmount /initrd/cdrom upon
+        system shutdown
+      - Added hostname= boot option to set the hostname
+    [mklivecd]:
+      - Add support ('--extraisofiles' option) for adding
+        additional files to the root of the LiveCD ISO image
+        (ie to see when browsing the CD normally)
+  + Jaco Greeff <jaco@linuxminicd.org>:
+    [FAQ]:
+      - Point to the gif2lss program in the boot splash section
+      - Show how to override Makefile parameters
+    [README]:
+      - Updated to point to the new LiveCD home of mklivecd,
+        http://developer.berlios.de/projects/livecd/ with the
+        correct mailing list info
+    [README.BOOTCODES]:
+      - Added
+    [README.USB]:
+      - Added
+    [Modules.mk]:
+      - Remove AIC7xxx_old module (hangs Adaptec cards with
+        AIC7xxx loaded already)
+      - Cooker kernels >= 2.4.23-0.rc5.2mdk (9.2+) renamed SCSI
+        module: sym53c8xx.o -> sym53c8xx_2.o (Handle both)
+      - Fix path of zlib_inflate.o module to work with kernels
+        actually providing it
+      - Added loop.o and aes.o (dep. for loop) to be able to mount
+        files (such as squashfs files) with the "-o loop" option
+      - Removed hardcoded module extension, .o, 2.6 has .ko
+      - Tweaked modules, two trees now (one for 2.4, one for 2.6)
+      - Added USB modules for USB device boots
+    [Rules.mk]:
+      - Created list for default normal and SCSI modules
+      - Created listing for optional modules
+      - Split modules into Modules.mk
+      - Force date calculation to LC_ALL=C locale for decent CVS
+        spec generation
+      - Moved splash values here to allow single-place edits
+    [hwdetect]:
+      - PS/2 mice should now work in wheel and non-wheel modes.
+        Thanks to Texstar <texstar@houston.rr.com> for ideas and
+        investigation. Threads around this are available from:
+        http://lists.berlios.de/pipermail/minicd-scripts/2003-October/000229.html
+      - Allow xres=1024x768|1280x1024|1400x1050|1600x1400 to
+        specify the resolution in the case where the monitor
+        cannot be reliably detected, eg. laptop panels
+      - Add xbpp option to specify the X depth
+      - Add support for Nvidia GLX drivers
+      - Add support for ATI GLX drivers
+      - Detect USB Flash devices and mount them rw
+      - s/LIVECD.MNT/livecd.mnt/
+      - Updated URL: http://livecd.berlios.de
+      - Fix ALSA by not loading sound modules, only adding them
+        to modules.conf (Reported and fix suggested by Texstar
+        <texstar@houston.rr.com>)
+      - Add options to modules.conf for soundcards (as detected)
+      - Fix mouse setup for console
+      - Fix keyboard setup for console
+      - Mount all devices rw,auto unless ntfs (auto,ro)
+      - Default to 16 bpp X depth
+      - Fallback to 1024x768, 16bpp if either xres|xbpp parameters
+        result in invalid res for card or detected size <= 800x600
+      - Attempt a fix at the X "de(nodeadkeys)" keyboard by breaking
+        it up into XkbLayout and XkbVariant sections
+      - USB removables are mounted at /mnt/usb[?] now
+      - Home partition located on ext2 loop device to allow symlinks
+      - Removable devices are mounted with supermount now
+      - Add /proc/bus/usb (usbdevfs) to /etc/fstab
+      - Write real device names (not devfs) to /etc/fstab
+      - Added LVM detection (Thanks to Leslie Hazelton 
+        <seawolf@attglobal.net> and SI Reasoning <si@mindspring.com>
+        for all testing and help in debugging.)
+      - Adhere to the "nousb", "noscsi" and "nopcmcia" boot options
+      - Don't run pcmcia, sound or network boot scripts if not 
+        detected, i.e. remove the /etc/rc.d/rc?.d/ links
+      - Reworked module loading to allow for 2.4 and 2.6 USB modules
+      - Make our xres, xbpp always override libDrakX unless "safex"
+        is specified
+      - Allow specification of the sound module with the sound{x} option
+      - Allow specification of the network module with the eth{x} option
+      - Don't detect network cards when 'nonetwork' is specified
+      - Don't detect sound cards when 'nosound' is specified
+      - Add 'xdrv' option to override detected X driver
+      - Add 'xram' option to override detected VideoRam
+      - Split language strings into hwdetect-lang
+      - Floppy mountpoint named /mnt/floppy[0123...]
+      - CDROM mountpoint named /mnt/cdrom[0123...]
+      - Floppies aren't mounted with CDROM fs (Thanks to Michael N. Filippov
+        <michael-pclinuxos@idisys.iae.nsk.su>)
+    [hwdetect-lang]:
+      - Added
+    [linuxrc]:
+      - Allow for finding the cloop image on SCSI devices as well
+        by probing with all the SCSI modules
+      - Added support for zlib_inflate if exists as a module
+      - Added support for translucency kernel module
+      - Utilise the fstab option as passed on the iso commandline
+        to automatically mount partitions rw if specified
+      - Updated URL: http://livecd.berlios.de
+      - Get Distro name (for starting init sequence.) from
+        /etc/redhat-release
+      - Print "LOADED" after loading modules, "OK" otherwise
+        (SCSI doesn't print "FAILED" on no SCSI devices)
+      - Use losetup to mount cloop images
+      - 'noscsi' boot option disables SCSI probing
+      - 'md5' boot option checks cloop MD5 sum
+      - Removed extra .iso. from cloop and bzloop image names
+      - Added squashfs support
+      - Added module extension option based on kernel version,
+        2.4.x == .o, 2.6.x == .ko
+      - Also load USB modules when booting from USB device
+      - "debug" boot option spits out some more scripot debugging
+        information
+    [mklivecd]:
+      - Be verbose in depmod command
+      - Copy SCSI and optinal modules in addition to normal
+        (required) ones to initrd
+      - Reworked command-line parameters to be more consistent
+      - Added '--experimental' option for testing non-mainstream
+        options and additions
+      - Added '--fstab' option for overriding the default fstab
+        creation behaviour
+      - Added the ability to include extra boot options to be
+        passed to the kernel with '--bootopt' options
+      - Add --volumeid, --application, --preparer, --publisher
+        options to identify iso uniquely
+      - Add --usbhome option to always use connected USB flash
+        devices as a persistent home
+      - Updated URL: http://livecd.berlios.de
+      - Added --timout option to specify boot timeout
+      - Added --sort=<file> option to allow the specification of
+        a mkisofs sort-file to optmise the file layout on the
+        created LiveCD
+      - Sort the contents of the final iso image, /isolinux goes
+        first, then the cloop image, then the rest
+      - Copy inittab and /sbin/halt to it, to enable the eject of
+        the CD at shutdown
+      - Create compressed iso MD5 and store it on the iso
+      - Removed extra .iso. from cloop and bzloop image names
+      - Added squashfs support
+      - Perl version of the script
+      - Tweak for creation of 2.6 images
+      - Removed /var/run and /var/lock/subsys directories for the
+        excluded dirs, added to the excluded files
+      - Make sure depmod is run if running kernel is not the same
+        as the CD kernel (Thanks mark <mark@tapinternet.com>)
+      - Added --noclean option to not remove temporary files
+      - Added uncompressed loop image support
+      - Added "normal" option to --resolution
+      - Copy modules.dep if it cannot be created
+      - Removed bzloop option (only 2.4, no benefit over squashfs)
+      - --experminetal option supports LiveCDFS
+      - --debug option for additional debugging output 
+      - Create /initrd/ramfs instead of doin it later
+    [mklivecd.spec]:
+      - Updated URL: http://livecd.berlios.de
+      - Synced with MDK contrib spec
+      - Updated description to be more descriptive
+      - Added a require for squashfs-tools
+      - Require versions for busybox and cloop-utils where applicable
+        (Earlier versions won't work)
+    [rc.sysinit]:
+      - Added (Split commands from linuxrc)
+      - Adapted for use with busybox pre4 (Cooker version)
+      - Always run ash when booting to initrd
+      - Also make us skip hwdetect if "nodetect" is specified
+      - Allow experimental overlay support with LiveCDFS
+      - Add /dev/pts mountpoint to /etc/fstab (Thanks 
+        Ross Melin <rdmelin@yahoo.com>)
+
+
+* Mon, Oct 06, 2003, 0.5.6
+  + Buchan Milne <bgmilne@obsidian.co.za>:
+    [mklivecd]:
+      - Fix rootdir to use the kernel/modules from the chroot
+      - Add basic bootsplash support if bootsplash is installed
+        on the image'd system (normal as well as chroot)
+      - Avoid premature shell expansion polluting the exclude list
+      - Optimised command-line parsing to not use redundant echo's
+      - Added bootsplash theme support with '--theme' option
+    [mklivecd.spec]:
+      - Updated to allow for rpmbuild -ta <tarball> to work for
+        a CVS snapshot generated via 'make dist'
+  + Jaco Greeff <jaco@linuxminicd.org>:
+    [FAQ]:
+      - Updated to include some compression parameter
+        statistics (describes mklivecd '--blocksize' and
+        '--looptype' options)
+      - Added an entry for the "keyb=<mapping>' isolinux boot
+        option
+      - Added an entry for the full list of available keyboard
+        mappings and their descriptions
+      - Added an QA for the creation of LSS images as used by
+        the 'mklivecd --iso-bgimage' command
+      - Added an QA for the Mandrake isolinux graphics extension
+      - Added entry for random hangs (attributed to cloop < 1.02)
+    [Makefile]:
+      - Combined piped sed commands into one
+      - Removed non-existing busybox and cloop version
+        replacements for specfile generation (legacy)
+      - Distribute generated specfile by default in 'dist',
+        instead of the previously included '.in' (This allows
+        a build via the "rpmbuild -t[abs] mklivecd-<ver>.tar.bz2"
+        command)
+      - Ability to build CVS dist per date
+      - Add RPM release information for spec file generation
+      - Added 'make rpm' target for building both the noarch and
+        src RPMS
+      - Build all targets to DISTDIR
+      - Split variables into Rules.mk
+      - Add 'install-doc' rule
+    [Rules.mk]:
+      - Added file containing all variables from original Makefile
+      - Added default keyboard mapping variable
+      - Added default resolution and vgamode mapping variables
+    [README]:
+      - Include CVS location
+    [hwdetect]:
+      - Added support for USB devices, probing USB controllers to
+        enable detection of attached devices
+      - Try to auto-detect monitors via DDC, if not available or
+        cannot be detected properly, fall back to a good default
+        (1024x768). Thanks to Pixel <pixel@mandrakesoft.com> for
+        pointers in this area.
+      - Default keyboard to 'us'. (Specified in Rules.mk)
+      - Keyboad can be specified on isolinux prompt, for example
+        keyb=dvorak resulting in a dvorak keyboard (If not
+        specified, it defaults to Rules.mk, 'us', value)
+      - hwdetect is not called from rc.* anymore (rather from
+        linuxrc, to setup before MDK init)
+      - Added partition reading and fstab generation
+      - Generate proper modules.conf from probed devices
+      - Added PCMCIA support and prepared for firewire and other
+        types of busses
+      - Added rudamentary persistent partition support. Persisted
+        partition should have a "LIVECD.MNT" file in the root,
+        with entry "mount=<mountpoint>". Only tested for
+        "mount=/home" at present
+      - Initial support for SCSI host adapters
+      - Initial support for wireless network cards
+    [linuxrc]:
+      - Only make symlinks to /var/lib/{rpm,urpmi} directories, the
+        rest are actual writables
+      - Complete rework of creation of /var directories
+      - Allow rw access to /lib/dev-state
+      - Call hwdetect at end of sequence, before init
+      - Allow for a non-hwdetect override with hwdetect=no
+      - Make current running kernel's modules.dep writable
+    [mklivecd]:
+      - Changed default blocksize back to 64K (sane default for
+        fastest operation in decompressing the compressed image)
+      - Added '--blocksize' option, accepting sizes in K, eg.
+        '--blocksize 224' to use a 224K size for the compressed
+        blocks.
+      - Added '--lowmem' option, writing created iso to disk
+        before compression. (Huge saving on memory comsumption
+        for low memory systems, expensive on disk space)
+      - Case statement now has one combined entry for '-h', '-?'
+        and '--help' command-line options
+      - Added '--final' option, stripping unneeded lines from the
+        scripts on the initrd image, saving some space. This
+        option also leaves out the 'debug' option from the CD
+      - Added '--keyboard=<language>' option to override the
+        default keyboard layout
+      - Added '--iso-bootmsg=<boot.msg>' option to provide a
+        message for the isolinux message display
+      - Added '--iso-bgimage=<image.lss>' option to provide the
+        lss image to be displayed as a background on the isolinux
+        prompt
+      - Added '--iso-graphic' option to cater for the Mandrake
+        isolinux graphic extension
+      - Removed the isolinux.cfg file, it is generated dynamically
+        now to cater for trhe mklivecd options
+      - Added '--iso-bootkey=<key>,<msg>' option
+      - Be less verbose by default, '--verbose' option works now
+      - Added '--resolution' option for fb resolution setup
+      - Added '--splash={yes|no}' option to try and create a
+        bootsplash initrd (default: yes)
+      - Removed 'nomodules' parameter from isolinux.cfg
+    [mklivecd.spec]:
+      - Synced with contrib spec
+      - Ability to auto-generate version info for changelog
+      - Build CVS specs as per MDK guidelines
+      - Automatically add build date to spec changelog
+      - Display archive version in last changelog
+      - Credit to Buchan for his spec fixes
+
+
+* Thu, Sep 25, 2003, 0.5.5
+  + Jaco Greeff <jaco@linuxminicd.org>:
+    [README]:
+      - Add mailing list information
+    [hwdetect]:
+      - Moved hwdetect initscript out of /etc/init.d into
+        /usr/share/mklivecd/init.d
+      - Allow hwdetect to be executed from either /usr/sbin (if
+        installed) or from the always available /initrd/usr/sbin
+        in initscript
+    [linuxrc]:
+      - Only cater for devfs, manually created device should be
+        done in mklivecd, not "on-the-fly"
+      - Chmod /tmp to 777, allowing all users write access to it
+      - Added support for bzloop images (experimental) (Also see
+        the mklivecd changelog entry on this)
+    [mklivecd]:
+      - Added support for bzloop images (experimental), specified
+        with --looptype=<cloop|bzloop> option. This
+        (--looptype=bzloop) requires an updated cloop-utils
+        providing both the bzloop module and {create,extract}_bzfs
+        executables (http://www.linuxminicd.org/bzloop/)
+      - Changed input blocksize to compression from 64K to 224K.
+        This still allows for overflow blocks (block with no
+        compression) to be smaller than the maximum size of 256K,
+        whilst allowing for a smaller final iso size (It can be
+        made larger, but 224K is safe and should work for all
+        types of blocks)
+      - Test for both the mkisofs and create_{compressed_,bz}fs
+        executables before using them
+      - Test that the user indeed has root privledges before
+        trying to build the iso image
+      - Display the "short GPL" in '--version' option
+      - If an unknown option is specified (-*), complain
+      - If a target iso is not specified, display the usage info
+      - Redirect all error messages to stderr
+      - Changed "mkisofs -r ..." to "mkisofs -R ..." to preserve
+        directory ownership
+
+
+* Tue, Sep 23, 2003, 0.5.4
+  + Jaco Greeff <jaco@linuxminicd.org>:
+    [FAQ]:
+      - Added an entry for creating a very minimal Mandrake LiveCD
+    [mklivecd]:
+      - Removed locale dependency from initrd size calculation
+        (Reported by Tibor Pittich, fix suggested by Buchan Milne)
+      - Renamed "--root" option to "--rootdir"
+      - --rootdir option now works as expected (inclusive of
+        --exclude-{file,dir} options)
+      - If the selected kernel doesn't match the running kernel,
+        don't try to generate the module dependencies, rather just
+        copy the existing files to the correct initrd location
+    [mklivecd.spec]:
+      - Added mkisofs to RPM spec (Reported by Tibor Pittich)
+      - Sync with RPM spec as imported into Mandrake contrib
+
+
+* Mon, Sep 22, 2003, 0.5.3
+  + Jaco Greeff <jaco@linuxminicd.org>:
+    [Makefile]:
+      - Split project version into major, minor & patch
+      - Fixed uname -r bug, allowing for correct execution via
+        shell
+    [linuxrc]:
+      - Now creates /var/log/wtmp and /var/run/utmp
+    [hwdetect]:
+      - Once again creates a workable (non-optimal) XF86Config
+        file allowing X to be started
+      - Added explicit --kernel option, if not specified it
+        defaults to the current running kernel (uname -r)
+      - Added --exclude-file option
+      - Exclude the following file patterns by default in the
+        LiveCD image creation:
+        - core.* (/core[.][0-9][0-9]*$)
+        - *.rpmnew (.*[.]rpmnew$)
+        - *.rpmsave (.*[.]rpmsave$)
+        - /.* (^/[.].*)
+        - .bash_history (/[.]bash_history$)
+        - .fonts.cache-* (/[.]fonts[.]cache-[0-9]$)
+        - .xauth* (/[.]xauth.*)
+        - .xsession-errors (/[.]xsession-errors$)
+      - Changed exclude directory pattern to not assume a full
+        path, i.e. ^ is to be added to denote a full path
+      - Do exact matches on the default excluded directories
+        (leading ^ and trailing $) to shrink the size of the
+        excluded list, making mkisofs scanning faster
+      - Decreased initrd size by removing the extraoneous 250K
+        (not needed anymore)
+      - Cleaned usage information displayed in --help
+      - If --cloop is not specified on command-line, don't create
+        hard link
+      - Try /tmp first before $TMPDIR for a decent tmp directory
+        (/tmp is always excluded from the final LiveCD, $TMPDIR
+        might not be)
+
+
+* Mon, Sep 15, 2003, 0.5.2
+  + Jaco Greeff <jaco@linuxminicd.org>:
+    [linuxrc]:
+      - Cater for pivot_root, allowing for better access to actual
+        mounted filesystems
+
+
+* Mon, Sep 01, 2003, 0.5.1
+  + Jaco Greeff <jaco@linuxminicd.org>:
+    [mklivecd]:
+      - Initial release under the mklivecd name (preparing for a
+        wider release to the MDK community) after being adapted
+        from the MiniCD build, init and hwdetect scripts
+    [mklivecd.spec]:
+      - Added spec file for RPM build

@@ -1,0 +1,24 @@
+# $Id: README.USB,v 1.4 2004/01/25 19:43:55 jaco Exp $
+
+The devices are certified to work/not to work with the LiveCD "home=usb" boot
+option. I you are have tested another key that does not appear on this list, 
+please send the details of the key to either the livecd-users or livecd-devel 
+mailing list, along with the status, e.g. working, not working.
+
+The latest list will always be available from the LiveCD website (CVS) which 
+can be accessed from:
+
+http://livecd.berlios.de
+
+The following keys have been tested as of 25 January 2004:
+
+
+| Manufacturer           | Name/Model                      |  Size  | Working |
++------------------------+---------------------------------+--------+---------+
+| 3SYSTEM                | USBFlashDisk                    |  256MB |   YES   |
+| JMTek                  | USBDisk                         |   32MB |    NO   |
+| Lexar Media            | PN 9343 version A               |   64MB |   YES   |
+| Mecer                  | Mobile Hard Disk                |  128MB |   YES   |
+| Micro Advantage        | Quick Drive                     |   64MB |   YES   |
+| PNY                    | Attache'                        |  128MB |   YES   |
+
