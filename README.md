@@ -56,6 +56,7 @@ as published by the Free Software Foundation; either version 2
   
 of the License, or (at your option) any later version.
   
+```
 Usage:
   
    /usr/sbin/mklivecd [options] &lt;livecd-image&gt;
@@ -262,3 +263,5 @@ Examples:
     /usr/sbin/mklivecd --nodir ^/usr/src/RPM,^/root/tmp livecd.iso
   
     /usr/sbin/mklivecd --splash=silent livecd.iso
+```
+    
