@@ -7,14 +7,13 @@ Version:	@MKLIVECDVER@
 Release:	@MKLIVECDREL@
 License:	GPLv2
 Group:		System/Configuration/Boot and Init
-URL:		http://livecd.berlios.de/
+URL:		https://github.com/unity-linux/mklivecd/
 Source0:	%{name}-%{version}.tar.xz
 BuildRequires:	intltool
 Requires:	busybox-static >= 1.18.4
 Requires:	cdrkit-genisoimage
 Requires:	squashfs-tools >= 4.2
 Requires:	syslinux >= 4.00
-Requires:	kmod(overlayfs)
 Requires:	drakx-installer-binaries-probe
 Suggests:	plymouth
 
