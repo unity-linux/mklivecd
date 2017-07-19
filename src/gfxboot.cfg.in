@@ -13,7 +13,7 @@
 
 [base]
 ; theme name
-theme=Unity Linux
+theme=Mageia-Default
 ; other sections to read
 layout=800x600,boot
 ; activate speech output

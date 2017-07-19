@@ -45,7 +45,7 @@ my $PROG_VERSION   = '@MKLIVECDVER@';
 my $PROG_NAME      = '@PKGNAME@';
 my $ESC            = "\x1B[";
 my $URL            = "http://unity-linux.org/";
-my $COPYRIGHT      = "Copyright (C) 2002-2004, Jaco Greeff <jaco\@puxedo.org>";
+my $COPYRIGHT      = "Copyright (C) 2015-2017, Unity-Linux <http://Unity-Linux.org>";
 
 ### global variables
 my $starttime      = time;
@@ -54,7 +54,7 @@ my $kernel26       = undef;
 my $kernelver      = "4.9.35";
 my $depmod         = "/sbin/depmod";
 my $modfile        = "/etc/modules.conf";
-my $modext         = ".ko";
+my $modext         = ".ko.xz";
 my $nodirs         = '^/[.].* ^/dev$ ^/initrd$ ^/live$ ^/lost+found$ ^/mnt$ ^/media$ ^/proc$ ^/sys$ ^/tmp$ ^/var/tmp$ ^/root/tmp$ ^/proc/asound';
 my $nofiles        = '^/[.].* ^/fastboot$ /core[.][0-9][0-9]*$ .*~$ .*[.]rpmnew$ .*[.]rpmsave$ [.]bash_history$ [.]fonts[.]cache-[0-9]$ [.]xauth.* [.]wh[.]* [.]xsession-errors$ ^/var/run/ ^/var/lock/subsys/ ^/var/lib/dhcp/ ^/etc/modprobe.conf ^/etc/sysconfig/network-scripts/ifcfg-eth* ^/etc/udev/rules.d/61-* ^/etc/udev/rules.d/70-persistent* ^/etc/asound.state ^/etc/X11/xorg.conf ^/etc/lilo.conf ^/boot/grub/menu.lst ^/etc/modprobe.preload.d/cpufreq ^/etc/sysconfig/harddrake2/previous_hw ^/var/lib/rpm/__db.* ^/etc/sysconfig/finish-install ^/etc/sysconfig/clock ^/etc/localtime ^/etc/sysconfig/hardrake2/kernels ^/var/lib/speedboot/status ^/run/* ^/var/run/* ^/var/log/* ^/var/log/ConsoleKit/* ^/var/log/cups/* ^/var/log/daemons/* ^/var/log/gdm/* ^/var/log/kernels/* ^/var/log/lpr/* ^/var/log/mail/* ^/var/log/ppp/* ^/root/.bash_history ^/home/guest/.bash_history ^/var/spool/repackage/* ^/var/lib/smart/packages/* ^/var/lib/smart/channels/* ^/var/lib/speedboot/status ^/root/.thumbnails';
 my $loopmod		= undef;
@@ -458,7 +458,7 @@ sub parse_options {
 	$opts{application} = "$distro $version LiveCD" unless (defined($opts{application}));
 	$opts{preparer} = "$PROG_NAME $PROG_VERSION" unless (defined($opts{preparer}));
 	$opts{publisher} = "$URL" unless (defined($opts{publisher}));
-	$opts{boottheme} = "*-Default" unless (defined($opts{boottheme}));
+	$opts{boottheme} = "Mageia-Default" unless (defined($opts{boottheme}));
 	$opts{bootlang} = "en" unless (defined($opts{bootlang}));
 
 	# create our working dir if none given
@@ -618,7 +618,7 @@ sub create_initrd {
 
 	# dropped modules parport pcmcia uwb
 	my @kernel_drivers = qw(ata block firewire message scsi usb);
-	my @kernel_fs = qw(fat isofs nls overlayfs squashfs);
+	my @kernel_fs = qw(fat isofs nls overlayfs squashfs udf);
 	my $kernel_dir = "lib/modules/${o_kernel}";
 	my $kmod_dir = "$kernel_dir/kernel";
 	mkdir_p("$dir/$kmod_dir/drivers/$_") foreach @kernel_drivers;
@@ -695,6 +695,7 @@ sub create_initrd {
 	do_copy($o_root."usr/share/plymouth/*",			0, "$dir/usr/share/plymouth",	++$pos);
 	do_copy($o_root."bin/plymouth",				755, "$dir/bin/plymouth",	++$pos);
 	do_copy($o_root."sbin/plymouthd",			755, "$dir/bin/plymouthd",	++$pos);
+	do_copy($o_root."usr/bin/udevadm",			755, "$dir/bin/udevadm",	++$pos);
 	#do_copy($o_root."sbin/nash",				755, "$dir/bin/nash",		++$pos);
 	# required by nash
 	do_copy($o_root."${LIBDIR}/libblkid.so.1",		644, "$dir/${LIBDIR}",		++$pos);
@@ -703,6 +704,15 @@ sub create_initrd {
 	do_copy($o_root."${LIBDIR}/libpthread.so.0",		0, "$dir/${LIBDIR}",		++$pos);
 	do_copy($o_root."${LIBDIR}/libresolv.so.2",		0, "$dir/${LIBDIR}",		++$pos);
 	do_copy($o_root."${LIBDIR}/librt.so.1",			0, "$dir/${LIBDIR}",		++$pos);
+	do_copy($o_root."${LIBDIR}/libldetect.so.0.*",		644, "$dir/${LIBDIR}",		++$pos);
+	do_copy($o_root."${LIBDIR}/libpci.so.*",		644, "$dir/${LIBDIR}",		++$pos);
+	do_copy($o_root."${LIBDIR}/liblzma.so.*",		644, "$dir/${LIBDIR}",		++$pos);
+	do_copy($o_root."${LIBDIR}/libcap.so.*",		644, "$dir/${LIBDIR}",		++$pos);
+	do_copy($o_root."${LIBDIR}/libsysfs.so.*",		644, "$dir/${LIBDIR}",		++$pos);
+	do_copy($o_root."${LIBDIR}/libpam.so.*",		644, "$dir/${LIBDIR}",		++$pos);
+	do_copy($o_root."${LIBDIR}/libacl.so.*",		644, "$dir/${LIBDIR}",		++$pos);
+	do_copy($o_root."${LIBDIR}/libattr.so.*",		644, "$dir/${LIBDIR}",		++$pos);
+	do_copy($o_root."${LIBDIR}/libaudit.so.*",		644, "$dir/${LIBDIR}",		++$pos);
 	do_copy($o_root."${LIBDIR}/libudev.so.*",		644, "$dir/${LIBDIR}",		++$pos);
 	do_copy($o_root."${LIBDIR}/libuuid.so.1",		644, "$dir/${LIBDIR}",		++$pos);
 	#do_copy($o_root."usr/${LIBDIR}/libbdevid.so.6.0.93",	0, "$dir/${LIBDIR}",		++$pos);
@@ -769,7 +779,7 @@ sub create_initrd {
 	do_cmd("rm -rf $mnt/lost+found",                                    ++$pos);
 	do_cmd("(cd $dir ; tar cf - .) | (cd $mnt ; tar xf -)",             ++$pos);
 	do_cmd("sleep 1 ; umount $mnt",                                     ++$pos);
-	do_cmd("(cd $workdir/livecd/isolinux ; find $initrddir 2>/dev/null | cpio --quiet -c -o | xz -9 --format=lzma > live.xz)",        ++$pos);
+	do_cmd("(cd $workdir/livecd/isolinux ; gzip -9 $initrddir)",        ++$pos);
 
 	# make splash
 	if (($o_splash !~ m/no/) && (!defined($opts{nosplash}))&& ($initrddir !~ m/^live2$/) ) {
@@ -786,13 +796,25 @@ sub create_initrd {
 		}
 
 		do_cmd("[ -d $o_root/tmp ] || mkdir $o_root/tmp");
-		do_cmd("mv -f $initrd.xz /tmp");
+		do_cmd("mv -f $initrd.gz /tmp");
 		if (!defined($opts{nosplash})) {
-			do_cmd("/tmp/bootsplash/scripts/make-boot-splash-raw $o_root/tmp/live.xz $o_theme");
+			do_cmd("/tmp/bootsplash/scripts/make-boot-splash-raw $o_root/tmp/live.gz $o_theme");
 		}
-		do_cmd("mv -f $o_root/tmp/live.xz $workdir/livecd/isolinux", ++$pos);
+		do_cmd("mv -f $o_root/tmp/live.gz $workdir/livecd/isolinux", ++$pos);
 	}
-	
+
+        if ($o_bootloader =~ m/^iso/) {
+                if (!defined($opts{nosplash})) {
+                        my $bootsplashtest = $o_root."usr/share/plymouth/themes/$opts{boottheme}/background.png";
+                        die_("\nWARNING: The boot theme is missing, please install a bootsplash theme\n") unless (-l $bootsplashtest);
+                        do_copy($o_root."usr/share/plymouth/themes/$opts{boottheme}/background.png", 644, "$workdir/livecd/isolinux/splash.png", ++$pos);
+                }
+        } else {
+                do_copy($o_stage2, 644, "$workdir/livecd/boot/grub/stage2_eltorito", ++$pos);
+                do_copy($o_root."boot/grub/*.xpm.gz", 644, "$workdir/livecd/boot/grub/livecd.xpm.gz", ++$pos);
+                do_copy($o_root."usr/share/gfxboot/themes/$opts{boottheme}/boot/*", 644, "$workdir/livecd/boot/grub", ++$pos);
+        }
+
   	# we are done
 	} # end
 	end_progress();
@@ -898,6 +920,8 @@ sub create_isolinux {
 	die_(N("\nFATAL: '%s' does not exist on your machine. You need to install the syslinux package.\n", $bin)) unless (-f $bin);
 	do_copy($bin, 644, "$workdir/livecd/isolinux/isolinux.bin", ++$pos);
 	do_copy($o_root."usr/lib/syslinux/vesamenu.c32", 644, "$workdir/livecd/isolinux/vesamenu.c32", ++$pos);
+	do_copy($o_root."usr/lib/syslinux/libcom32.c32", 644, "$workdir/livecd/isolinux/libcom32.c32", ++$pos);
+	do_copy($o_root."usr/lib/syslinux/libutil.c32", 644, "$workdir/livecd/isolinux/libutil.c32", ++$pos);
 	do_copy($o_root."usr/lib/syslinux/ldlinux.c32", 644, "$workdir/livecd/isolinux/ldlinux.c32", ++$pos);
 	die_(N("\nFATAL: The kernel '%sboot/vmlinuz-%s' does not exist on your machine.\n", $o_root, $o_kernel)) unless (-f $o_root."boot/vmlinuz-$o_kernel");
 	do_copy($o_root."boot/vmlinuz-$o_kernel", 644, "$workdir/livecd/isolinux/vmlinuz", ++$pos);
@@ -918,18 +942,6 @@ sub create_isolinux {
 		do_copy($o_root."boot/memtest.bin", 644, "$workdir/livecd/isolinux/memtest", ++$pos);
 	}
 
-	if ($o_bootloader =~ m/^iso/) {
-		if (!defined($opts{nosplash})) {
-	   		my $bootsplashtest = $o_root."usr/share/plymouth/themes/$opts{boottheme}/background.png";
-	   		die_("\nWARNING: The boot theme is missing, please install a bootsplash theme\n") unless (-e $bootsplashtest);
-			do_copy($o_root."usr/share/plymouth/themes/$opts{boottheme}/background.png", 644, "$workdir/livecd/isolinux/splash.png", ++$pos);
-		}
-	} else {
-	   	do_copy($o_stage2, 644, "$workdir/livecd/boot/grub/stage2_eltorito", ++$pos);
-	   	do_copy($o_root."boot/grub/*.xpm.gz", 644, "$workdir/livecd/boot/grub/livecd.xpm.gz", ++$pos);
-	   	do_copy($o_root."usr/share/gfxboot/themes/$opts{boottheme}/boot/*", 644, "$workdir/livecd/boot/grub", ++$pos);
-	}
-
 	# copy messages
 	if (defined($opts{bootimg})) {
 		do_copy($opts{bootmsg}, 644, "$workdir/livecd/isolinux/livecd.msg", ++$pos);
@@ -940,7 +952,7 @@ sub create_isolinux {
 
 	# write config
 	my $appopt;
-	$appopt = "initrd=live.xz root=/dev/sr0:CDLABEL=$opts{volumeid} ramdisk_size=32768 vga=$o_vgamode keyb=$o_keyboard nopat rd_NO_LUKS rd_NO_MD noiswmd";
+	$appopt = "initrd=live.gz root=/dev/sr0:CDLABEL=$opts{volumeid} ramdisk_size=32768 vga=$o_vgamode keyb=$o_keyboard nopat rd_NO_LUKS rd_NO_MD noiswmd";
 	#$appopt .= " splash=$o_splash" if ($o_splash !~ m/no/);
 	$appopt = "$appopt fstab=".$opts{fstab} if (defined($opts{fstab}));
 	$appopt = "$appopt home=usb" if (defined($opts{usbhome}));
@@ -957,7 +969,7 @@ sub create_isolinux {
 		print CFG "default vesamenu.c32\n";
 		print CFG "timeout $o_timeout\n";
 		print CFG "menu background splash.png\n" if (!defined($opts{nosplash}));
-		print CFG "menu title Welcome to Unity Linux 2012!\n";
+		print CFG "menu title Welcome!\n";
 		print CFG "menu tabmsg Press [Tab] to edit options\n";
 		print CFG "menu passprompt Password required\n";
 		print CFG "menu autoboot Automatic boot in # second{,s}...\n";
@@ -1031,19 +1043,19 @@ sub create_isolinux {
 	print CFG "gfxmenu (cd)/boot/grub/message\n\n";
 	print CFG "title LiveCD start\n";
 	print CFG "kernel (cd)/isolinux/vmlinuz $appopt\n";
-	print CFG "initrd (cd)/isolinux/live.xz\n\n";
+	print CFG "initrd (cd)/isolinux/live.gz\n\n";
 	print CFG "title Video safe mode - VESA\n";	
 	print CFG "kernel (cd)/isolinux/vmlinuz $appopt vesa\n";
-	print CFG "initrd (cd)/isolinux/live.xz\n\n";
+	print CFG "initrd (cd)/isolinux/live.gz\n\n";
 	print CFG "title Safe boot\n";	
 	print CFG "kernel (cd)/isolinux/vmlinuz acpi=off vga=normal noapic nolapic noscsi nopcmcia\n";
-	print CFG "initrd (cd)/isolinux/live.xz\n\n";
+	print CFG "initrd (cd)/isolinux/live.gz\n\n";
 	print CFG "title Copy to RAM\n";
 	print CFG "kernel (cd)/isolinux/vmlinuz copy2ram $appopt splash=verbose\n";
-	print CFG "initrd (cd)/isolinux/live.xz\n\n";
+	print CFG "initrd (cd)/isolinux/live.gz\n\n";
 	print CFG "title Media check\n";
 	print CFG "kernel (cd)/isolinux/vmlinuz md5sum $appopt splash=verbose\n";
-	print CFG "initrd (cd)/isolinux/live.xz\n\n";
+	print CFG "initrd (cd)/isolinux/live.gz\n\n";
 	print CFG "title Memory test\n";
 	print CFG "kernel (cd)/isolinux/memtest\n\n\n";
 	print CFG "#title LegacyKernel\n";
@@ -1057,14 +1069,14 @@ sub create_isolinux {
 
 	if ($o_mbkopt ne "") {
 		if ($o_bootloader =~ m/^iso/) {
-		    do_cmd("perl -pi -e 's/live2.gz initrd=live.xz/live2.gz/' $workdir/livecd/isolinux/isolinux.cfg");
+		    do_cmd("perl -pi -e 's/live2.gz initrd=live.gz/live2.gz/' $workdir/livecd/isolinux/isolinux.cfg");
 	    	    do_cmd("perl -pi -e 's/#//' $workdir/livecd/isolinux/isolinux.cfg");
 		    if ($o_mbkopt !~ m/lgc/) {	
 			do_cmd("perl -pi -e 's/LiveCD/LiveCD-".$o_kernel."/' $workdir/livecd/isolinux/isolinux.cfg");
 		        do_cmd("perl -pi -e 's/LegacyKernel/Kernel-".$o_mbkopt."/' $workdir/livecd/isolinux/isolinux.cfg");
 		    }
     	        } else {
-		    do_cmd("perl -pi -e 's/live2.gz initrd=live.xz/live2.gz/' $workdir/livecd/boot/grub/menu.lst");
+		    do_cmd("perl -pi -e 's/live2.gz initrd=live.gz/live2.gz/' $workdir/livecd/boot/grub/menu.lst");
 		    do_cmd("perl -pi -e 's/#//' $workdir/livecd/boot/grub/menu.lst");
 			if ($o_mbkopt !~ m/lgc/) {
 		        do_cmd("perl -pi -e 's/LiveCD/LiveCD-".$o_kernel."/' $workdir/livecd/boot/grub/menu.lst");
@@ -1087,7 +1099,7 @@ sub create_finaliso {
 	print SORT "$workdir/livecd/isolinux/isolinux.bin 500\n";
 	print SORT "$workdir/livecd/isolinux/isolinux.cfg 499\n";
 	print SORT "$workdir/livecd/isolinux/vmlinuz 498\n";
-	print SORT "$workdir/livecd/isolinux/live.xz 497\n";
+	print SORT "$workdir/livecd/isolinux/live.gz 497\n";
 	print SORT "$workdir/livecd/isolinux/* 450\n";
 	print SORT "$workdir/livecd/livecd.$o_looptype 400\n";
 	close SORT;

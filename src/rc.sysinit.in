@@ -222,19 +222,19 @@ setupinit() {
 	#	fi
 	#fi
 	# Don't run depmod (must be run before imaging system)
-	/bin/sed -i -e 's/action.*depmod/true/g' /etc/rc.d/rc.sysinit
+	sed -i -e 's/action.*depmod/true/g' /etc/rc.d/rc.sysinit
 
 	# Do various other configuration tasks (now that /etc is available)
 	if [ -z "$hostname" ]; then
-		/bin/sed -i.livecd -e "s/\(\S*HOSTNAME=\).*/\1${hostname}/g" /etc/sysconfig/network
+		sed -i.livecd -e "s/\(\S*HOSTNAME=\).*/\1${hostname}/g" /etc/sysconfig/network
 	fi
 	# Add fstab & finish-install
 	cp -f /live/etc/sysconfig/finish-install /etc/sysconfig/finish-install
 	cp -f /live/etc/fstab /etc
 
 	# clean up the shutdown sequence:
-	/bin/sed -i.livecd -e 's,\(.*\S*awk\S*.*\)\(\/.*\)\/.*\({next}.*$\),\1\2|\^\\\/live\\\/\.\*\/\3,;s,/sbin/halt.local,/live/sbin/halt.local,g;s,^\(runcmd.*mount.*proc.*\),#\1,g;s,   /live/sbin/halt.local,   exec /live/sbin/halt.local \$command,g;s,!\/\^#,!\/\(\^#\|loopfs\),g' /etc/rc.d/init.d/halt
-	[ -f /etc/rc.d/init.d/netfs ] && /bin/sed -i.livecd -e 's,!\/\^#,!\/\(\^#\|loopfs\),g' /etc/rc.d/init.d/netfs
+	sed -i.livecd -e 's,\(.*\S*awk\S*.*\)\(\/.*\)\/.*\({next}.*$\),\1\2|\^\\\/live\\\/\.\*\/\3,;s,/sbin/halt.local,/live/sbin/halt.local,g;s,^\(runcmd.*mount.*proc.*\),#\1,g;s,   /live/sbin/halt.local,   exec /live/sbin/halt.local \$command,g;s,!\/\^#,!\/\(\^#\|loopfs\),g' /etc/rc.d/init.d/halt
+	[ -f /etc/rc.d/init.d/netfs ] && sed -i.livecd -e 's,!\/\^#,!\/\(\^#\|loopfs\),g' /etc/rc.d/init.d/netfs
 
 	# make sure we get halt and reboot binaries
 	cp -f /sbin/halt /sbin/reboot /live/sbin
@@ -246,7 +246,7 @@ setupinit() {
 	fi
 
 	# do we just want to complete the initrd (debug)?
-	if [ `/bin/grep -iq livecd=live /proc/cmdline` ]; then
+	if [ `grep -iq livecd=live /proc/cmdline` ]; then
 		execshell
 	fi
 
@@ -278,6 +278,7 @@ do_union () {
 	fi
 
 	mkdir /union
+        mkdir /live/work
 	mkdir /live/changes
 	CHANGES=/changes  #Defaults to the /changes directory in memory
 
@@ -316,9 +317,20 @@ do_union () {
 	dbg "The CHANGESDEV is $CHANGES_DEV, the CHANGES is $CHANGES \n"
 	mkdir $CHANGES
 
+       ## Testing section
+        echo "Starting a shell for testing purposes."
+        echo -n "Enter '"
+        $SETCOLOR_OK
+        echo -n "exit"
+        $SETCOLOR_NORMAL
+        echo -n "' to continue booting."
+        execshell
+        ### End of testing section
+
 	#mount -t aufs -o dirs=$CHANGES=rw:/live/loopfs=ro none /union
+	modprobe overlay
 	docmd   "  Mounting unioning filesystem" \
-	"mount -t overlayfs -o lowerdir=/live/loopfs,upperdir=$CHANGES 'overlayfs:$CHANGES' /union"
+	"mount -t overlay -o lowerdir=/live/loopfs,upperdir=$CHANGES,workdir=/live/work overlay /union"
 
 	export PATH=/bin:/sbin:/usr/bin:/usr/sbin:$PATH
 	echo "6" > /proc/sys/kernel/printk # enable kernel messages
@@ -328,7 +340,7 @@ do_union () {
 		d=${d#$MNTLIVECD/}
 		if [ -d $MNTLIVECD/$d ]; then
 			case $d in
-				dev|proc|sys|media|mnt|tmp|udev|live|var/run|var/lock|home/guest/tmp|changes)  	# Remain in RAM
+				dev|proc|sys|media|mnt|tmp|udev|live|run|var/run|var/lock|home/guest/tmp|changes)  	# Remain in RAM
 			;;
 				*)					# Any extra/custom dirs
 				rm -f $d && ln -s /union/$d /$d		# Replace link
@@ -359,7 +371,7 @@ do_union () {
 }
 
 ###### MAIN ######
-if [ `/bin/grep -iq debug /proc/cmdline` ]; then
+if [ `grep -iq debug /proc/cmdline` ]; then
 	DEBUG=y
 fi
 if [ -n "$DEBUG" ]; then
@@ -391,4 +403,5 @@ fi
 # Comment out the line that invokes rc.sysinit instead of deleting it
 cat /etc/inittab | sed -e /^si/'s/si/# si/' >/inittab;mv /inittab /etc/inittab
 exec /etc/rc.d/rc.sysinit <dev/console >dev/console 2>&1
+#exec /usr/sbin/init
 exit 0
