@@ -87,7 +87,6 @@ RPMBUILD=$(shell which rpmbuild)
 SED=$(shell which sed)
 TAR=$(shell which tar)
 TOUCH=$(shell which touch)
-SPLOG=$(shell which splog)
 
 # these are files in the root dir
 DOCDIST=\

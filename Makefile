@@ -104,10 +104,6 @@ $(PKGNAME).spec: $(PKGNAME).spec.in
 spec: $(PKGNAME).spec
 
 spec-update: spec
-ifeq ($(SPLOG),)
-	$(error Can't find splog. Please, install 'pkgutils' and retry)
-endif
-
 ifeq ($(pname),)
 	$(error Please, define the packager name by appending 'pname=name_of_the_packager')
 endif 
@@ -119,12 +115,6 @@ endif
 ifeq ($(taglist),)
 	$(error Please, define the tag list by appending 'taglist="-t \"sentence to log\" -t \"other sentence to log\""')
 endif
-
-	@$(SPLOG) -p "$(pname) <$(pmail)>" $(taglist) $(PKGNAME).spec
-	@echo
-	@echo "The %changelog section of $(PKGNAME).spec has been updated with the provided info."
-	@echo "Run 'make spec-merge' if you want to merge it back into the spec template, but first check it out!"
-	@echo
 
 spec-merge: spec
 	@head -n $$(($$(grep -n "%changelog" $(PKGNAME).spec.in | cut -f1 -d:)-1)) $(PKGNAME).spec.in > temp.spec
