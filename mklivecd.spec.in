@@ -43,7 +43,7 @@ almost no performance impact.
 cat mklivecd.lang mkremaster.lang >> %{name}.list
 
 %files -f %{name}.list
-%doc AUTHORS COPYING CHANGELOG FAQ README README.BOOTCODES README.USB TODO
+%doc AUTHORS COPYING CHANGELOG FAQ README.md README.BOOTCODES README.USB TODO
 %{_sbindir}/mklivecd
 %{_sbindir}/hwdetect2
 %{_sbindir}/mkremaster
