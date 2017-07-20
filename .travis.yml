@@ -3,25 +3,20 @@ language: python
 
 env:
   global:
-    - DOCKER_IMAGE=mageia
-    - COPR_REPOSITORY=jmiahman/mklivecd
+    - DOCKER_IMAGE=alectolytic/rpmbuilder
+    - COPR_REPOSITORY=repository
     - OS_ARCH=x86_64
   matrix:
-    - OS_TYPE=mageia OS_DIST=mageia OS_VERSION=6
+    - OS_TYPE=fedora OS_DIST=fedora OS_VERSION=24
+    - OS_TYPE=centos OS_DIST=epel OS_VERSION=7
 
 services:
   - docker
 
-before_install:
-- docker pull mageia:latest
-
 install: true
 
 script:
-
-- docker run -it -v /var/run/docker.sock:/var/run/docker.sock mageia:latest sh -c "dnf update ; dnf install rpm-build -y ; bash"
-
-#  - docker run -v ${PWD}:/sources -v ${PWD}:/output:Z -e "SRPM_ONLY=1" ${DOCKER_IMAGE}
+  - docker run -v ${PWD}:/sources -v ${PWD}:/output:Z -e "SRPM_ONLY=1" ${DOCKER_IMAGE}:${OS_TYPE}-${OS_VERSION}
 
 after_success:
   - pip install copr-cli simplejson
