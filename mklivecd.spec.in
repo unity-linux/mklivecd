@@ -3,7 +3,7 @@ Name:		mklivecd
 Version:	@MKLIVECDVER@
 Release:	@MKLIVECDREL@
 License:	GPLv2
-Group:		System/Boot and Init
+Group:		System/Packaging
 URL:		https://github.com/unity-linux/mklivecd/
 Source0:	%{name}-%{version}.tar.xz
 BuildRequires:	intltool

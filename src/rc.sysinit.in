@@ -278,7 +278,7 @@ do_union () {
 	fi
 
 	mkdir /union
-        mkdir /live/work
+        mkdir /work
 	mkdir /live/changes
 	CHANGES=/changes  #Defaults to the /changes directory in memory
 
@@ -320,7 +320,7 @@ do_union () {
 	#mount -t aufs -o dirs=$CHANGES=rw:/live/loopfs=ro none /union
 	modprobe overlay
 	docmd   "  Mounting unioning filesystem" \
-	"mount -t overlay -o lowerdir=/live/loopfs,upperdir=$CHANGES,workdir=/live/work overlay /union"
+	"mount -t overlay overlay -o lowerdir=/live/loopfs,upperdir=$CHANGES,workdir=/work /union"
 
 	export PATH=/bin:/sbin:/usr/bin:/usr/sbin:$PATH
 	echo "6" > /proc/sys/kernel/printk # enable kernel messages

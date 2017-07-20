@@ -548,7 +548,7 @@ createramdisk() {
 
 ### main script entry point
 
-if [ `/bin/grep -iq debug /proc/cmdline` ]; then
+if [ `grep -iq debug /proc/cmdline` ]; then
 	DEBUG=y
 fi
 
