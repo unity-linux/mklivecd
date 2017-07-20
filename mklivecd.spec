@@ -1,3 +1,5 @@
+%define debug_package %{nil}
+
 Summary:	Builds a LiveCD from an existing Mageia Linux installation
 Name:		mklivecd
 Version:	0.9.5
