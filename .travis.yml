@@ -13,12 +13,15 @@ services:
   - docker
 
 before_install:
-- docker pull mageia
+- docker pull mageia:latest
 
 install: true
 
 script:
-  - docker run -v ${PWD}:/sources -v ${PWD}:/output:Z -e "SRPM_ONLY=1" ${DOCKER_IMAGE}
+
+- docker run -it -v /var/run/docker.sock:/var/run/docker.sock mageia:latest sh -c "dnf update ; dnf install rpm-build -y ; bash"
+
+#  - docker run -v ${PWD}:/sources -v ${PWD}:/output:Z -e "SRPM_ONLY=1" ${DOCKER_IMAGE}
 
 after_success:
   - pip install copr-cli simplejson
