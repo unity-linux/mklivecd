@@ -103,27 +103,6 @@ $(PKGNAME).spec: $(PKGNAME).spec.in
 
 spec: $(PKGNAME).spec
 
-spec-update: spec
-ifeq ($(pname),)
-	$(error Please, define the packager name by appending 'pname=name_of_the_packager')
-endif 
-
-ifeq ($(pmail),)
-	$(error Please, define the packager e-mail by appending 'pmail=e-mail_of_the_packager')
-endif
-
-ifeq ($(taglist),)
-	$(error Please, define the tag list by appending 'taglist="-t \"sentence to log\" -t \"other sentence to log\""')
-endif
-
-spec-merge: spec
-	@head -n $$(($$(grep -n "%changelog" $(PKGNAME).spec.in | cut -f1 -d:)-1)) $(PKGNAME).spec.in > temp.spec
-	@tail -n $$(($$(wc -l < $(PKGNAME).spec)-$$(grep -n "%changelog" $(PKGNAME).spec | cut -f1 -d:)+1)) $(PKGNAME).spec >> temp.spec
-	@mv -f temp.spec $(PKGNAME).spec.in
-	@echo
-	@echo "The %changelog section of $(PKGNAME).spec has been merged back into the spec template."
-	@echo
-
 lang-update: clean
 	@for d in $(PODIRS); do ( cd $$d ; $(RM) -f *.pot ) ; done
 	@for d in $(PODIRS); do ( cd $$d ; make update_n_merge ) ; done
@@ -135,6 +114,7 @@ clean:
 	@$(RM) -f *.spec
 	@$(RM) -rf $(MKLIVECDDIST)
 	@$(RM) -rf $(DISTDIR)
+	@$(RM) -rf SRPMS
 	@$(RM) -rf $(MKLIVECDDIST).tar.xz*
 	@find -name '*~' -exec $(RM) {} \;
 	@for d in $(SUBDIRS); do ( cd $$d ; make $@ ) ; done
@@ -142,7 +122,7 @@ clean:
 	@echo "Cleaning complete"
 	@echo
 
-dist: all spec
+dist: spec all
 	@$(MKDIR) -p $(MKLIVECDDIST)/$(SRCDIR)
 	@$(MKDIR) -p $(MKLIVECDDIST)/$(MKLIVECDPODIR)
 	@$(MKDIR) -p $(MKLIVECDDIST)/$(MKREMASTERPODIR)
@@ -154,6 +134,7 @@ dist: all spec
 	@$(CP) $(MKREMASTERPODIST) $(MKLIVECDDIST)/$(MKREMASTERPODIR)
 
 tar: dist
+	@$(CP) $(PKGNAME).spec $(MKLIVECDDIST)/$(PKGNAME).spec
 	@$(TAR) -Jcvf $(MKLIVECDDIST).tar.xz $(MKLIVECDDIST)
 	@$(MD5SUM) $(MKLIVECDDIST).tar.xz \
 		>$(MKLIVECDDIST).tar.xz.md5
@@ -164,6 +145,10 @@ tar: dist
 
 rpm: tar
 	$(RPMBUILD) -ta $(MKLIVECDDIST).tar.xz --clean
+
+srpm: tar
+	$(RPMBUILD) "--define" "_topdir $(shell pwd)" -ts $(MKLIVECDDIST).tar.xz --clean
+	@$(RM) -rf SOURCES SPECS RPMS BUILD BUILDROOT
 
 version:
 	@echo
