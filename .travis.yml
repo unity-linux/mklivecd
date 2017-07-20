@@ -7,9 +7,8 @@ env:
     - COPR_REPOSITORY=jmiahman/mklivecd
     - OS_ARCH=x86_64
   matrix:
-    - OS_TYPE=fedora OS_DIST=fedora OS_VERSION=24
-    - OS_TYPE=centos OS_DIST=epel OS_VERSION=7
-
+    - OS_TYPE=fedora OS_DIST=fedora OS_VERSION=25
+    
 services:
   - docker
 
