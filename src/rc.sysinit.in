@@ -317,16 +317,6 @@ do_union () {
 	dbg "The CHANGESDEV is $CHANGES_DEV, the CHANGES is $CHANGES \n"
 	mkdir $CHANGES
 
-       ## Testing section
-        echo "Starting a shell for testing purposes."
-        echo -n "Enter '"
-        $SETCOLOR_OK
-        echo -n "exit"
-        $SETCOLOR_NORMAL
-        echo -n "' to continue booting."
-        execshell
-        ### End of testing section
-
 	#mount -t aufs -o dirs=$CHANGES=rw:/live/loopfs=ro none /union
 	modprobe overlay
 	docmd   "  Mounting unioning filesystem" \

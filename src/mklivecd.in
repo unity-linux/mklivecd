@@ -713,6 +713,7 @@ sub create_initrd {
 	do_copy($o_root."${LIBDIR}/libacl.so.*",		644, "$dir/${LIBDIR}",		++$pos);
 	do_copy($o_root."${LIBDIR}/libattr.so.*",		644, "$dir/${LIBDIR}",		++$pos);
 	do_copy($o_root."${LIBDIR}/libaudit.so.*",		644, "$dir/${LIBDIR}",		++$pos);
+	do_copy($o_root."${LIBDIR}/libmount.so*",		644, "$dir/${LIBDIR}",		++$pos);
 	do_copy($o_root."${LIBDIR}/libudev.so.*",		644, "$dir/${LIBDIR}",		++$pos);
 	do_copy($o_root."${LIBDIR}/libuuid.so.1",		644, "$dir/${LIBDIR}",		++$pos);
 	#do_copy($o_root."usr/${LIBDIR}/libbdevid.so.6.0.93",	0, "$dir/${LIBDIR}",		++$pos);
