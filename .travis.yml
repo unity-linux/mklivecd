@@ -4,7 +4,7 @@ language: python
 env:
   global:
     - DOCKER_IMAGE=alectolytic/rpmbuilder
-    - COPR_REPOSITORY=repository
+    - COPR_REPOSITORY=jmiahman/mklivecd
     - OS_ARCH=x86_64
   matrix:
     - OS_TYPE=fedora OS_DIST=fedora OS_VERSION=24
