@@ -12,8 +12,9 @@ env:
   - MOCK_CONFIG="mageia-6-x86_64"
 script:
   - docker exec -it jmiahman/mageia-rpmbuilder /bin/bash -v "$(pwd):/rpmbuild" --privileged=true
+  - docker exec <container> /bin/sh -c 'ls;cd /rpmbuild && make srpm'
 
 after_success:
   - pip install copr-cli simplejson
   - openssl aes-256-cbc -K $<ENCRYPTED KEY VAR> -iv $<ENCRYPTED KEY VAR> -in .copr.enc -out .copr -d
-  - if [ ! -z "${TRAVIS_TAG}" ]; then copr-cli --config .copr build -r Mageia-6-x86_64 jmiahman/mklivecd /rpmbuild/*.src.rpm; fi
+  - if [ ! -z "${TRAVIS_TAG}" ]; then copr-cli --config .copr build -r Mageia-6-x86_64 jmiahman/mklivecd /rpmbuild/SRPMS/*.src.rpm; fi
