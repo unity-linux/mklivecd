@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/unity-linux/mklivecd.svg?branch=master)](https://travis-ci.org/unity-linux/mklivecd)
+
 # mklivecd: 
 has a long and sorted history. Many folks have worked on it inlcuding 
 Tom Kelly, Jaco Greeff and various distro teams ranging from Mandrake, 
