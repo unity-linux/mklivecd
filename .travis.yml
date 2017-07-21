@@ -14,9 +14,12 @@ env:
 script:
   - export DID=$(docker image ls | grep -m1 mageia-rpmbuilder | awk '{print $3}')
   - echo $DID
-  - docker run --entrypoint=/bin/bash $DID
-  - docker exec -it $DID /bin/bash -v "$(pwd):/rpmbuild" --privileged=true
-  - docker exec $DID /bin/sh -c 'ls;cd /rpmbuild && make srpm'
+  - docker run -d $DID tail -f /dev/null
+  - export CID=$(docker ps -l | awk '{print $1}' | grep -v -m1 'CONTAINER') 
+  - echo $CID
+  - docker exec -it $CID /bin/sh -c 'mkdir /rpmbuild'
+  - docker exec -it $CID /bin/bash -v "$(pwd):/rpmbuild" --privileged=true
+  - docker exec $CID /bin/sh -c 'ls;cd /rpmbuild && make srpm'
 
 after_success:
   - pip install copr-cli simplejson
