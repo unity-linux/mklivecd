@@ -14,7 +14,7 @@ script:
   - docker run -d -v "$(pwd):/rpmbuild" $DID tail -f /dev/null
   - export CID=$(docker ps -l | awk '{print $1}' | grep -v -m1 'CONTAINER')
   - echo $CID
-  - docker exec $CID /bin/sh -c 'dnf install intltool -y && cd /rpmbuild && make srpm' --privileged=true
+  - docker exec $CID /bin/sh -c 'cd /rpmbuild && make srpm' --privileged=true
 
 after_success:
   - sudo apt-get upgrade -y
