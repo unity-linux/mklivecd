@@ -11,7 +11,7 @@ env:
   - MOCK_CONFIG="mageia-6-i386"
   - MOCK_CONFIG="mageia-6-x86_64"
 script:
-  DID = $(docker image ls | grep -m1 mageia-rpmbuilder | awk '{print $3}')
+  - DID = $(docker image ls | grep -m1 mageia-rpmbuilder | awk '{print $3}')
   - docker exec -it $DID /bin/bash -v "$(pwd):/rpmbuild" --privileged=true
   - docker exec $DID /bin/sh -c 'ls;cd /rpmbuild && make srpm'
 
