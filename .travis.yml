@@ -13,6 +13,7 @@ env:
   - DID=$(docker image ls | grep -m1 mageia-rpmbuilder | awk '{print $3}')
   
 script:
+  - echo $DID
   - docker exec -it $DID /bin/bash -v "$(pwd):/rpmbuild" --privileged=true
   - docker exec $DID /bin/sh -c 'ls;cd /rpmbuild && make srpm'
 
