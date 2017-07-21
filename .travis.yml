@@ -20,7 +20,7 @@ script:
 
 after_success:
   - sudo apt-get upgrade -y
-  - sudo pip install pyOpenSSL ndg-httpsclient pyasn1 marshmallow copr-cli simplejson  
+  - sudo -H pip install pyOpenSSL ndg-httpsclient pyasn1 marshmallow copr-cli simplejson  
   - openssl aes-256-cbc -K $encrypted_35dd8c7ad7ad_key -iv $encrypted_35dd8c7ad7ad_iv -in .copr.enc -out .copr -d
   - pwd;ls ./SRPMS/*
   - if [ -f ./SRPMS/*.src.rpm ]; then copr-cli --config .copr build -r Mageia-6-x86_64 jmiahman/mklivecd ./SRPMS/*.src.rpm; fi
