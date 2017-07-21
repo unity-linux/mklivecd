@@ -1,23 +1,16 @@
 sudo: required
-language: python
-
-env:
-  global:
-    - DOCKER_IMAGE=alectolytic/rpmbuilder
-    - COPR_REPOSITORY=jmiahman/mklivecd
-    - OS_ARCH=x86_64
-  matrix:
-    - OS_TYPE=fedora OS_DIST=fedora OS_VERSION=25
-    
+language: bash
 services:
   - docker
-
-install: true
-
+before_install:
+  - docker pull jmiahman/rpmbuilder
+env:
+  - MOCK_CONFIG="mageia-6-i386"
+  - MOCK_CONFIG="mageia-6-x86_64"
 script:
-  - docker run -v ${PWD}:/sources -v ${PWD}:/output:Z -e "SRPM_ONLY=1" ${DOCKER_IMAGE}:${OS_TYPE}-${OS_VERSION}
+  - docker run -e MOCK_CONFIG="${MOCK_CONFIG}" -v "$(pwd):/rpmbuild" --privileged=true jmiahman/rpmbuilder
 
 after_success:
   - pip install copr-cli simplejson
   - openssl aes-256-cbc -K $<ENCRYPTED KEY VAR> -iv $<ENCRYPTED KEY VAR> -in .copr.enc -out .copr -d
-  - if [ ! -z "${TRAVIS_TAG}" ]; then copr-cli --config .copr build -r ${OS_DIST}-${OS_VERSION}-${OS_ARCH} ${COPR_REPOSITORY} *.src.rpm; fi
+  - if [ ! -z "${TRAVIS_TAG}" ]; then copr-cli --config .copr build -r ${OS_DIST}-${OS_VERSION}-${OS_ARCH} ${COPR_REPOSITORY} /rpmbuild/*.src.rpm; fi
