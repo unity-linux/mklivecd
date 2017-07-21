@@ -11,8 +11,9 @@ env:
   - MOCK_CONFIG="mageia-6-i386"
   - MOCK_CONFIG="mageia-6-x86_64"
 script:
-  - docker exec -it jmiahman/mageia-rpmbuilder /bin/bash -v "$(pwd):/rpmbuild" --privileged=true
-  - docker exec <container> /bin/sh -c 'ls;cd /rpmbuild && make srpm'
+  DID = $(docker image ls | grep -m1 mageia-rpmbuilder | awk '{print $3}')
+  - docker exec -it $DID /bin/bash -v "$(pwd):/rpmbuild" --privileged=true
+  - docker exec $DID /bin/sh -c 'ls;cd /rpmbuild && make srpm'
 
 after_success:
   - pip install copr-cli simplejson
