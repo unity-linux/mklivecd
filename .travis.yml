@@ -20,6 +20,7 @@ script:
   - docker exec $CID /bin/sh -c 'dnf install intltool -y && cd /rpmbuild && make srpm' --privileged=true
 
 after_success:
+  - apt-get upgrade -y
   - pip install marshmallow copr-cli simplejson
   - openssl aes-256-cbc -K $<ENCRYPTED KEY VAR> -iv $<ENCRYPTED KEY VAR> -in .copr.enc -out .copr -d
   - if [ ! -z "${TRAVIS_TAG}" ]; then copr-cli --config .copr build -r Mageia-6-x86_64 jmiahman/mklivecd /rpmbuild/SRPMS/*.src.rpm; fi
