@@ -17,9 +17,9 @@ script:
   - docker run -d -v "$(pwd):/rpmbuild" $DID tail -f /dev/null
   - export CID=$(docker ps -l | awk '{print $1}' | grep -v -m1 'CONTAINER')
   - echo $CID
-  - docker exec $CID /bin/sh -c 'cd /rpmbuild;make srpm' --privileged=true
+  - docker exec $CID /bin/sh -c 'dnf install intltool -y && cd /rpmbuild && make srpm' --privileged=true
 
-after_success:
+after_success:intltool
   - pip install copr-cli simplejson
   - openssl aes-256-cbc -K $<ENCRYPTED KEY VAR> -iv $<ENCRYPTED KEY VAR> -in .copr.enc -out .copr -d
   - if [ ! -z "${TRAVIS_TAG}" ]; then copr-cli --config .copr build -r Mageia-6-x86_64 jmiahman/mklivecd /rpmbuild/SRPMS/*.src.rpm; fi
