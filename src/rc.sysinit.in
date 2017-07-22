@@ -344,7 +344,12 @@ do_union () {
 	#link in Union
 	ln -s /sys /union/sys
 	ln -s /proc /union/proc
+	rm -rf /union/run
+	ln -s /run /union/run
         mkdir -p /run/lock
+
+	# Check if null is not a char device, remove and readd
+	if [ ! -c /dev/null ]; then rm -f /dev/null && mknod -m 666 /dev/null c 1 3; fi	
 
 	## fix /var/tmp
 	rm -f /var/tmp; ln -s /tmp /var/tmp

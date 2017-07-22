@@ -14,7 +14,7 @@ script:
   - docker run -d -v "$(pwd):/rpmbuild" $DID tail -f /dev/null
   - export CID=$(docker ps -l | awk '{print $1}' | grep -v -m1 'CONTAINER')
   - echo $CID
-  - docker exec $CID /bin/sh -c 'cd /rpmbuild && make srpm' --privileged=true
+  - docker exec $CID /bin/sh -c 'cd /rpmbuild && make spec && make srpm' --privileged=true
 
 after_success:
   - sudo -H pip install --upgrade pyOpenSSL ndg-httpsclient pyasn1 requests[security] marshmallow copr-cli simplejson

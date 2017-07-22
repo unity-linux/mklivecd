@@ -329,7 +329,6 @@ find_cdroms() {
 	sleep 2
 	set_progress
 
-	## Kernel 26 udev additions
 	## Search for cdrom devices and add them to CDROM_LIST
 	## Check for ide channels.
 	mdev -s
@@ -526,11 +525,7 @@ createramdisk() {
 		"ln -s /proc/self/fd/2 /dev/stderr" \
 	  	"ln -s /proc/kcore /dev/core" 
 
-	   	if [ ! -x /sbin/hotplug ]; then
-		   	echo /sbin/udev > /proc/sys/kernel/hotplug
-		fi
 		if [ -e /bin/plymouthd -a /bin/plymouth ]; then
-			##plymouth start
 			mdev -s
 			##mknod /dev/console c 5 1
 			mknod /dev/fb c 29 0
