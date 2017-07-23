@@ -453,8 +453,8 @@ sub parse_options {
 	my $rhr = "$o_root/etc/redhat-release";
 	my $distro  = (-f $rhr) ? get_exec("gawk -F' ' '{ print \$1 \" \" \$2 }' $rhr") : "$PROG_NAME";
 	my $version = (-f $rhr) ? get_exec("gawk -F' ' '{ print \$4 \" \" \$5 }' $rhr") : "$PROG_VERSION";
-	my $date    = get_exec("date +\%Y\%m\%d_\%H\%M");
-	$opts{volumeid} = "livecd_$date" unless (defined($opts{volumeid}));
+	my $date    = get_exec("date +\%Y\%M");
+	$opts{volumeid} = "Mageia-$date-mklivecd-LiveDVD" unless (defined($opts{volumeid}));
 	$opts{application} = "$distro $version LiveCD" unless (defined($opts{application}));
 	$opts{preparer} = "$PROG_NAME $PROG_VERSION" unless (defined($opts{preparer}));
 	$opts{publisher} = "$URL" unless (defined($opts{publisher}));
