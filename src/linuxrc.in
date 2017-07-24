@@ -389,11 +389,11 @@ findcloop() {
 		MOUNTEDCDROM=$(mount | grep "$MNTCDROM" | awk '{print $3}')
 		if [[ "$MOUNTEDCDROM" != "/$MNTCDROM" ]]; then
 			mountit $CDDEV $MNTCDROM
-			if [ -n "$DEBUG" ]; then
-				dbg "Mounted $CDDEV\n"
-				docmd "show mounts" \
-				"/bin/df"
-			fi
+			#if [ -n "$DEBUG" ]; then
+			#	dbg "Mounted $CDDEV\n"
+			#	docmd "show mounts" \
+			#	"/bin/df"
+			#fi
 			# try to find either the .sqfs loop image
 			LOOPTYPE=""
 			if [ -f $MNTCDROM/$BASEIMG$LOOPSEXT ]; then
