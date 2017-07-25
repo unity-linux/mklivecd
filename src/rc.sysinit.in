@@ -319,11 +319,6 @@ do_union () {
 	mkdir -m 0755 -p /run/mgalive/ovlsize
 	modprobe overlay squashfs
 
-	#Needed for draklive-install compat
-	#----#
-	LOOPDEV=$(losetup -a|grep sqfs|cut -d ':' -f1)
-	mount -n -t squashfs -o ro $LOOPDEV /run/mgalive/ovlsize
-	#----#
 	docmd   "  Mounting unioning filesystem" \
 	"mount -t overlay overlay -o lowerdir=/live/loopfs,upperdir=$CHANGES,workdir=/work /union"
 
@@ -379,6 +374,12 @@ do_union () {
 	rm -fr /modules
 	rm -fr /live/modules
 	rm -fr /live/lib
+
+       #Needed for draklive-install compat
+        #----#
+        LOOPDEV=$(losetup -a|grep sqfs|cut -d ':' -f1)
+        mount -n -t squashfs -o ro $LOOPDEV /run/mgalive/ovlsize
+        #----#
 
 	return 0
 
