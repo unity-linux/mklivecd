@@ -316,7 +316,6 @@ do_union () {
 
 	dbg "The CHANGESDEV is $CHANGES_DEV, the CHANGES is $CHANGES \n"
 	mkdir $CHANGES
-	mkdir -m 0755 -p /run/mgalive/ovlsize
 	modprobe overlay squashfs
 
 	docmd   "  Mounting unioning filesystem" \
@@ -377,6 +376,7 @@ do_union () {
 
        #Needed for draklive-install compat
         #----#
+        mkdir -m 0755 -p /run/mgalive/ovlsize
         LOOPDEV=$(losetup -a|grep sqfs|cut -d ':' -f1)
         mount -n -t squashfs -o ro $LOOPDEV /run/mgalive/ovlsize
         #----#
