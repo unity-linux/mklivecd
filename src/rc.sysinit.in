@@ -145,7 +145,8 @@ execshell() {
 	export PS1="$ "
 	export PS2="> "
 	export PS4="+ "
-	echo "6" >/proc/sys/kernel/printk
+	#echo "6" >/proc/sys/kernel/printk
+	echo "0" >/proc/sys/kernel/printk
 
 	# find the best shell available to us at this point
 	if [ -e /bin/bash ]; then
@@ -231,6 +232,7 @@ setupinit() {
 	# Add fstab & finish-install
 	cp -f /live/etc/sysconfig/finish-install /etc/sysconfig/finish-install
 	cp -f /live/etc/fstab /etc
+        echo "SOURCE=/union" > /etc/sysconfig/draklive-install
 
 	# clean up the shutdown sequence:
 	sed -i.livecd -e 's,\(.*\S*awk\S*.*\)\(\/.*\)\/.*\({next}.*$\),\1\2|\^\\\/live\\\/\.\*\/\3,;s,/sbin/halt.local,/live/sbin/halt.local,g;s,^\(runcmd.*mount.*proc.*\),#\1,g;s,   /live/sbin/halt.local,   exec /live/sbin/halt.local \$command,g;s,!\/\^#,!\/\(\^#\|loopfs\),g' /etc/rc.d/init.d/halt
@@ -240,10 +242,10 @@ setupinit() {
 	cp -f /sbin/halt /sbin/reboot /live/sbin
 
 	# restart the splash before MDK init (this is very hacky)
-	if [ $progress_max -eq 65534 ] && [ -e /proc/splash ] && [ -n "$silent" ]; then
-		echo 0 > /proc/splash
-		echo "silent" >/proc/splash
-	fi
+	#if [ $progress_max -eq 65534 ] && [ -e /proc/splash ] && [ -n "$silent" ]; then
+	#	echo 0 > /proc/splash
+	#	echo "silent" >/proc/splash
+	#fi
 
 	# do we just want to complete the initrd (debug)?
 	if [ `grep -iq livecd=live /proc/cmdline` ]; then
@@ -257,7 +259,8 @@ setupinit() {
 	# clean up /proc/bus/usb (needed to be able to clean up /proc) quetly
 	echo "0" >/proc/sys/kernel/printk
 	umount /proc/bus/usb  >/dev/null 2>&1
-	echo "6" >/proc/sys/kernel/printk
+	#echo "6" >/proc/sys/kernel/printk
+	echo "0" >/proc/sys/kernel/printk
 
 	# clean up /proc (init mounts it via rc.sysinit)
 	docmd   "  Unmounting /proc filesystem" \
@@ -352,6 +355,14 @@ do_union () {
         mount --rbind /union/srv /srv
         mount --rbind /union/usr /usr
         mount --rbind /union/var /var
+	
+	mkdir -p /run && mount -n -t tmpfs none /run
+	#Needed for draklive-install compat
+	#----#
+	mkdir -m 0755 -p /run/mgalive/ovlsize
+	LOOPDEV=$(losetup -a|grep sqfs|cut -d ':' -f1)
+	mount -n -t squashfs -o ro $LOOPDEV /run/mgalive/ovlsize
+	#----#
 
 	#Create /usr links
 	rm -f /bin /sbin /lib /lib64
@@ -362,7 +373,6 @@ do_union () {
 
 	#link in Union
 	rm -rf /union/run
-	ln -s /run /union/run
         mkdir -p /run/lock
 
 	# Check if null is not a char device, remove and readd
@@ -373,13 +383,6 @@ do_union () {
 	rm -fr /modules
 	rm -fr /live/modules
 	rm -fr /live/lib
-
-       #Needed for draklive-install compat
-        #----#
-        mkdir -m 0755 -p /run/mgalive/ovlsize
-        LOOPDEV=$(losetup -a|grep sqfs|cut -d ':' -f1)
-        mount -n -t squashfs -o ro $LOOPDEV /run/mgalive/ovlsize
-        #----#
 
 	return 0
 
