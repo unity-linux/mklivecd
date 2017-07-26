@@ -151,16 +151,6 @@ docmd() {
 	fi 
 }
 
-
-### set progress bar
-set_progress() {
-	if [ -e /proc/splash ] && [ -n "$silent" ]; then
-		progress_num=$(($progress_num+1));
-		progress=$(($progress_max*($progress_num+1)/$progress_full));
-		echo "show $progress" >/proc/splash
-	fi
-}
-
 dbg() {
 	if [ -n "$DEBUG" ]; then
 		$SETCOLOR_FAIL
@@ -314,7 +304,6 @@ initialise() {
 	done
 	# this allows the option to be removed from the bootcmd
 	[ -z "$BASEIMG" ] &&  BASEIMG="livecd"
-	set_progress
 }
 
 find_cdroms() {
@@ -327,7 +316,6 @@ find_cdroms() {
 	done
 	
 	sleep 2
-	set_progress
 
 	## Search for cdrom devices and add them to CDROM_LIST
 	## Check for ide channels.
@@ -351,8 +339,9 @@ find_cdroms() {
 				CDROM_LIST="$CDROM_LIST $scsi_cdrom"
 			fi
 		done
-		printok
-		set_progress
+                if [ -n "$DEBUG" ]; then
+                   printok
+                fi
 	fi
 }
 
@@ -389,11 +378,11 @@ findcloop() {
 		MOUNTEDCDROM=$(mount | grep "$MNTCDROM" | awk '{print $3}')
 		if [[ "$MOUNTEDCDROM" != "/$MNTCDROM" ]]; then
 			mountit $CDDEV $MNTCDROM
-			#if [ -n "$DEBUG" ]; then
-			#	dbg "Mounted $CDDEV\n"
-			#	docmd "show mounts" \
-			#	"/bin/df"
-			#fi
+			if [ -n "$DEBUG" ]; then
+				dbg "Mounted $CDDEV\n"
+				docmd "show mounts" \
+				"/bin/df"
+			fi
 			# try to find either the .sqfs loop image
 			LOOPTYPE=""
 			if [ -f $MNTCDROM/$BASEIMG$LOOPSEXT ]; then
@@ -533,8 +522,6 @@ createramdisk() {
 			"/bin/plymouthd" \
 			"/bin/plymouth --show-splash"
 		fi
-
-		set_progress
 	else
 		printfatal "ERROR: Insufficient memory to create ramdisk."
 	fi
@@ -599,7 +586,7 @@ if [ -n "$ISO_PATH" ]; then
    	else
    		mount -r -o ro $LOOP_DEV /part || echo "could't mount the $LOOP_DEV partition"
    		losetup /dev/loop1 /part$ISO_PATH
-   		mount -r -t iso9660 /dev/loop1 $MNTCDROM && printok || printfail
+   		mount -r -t udf,iso9660 /dev/loop1 $MNTCDROM && printok || printfail
    		if [ -e "$MNTCDROM/$BASEIMG$LOOPSEXT" ]; then
    			losetup /dev/loop2 $MNTCDROM/$BASEIMG$LOOPSEXT
    			mount -r -t squashfs /dev/loop2 $MNTLIVECD && LOOPMNT=1
@@ -628,5 +615,7 @@ fi
 if [ -n "$DEBUG" ]; then
 	echo "--- Exiting LINUXRC ----------------"
 fi
+
+echo -e "\n"
 exec /etc/rc.d/rc.sysinit <dev/console >dev/console 2>&1
 exit 0

@@ -122,15 +122,6 @@ docmd() {
 	fi 
 }
 
-### set progress bar
-set_progress() {
-	if [ -e /proc/splash ] && [ -n "$silent" ]; then
-		progress_num=$(($progress_num+1));
-		progress=$(($progress_max*($progress_num+1)/$progress_full));
-		echo "show $progress" >/proc/splash
-	fi
-}
-
 dbg() {
 	if [ -n "$DEBUG" ]; then
 		$SETCOLOR_FAIL
@@ -145,8 +136,7 @@ execshell() {
 	export PS1="$ "
 	export PS2="> "
 	export PS4="+ "
-	#echo "6" >/proc/sys/kernel/printk
-	echo "0" >/proc/sys/kernel/printk
+	echo "6" >/proc/sys/kernel/printk
 
 	# find the best shell available to us at this point
 	if [ -e /bin/bash ]; then
@@ -172,12 +162,11 @@ execshell() {
 
 mountit(){
 # Usage: mountit src dst "options"
-	#BUILTIN_FS="iso9660 vfat ext4 ext3 ext2 msdos reiserfs ntfs"
-	#for fs in $BUILTIN_FS; do
-	#	test -b $1 && mount -t $fs $3 $1 $2 >/dev/null 2>&1 && return 0
-	test -b $1 && mount $3 $1 $2 >/dev/null 2>&1
-	#done
-	#return 1
+	BUILTIN_FS="iso9660 vfat ext4 ext3 ext2 msdos reiserfs ntfs udf"
+	for fs in $BUILTIN_FS; do
+		test -b $1 && mount -t $fs $3 $1 $2 >/dev/null 2>&1 && return 0
+	done
+	return 1
 }
 
 #--------------------------------------------------------------------#
@@ -188,40 +177,7 @@ mountit(){
 ### setup for init of the actual mdk image
 setupinit() {
 	echo "6" >/proc/sys/kernel/printk
-	# perform hwdetect if not disabled
-	#if [ ! -d $CHANGES/etc ]; then
-	#	if [ "$HWDETECT" = "no" ] || [ -n "$nodetect" ]; then
-	#		SKIP="yes"
-	#	fi
-	#else
-	#	if [ "$HWDETECT" = "yes" ]; then
-	#		SKIP="no"
-	#	else
-	#		SKIP="yes"
-	#	fi
-	#fi
-	#if [ "$SKIP" = "yes" ]; then
-	#	if [ -n "$DEBUG" ]; then
-	#		echo "-- rc.sysinit: Skipping hwdetect -----------"
-	#	fi
-	#else
-	#	if [ -e /live/usr/sbin/hwdetect2 ]; then
-	#		if [ -n "$DEBUG" ]; then
-	#			echo "-- rc.sysinit: Starting hwdetect -----------"
-	#		fi
-	#		OLDPATH=$PATH
-	#		export PATH=/sbin:/usr/sbin:/bin:/usr/bin
-	#		/live/usr/sbin/hwdetect2
-	#		export PATH=$OLDPATH
-	#		if [ -n "$DEBUG" ]; then
-	#			echo "-- rc.sysinit: Done with hwdetect ----------"
-	#		fi
-	#	else
-	#		if [ -n "$DEBUG" ]; then
-	#			echo "-- rc.sysinit: Missing hwdetect ------------"
-	#		fi
-	#	fi
-	#fi
+	
 	# Don't run depmod (must be run before imaging system)
 	sed -i -e 's/action.*depmod/true/g' /etc/rc.d/rc.sysinit
 
@@ -241,16 +197,14 @@ setupinit() {
 	# make sure we get halt and reboot binaries
 	cp -f /sbin/halt /sbin/reboot /live/sbin
 
-	# restart the splash before MDK init (this is very hacky)
-	#if [ $progress_max -eq 65534 ] && [ -e /proc/splash ] && [ -n "$silent" ]; then
-	#	echo 0 > /proc/splash
-	#	echo "silent" >/proc/splash
-	#fi
-
 	# do we just want to complete the initrd (debug)?
 	if [ `grep -iq livecd=live /proc/cmdline` ]; then
 		execshell
 	fi
+
+        if [ `grep -iq execshell /proc/cmdline` ]; then
+                execshell
+        fi
 
 	# clean up /sys (init mounts it via rc.sysinit)
 	docmd   "  Unmounting /sys filesystem" \
@@ -259,16 +213,15 @@ setupinit() {
 	# clean up /proc/bus/usb (needed to be able to clean up /proc) quetly
 	echo "0" >/proc/sys/kernel/printk
 	umount /proc/bus/usb  >/dev/null 2>&1
-	#echo "6" >/proc/sys/kernel/printk
-	echo "0" >/proc/sys/kernel/printk
+	echo "6" >/proc/sys/kernel/printk
 
 	# clean up /proc (init mounts it via rc.sysinit)
 	docmd   "  Unmounting /proc filesystem" \
 		"umount /proc"
 
 	# display some info
-	#distro=`/bin/cat /etc/redhat-release | awk '{ print $1 }'`
-	# moved to end echo "  Starting $distro Linux init sequence ..."
+	distro=`/bin/cat /etc/redhat-release | awk '{ print $1 }'`
+	echo "  Starting $distro Linux init sequence ..."
 
 	# setup the full path as now available and start distro boot
 	export PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/X11R6/bin:/usr/local/bin:/usr/local/sbin
@@ -412,7 +365,6 @@ for x in $(cat /proc/cmdline); do
 		splash=silent) silent=y; ;;
 		live) live=y; ;;
 		nodetect) nodetect=y; ;;
-		hwdetect=*) HWDETECT="{x#hwdetect=}"; ;;
 		hostname=*) hostname="{x#hostname=}"; ;;
 		changes_dev=*) CHANGES_DEV="${x#changes_dev=}"; ;;
 		changes_file=*) CHANGES_FILE="${x#changes_file=}"; ;;
@@ -423,12 +375,8 @@ do_union ""
 
 setupinit ""
 
+echo -e "\n"
+
 if [ -n "$DEBUG" ]; then
 	echo "--- Exiting MKLIVECD RC.SYSINIT ----"
 fi
-
-# Comment out the line that invokes rc.sysinit instead of deleting it
-cat /etc/inittab | sed -e /^si/'s/si/# si/' >/inittab;mv /inittab /etc/inittab
-exec /etc/rc.d/rc.sysinit <dev/console >dev/console 2>&1
-#exec /usr/sbin/init
-exit 0

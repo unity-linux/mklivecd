@@ -144,11 +144,12 @@ tar: dist
 	@echo
 
 rpm: tar
-	$(RPMBUILD) -ta $(MKLIVECDDIST).tar.xz --clean
+	$(RPMBUILD) "--define" "_topdir $(shell pwd)" -ta $(MKLIVECDDIST).tar.xz --clean
+	@$(RM) -rf SOURCES SPECS BUILD BUILDROOT
 
 srpm: tar
 	$(RPMBUILD) "--define" "_topdir $(shell pwd)" -ts $(MKLIVECDDIST).tar.xz --clean
-	@$(RM) -rf SOURCES SPECS RPMS BUILD BUILDROOT
+	@$(RM) -rf SOURCES SPECS BUILD BUILDROOT
 
 version:
 	@echo

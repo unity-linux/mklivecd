@@ -1114,12 +1114,24 @@ sub create_finaliso {
 	elsif ($o_bootloader =~ m/^iso/) {
 		$loader = "isolinux/isolinux.bin";
 	}
-	my $cmd="genisoimage -pad -l -R -J -v -v \\\
+
+        my $eltorito_opts = "-b $loader -c isolinux/boot.cat -hide-rr-moved -no-emul-boot -boot-load-size 4 -boot-info-table ";
+        if (defined($opts{uefi})) {
+                $eltorito_opts .= " -eltorito-alt-boot -e isolinux/efiboot.img ";
+        }
+
+	# switch to UDF if larger than 4GB
+        my $udf_opts = "";
+        my $imagesize = -s "$workdir/livecd/livecd.$o_looptype";
+        print "\nDEBUG: Loop image size is $imagesize\n" if (defined($opts{debug}));
+        $udf_opts .= " -allow-limited-size -iso-level 3 " if $imagesize > ((2**32) - 25000000);
+
+	my $cmd="genisoimage -pad $udf_opts -l -R -J -v -v \\\
                   -V '".$opts{volumeid}."' \\\
                   -A '".$opts{application}."' \\\
                   -p '".$opts{preparer}."' \\\
                   -P '".$opts{publisher}."' \\\
-                  -b $loader -c isolinux/boot.cat -hide-rr-moved -no-emul-boot -boot-load-size 4 -boot-info-table -sort $workdir/sort_iso.list -o $finaliso $workdir/livecd/ ".$opts{isoextrafiles}." 2>&1";
+                  -b $loader -c isolinux/boot.cat -hide-rr-moved $eltorito_opts -no-emul-boot -boot-load-size 4 -boot-info-table -sort $workdir/sort_iso.list -o $finaliso $workdir/livecd/ ".$opts{isoextrafiles}." 2>&1";
           open ISO, "$cmd |" or die_(N("\nFATAL: Unable to execute '%s'\n", $cmd));
           my $line;
           while ($line = <ISO>) {
@@ -1133,6 +1145,9 @@ sub create_finaliso {
 	}
 	close ISO;
 	end_progress();
+	my $hybridbin = $o_root."usr/bin/isohybrid";
+        die_(N("\nFATAL: '%s' does not exist on your machine. You need to install the syslinux package.\n", $hybridbin)) unless (-f $hybridbin);
+	do_cmd("$hybridbin $finaliso");
 }
 
 ### create the embedded md5sum
