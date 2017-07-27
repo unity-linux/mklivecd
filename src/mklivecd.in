@@ -807,7 +807,7 @@ sub create_initrd {
         if ($o_bootloader =~ m/^iso/) {
                 if (!defined($opts{nosplash})) {
                         my $bootsplashtest = $o_root."usr/share/gfxboot/themes/$opts{boottheme}/back.jpg";
-                        die_("\nWARNING: The boot theme is missing, please install a bootsplash theme\n") unless (-l $bootsplashtest);
+                        die_("\nWARNING: The boot theme is missing, please install a bootsplash theme\n") unless (-e $bootsplashtest);
                         do_copy($o_root."usr/share/gfxboot/themes/$opts{boottheme}/back.jpg", 644, "$workdir/livecd/isolinux/back.jpg", ++$pos);
                 }
         } else {
