@@ -20,12 +20,11 @@ script:
   - docker run --privileged=true -d -v "$(pwd):/rpmbuild" -v "/dev:/dev" $DID tail -f /dev/null
   - export CID=$(docker ps -l | awk '{print $1}' | grep -v -m1 'CONTAINER')
   - echo $CID
-  - docker exec $CID /bin/sh -c 'cd /rpmbuild && make spec && make srpm && make rpm &>> /home/travis/build/unity-linux/mklivecd/iso_build.log' --privileged=true
-  - docker exec $CID /bin/sh -c 'dnf install /rpmbuild/RPMS/*/*.rpm kernel-tmb-desktop-latest task-lxqt-minimal -y &>> /home/travis/build/unity-linux/mklivecd/iso_build.log' --privileged=true
+  - docker exec $CID /bin/sh -c 'cd /rpmbuild && make spec && make srpm && make rpm &>> /rpmbuild/iso_build.log' --privileged=true
+  - docker exec $CID /bin/sh -c 'dnf install /rpmbuild/RPMS/*/*.rpm kernel-tmb-desktop-latest task-lxqt-minimal -y &>> /rpmbuild/iso_build.log' --privileged=true
   - mkdir build_iso  
-  - docker exec $CID /bin/sh -c 'mklivecd --tmp /rpmbuild --xz /rpmbuild/live.iso &>> /home/travis/build/unity-linux/mklivecd/iso_build.log' --privileged=true
+  - docker exec $CID /bin/sh -c 'mklivecd --tmp /rpmbuild --xz /rpmbuild/live.iso &>> /rpmbuild/iso_build.log' --privileged=true
   - export LIVE_ISO=$(readlink -f ./live.iso)
-  - pwd
   - mv $LIVE_ISO ./build_iso/
   - mv iso_build.log ./build_iso/
   - rsync -arvz --progress --rsh=ssh -e "ssh -o StrictHostKeyChecking=no" ./build_iso foobar:/var/www/unity/isos/
