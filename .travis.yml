@@ -11,7 +11,7 @@ before_install:
 script:
   - export DID=$(docker image ls | grep -m1 mageia-rpmbuilder | awk '{print $3}')
   - echo $DID
-  - docker run -d -v "$(pwd):/rpmbuild" -v "/dev:/dev" $DID tail -f /dev/null --privileged=true
+  - docker run --privileged=true -d -v "$(pwd):/rpmbuild" -v "/dev:/dev" $DID tail -f /dev/null
   - export CID=$(docker ps -l | awk '{print $1}' | grep -v -m1 'CONTAINER')
   - echo $CID
   - docker exec $CID /bin/sh -c 'cd /rpmbuild && make spec && make srpm && make rpm' --privileged=true
