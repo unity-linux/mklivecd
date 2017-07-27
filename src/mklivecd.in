@@ -989,7 +989,7 @@ sub create_isolinux {
 		print CFG "label linux0\n";
 		print CFG "menu label Launch system\n";
 		print CFG "kernel vmlinuz\n";
-		print CFG "append $appopt splash=$o_splash\n";
+		print CFG "append $appopt audit=0 splash=$o_splash\n";
 
 		# missing install from cd boot stuff TODO
 		#print CFG "\n";
