@@ -3,7 +3,7 @@
 Summary:	Builds a LiveCD from an existing Mageia Linux installation
 Name:		mklivecd
 Version:	@MKLIVECDVER@
-Release:	@MKLIVECDREL@
+Release:	@MKLIVECDREL@%{?dist}
 License:	GPLv2
 Group:		System/Packaging
 URL:		https://github.com/unity-linux/mklivecd/
@@ -14,7 +14,9 @@ Requires:	cdrkit-genisoimage
 Requires:	squashfs-tools >= 4.2
 Requires:	syslinux >= 4.00
 Requires:	drakx-installer-binaries-probe
-Suggests:	plymouth
+Requires:	plymouth-scripts
+Requires:	plymouth
+Requires:	bootsplash
 
 %description
 The mklivecd tools are dedicated to providing you with the capability to
