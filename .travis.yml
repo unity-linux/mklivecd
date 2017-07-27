@@ -17,7 +17,7 @@ script:
   - docker exec $CID /bin/sh -c 'cd /rpmbuild && make spec && make srpm && make rpm' --privileged=true
   - docker exec $CID /bin/sh -c 'dnf install /rpmbuild/RPMS/*/*.rpm kernel-tmb-desktop-latest -y' --privileged=true
   - docker exec $CID /bin/sh -c 'mklivecd --tmp /rpmbuild --gzip /rpmbuild/live.iso' --privileged=true
-  - file /rpmbuild/live.iso
+  - file live.iso
 
 after_success:
   - sudo -H pip install --upgrade pyOpenSSL ndg-httpsclient pyasn1 requests[security] marshmallow copr-cli simplejson
