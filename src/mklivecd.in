@@ -483,7 +483,7 @@ sub parse_options {
 	$loopmod = "squashfs";
 
 	# do other things before starting
-	check_kernel();
+	#check_kernel();
 	check_resolution();
 	check_root();
 	check_apps();
