@@ -483,7 +483,7 @@ sub parse_options {
 	$loopmod = "squashfs";
 
 	# do other things before starting
-	#check_kernel();
+	check_kernel();
 	check_resolution();
 	check_root();
 	check_apps();
@@ -806,9 +806,9 @@ sub create_initrd {
 
         if ($o_bootloader =~ m/^iso/) {
                 if (!defined($opts{nosplash})) {
-                        my $bootsplashtest = $o_root."usr/share/plymouth/themes/$opts{boottheme}/background.png";
+                        my $bootsplashtest = $o_root."usr/share/gfxboot/themes/$opts{boottheme}/back.jpg";
                         die_("\nWARNING: The boot theme is missing, please install a bootsplash theme\n") unless (-l $bootsplashtest);
-                        do_copy($o_root."usr/share/plymouth/themes/$opts{boottheme}/background.png", 644, "$workdir/livecd/isolinux/splash.png", ++$pos);
+                        do_copy($o_root."usr/share/gfxboot/themes/$opts{boottheme}/back.jpg", 644, "$workdir/livecd/isolinux/back.jpg", ++$pos);
                 }
         } else {
                 do_copy($o_stage2, 644, "$workdir/livecd/boot/grub/stage2_eltorito", ++$pos);
