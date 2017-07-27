@@ -24,7 +24,7 @@ script:
   - docker exec $CID /bin/sh -c 'dnf install /rpmbuild/RPMS/*/*.rpm kernel-tmb-desktop-latest -y' --privileged=true
   - docker exec $CID /bin/sh -c 'mklivecd --tmp /rpmbuild --gzip /rpmbuild/live.iso' --privileged=true
   - file live.iso
-  - rsync -r --delete-after --quiet --rsh=ssh live.iso foobar:isos
+  - rsync -r --delete-after --quiet --rsh=ssh -e "ssh -o StrictHostKeyChecking=no" live.iso foobar:isos
 
 after_success:
   - sudo -H pip install --upgrade pyOpenSSL ndg-httpsclient pyasn1 requests[security] marshmallow copr-cli simplejson
