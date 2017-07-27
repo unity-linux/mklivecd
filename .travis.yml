@@ -21,7 +21,7 @@ script:
   - export CID=$(docker ps -l | awk '{print $1}' | grep -v -m1 'CONTAINER')
   - echo $CID
   - docker exec $CID /bin/sh -c 'cd /rpmbuild && make spec && make srpm && make rpm' --privileged=true
-  - docker exec $CID /bin/sh -c 'dnf install /rpmbuild/RPMS/*/*.rpm kernel-tmb-desktop-latest -y' --privileged=true
+  - docker exec $CID /bin/sh -c 'dnf install /rpmbuild/RPMS/*/*.rpm kernel-tmb-desktop-latest task-lxqt-minimal -y' --privileged=true
   - docker exec $CID /bin/sh -c 'mklivecd --tmp /rpmbuild --gzip /rpmbuild/live.iso' --privileged=true
   - export LIVE_ISO=$(readlink -f ./live.iso)
   - rsync -avz --progress --rsh=ssh -e "ssh -o StrictHostKeyChecking=no" $LIVE_ISO foobar:/var/www/unity/isos/
