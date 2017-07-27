@@ -19,7 +19,7 @@ Requires:	plymouth
 Requires:	bootsplash
 
 # We need a theme for testing
-Suggests:	mageia-gfxboot-theme
+Suggests:	mageia-theme
 
 %description
 The mklivecd tools are dedicated to providing you with the capability to
