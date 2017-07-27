@@ -33,7 +33,7 @@ PKGNAME=mklivecd
 MAJORVER=0
 MINORVER=9
 PATCHVER=5
-RELVER=7
+RELVER=8
 CVSVER=no
 
 # Automatic variable updates, leave alone
