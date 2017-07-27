@@ -11,7 +11,7 @@ before_install:
   - eval "$(ssh-agent -s)"
   - chmod 600 /tmp/stuff/.deploy
   - ssh-add /tmp/stuff/.deploy
-  - mv /tmp/stuff/.host -out ~/.ssh/config
+  - mv /tmp/stuff/.host ~/.ssh/config
   - docker pull jmiahman/mageia-rpmbuilder
 
 script:
