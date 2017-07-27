@@ -2,12 +2,15 @@ sudo: required
 language: bash
 services:
   - docker
-
 install: true
-  
+
 before_install:
+  - openssl aes-256-cbc -K $encrypted_bcce873cdbb0_key -iv $encrypted_bcce873cdbb0_iv -in .deploy.enc -out /tmp/deploy_rsa -d
+  - eval "$(ssh-agent -s)"
+  - chmod 600 /tmp/deploy_rsa
+  - ssh-add /tmp/deploy_rsa
   - docker pull jmiahman/mageia-rpmbuilder
-  
+
 script:
   - export DID=$(docker image ls | grep -m1 mageia-rpmbuilder | awk '{print $3}')
   - echo $DID
@@ -18,8 +21,9 @@ script:
   - docker exec $CID /bin/sh -c 'dnf install /rpmbuild/RPMS/*/*.rpm kernel-tmb-desktop-latest -y' --privileged=true
   - docker exec $CID /bin/sh -c 'mklivecd --tmp /rpmbuild --gzip /rpmbuild/live.iso' --privileged=true
   - file live.iso
+  - rsync -r --delete-after --quiet live.iso iso@unity-linux.org:isos
 
 after_success:
   - sudo -H pip install --upgrade pyOpenSSL ndg-httpsclient pyasn1 requests[security] marshmallow copr-cli simplejson
   - openssl aes-256-cbc -K $encrypted_35dd8c7ad7ad_key -iv $encrypted_35dd8c7ad7ad_iv -in .copr.enc -out .copr -d
-  - if [ -f ./SRPMS/*.src.rpm ]; then copr-cli --config .copr build -r Mageia-6-x86_64 jmiahman/mklivecd ./SRPMS/*.src.rpm & copr-cli --config .copr build -r Mageia-6-x86_64 jmiahman/Unity-Linux ./SRPMS/*.src.rpm; fi 
+  - if [ -f ./SRPMS/*.src.rpm ]; then copr-cli --config .copr build -r Mageia-6-x86_64 jmiahman/mklivecd ./SRPMS/*.src.rpm & copr-cli --config .copr build -r Mageia-6-x86_64 jmiahman/Unity-Linux ./SRPMS/*.src.rpm; fi
