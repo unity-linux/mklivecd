@@ -23,7 +23,7 @@ script:
   - docker exec $CID /bin/sh -c 'cd /rpmbuild && make spec && make srpm && make rpm &>> /rpmbuild/iso_build.log' --privileged=true
   - docker exec $CID /bin/sh -c 'dnf install /rpmbuild/RPMS/*/*.rpm task-unity-lxqt -y &>> /rpmbuild/iso_build.log' --privileged=true
   - mkdir build_iso  
-  - docker exec $CID /bin/sh -c 'mklivecd --tmp /rpmbuild --xz /rpmbuild/live.iso >> /rpmbuild/iso_build.log &;while ps ax | grep mklivecd |grep -v grep ; do sleep 300;export x=$(($x+1)); echo $x 5 Minute Interval;done' --privileged=true
+  - docker exec $CID /bin/sh -c 'mklivecd --tmp /rpmbuild --xz /rpmbuild/live.iso >> /rpmbuild/iso_build.log &;while ps ax | grep mklivecd |grep -v grep ; do sleep 300;export x=$(($x+1)); echo $x 5 Minute Interval;done;' --privileged=true
   - export LIVE_ISO=$(readlink -f ./live.iso)
   - mv $LIVE_ISO ./build_iso/
   - mv iso_build.log ./build_iso/
