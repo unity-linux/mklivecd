@@ -17,13 +17,13 @@ before_install:
 script:
   - export DID=$(docker image ls | grep -m1 mageia-rpmbuilder | awk '{print $3}')
   - echo $DID
-  - docker run --privileged=true -d -v "$(pwd):/rpmbuild" -v "/dev:/dev" $DID tail -f /dev/null
+  - docker run --hostname=unity-linux --privileged=true -d -v "$(pwd):/rpmbuild" -v "/dev:/dev" $DID tail -f /dev/null
   - export CID=$(docker ps -l | awk '{print $1}' | grep -v -m1 'CONTAINER')
   - echo $CID
   - docker exec $CID /bin/sh -c 'cd /rpmbuild && make spec && make srpm && make rpm &>> /rpmbuild/iso_build.log' --privileged=true
   - docker exec $CID /bin/sh -c 'dnf install /rpmbuild/RPMS/*/*.rpm task-unity-lxqt -y &>> /rpmbuild/iso_build.log' --privileged=true
   - mkdir build_iso  
-  - docker exec --hostname=unity-linux $CID /bin/sh -c 'mklivecd --tmp /rpmbuild --xz /rpmbuild/live.iso &>> /rpmbuild/iso_build.log' --privileged=true
+  - docker exec $CID /bin/sh -c 'mklivecd --tmp /rpmbuild --xz /rpmbuild/live.iso &>> /rpmbuild/iso_build.log' --privileged=true
   - export LIVE_ISO=$(readlink -f ./live.iso)
   - mv $LIVE_ISO ./build_iso/
   - mv iso_build.log ./build_iso/

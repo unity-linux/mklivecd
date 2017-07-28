@@ -969,7 +969,7 @@ sub create_isolinux {
 		open CFG, '>', "$workdir/livecd/isolinux/isolinux.cfg";
 		print CFG "default vesamenu.c32\n";
 		print CFG "timeout $o_timeout\n";
-		print CFG "menu background splash.png\n" if (!defined($opts{nosplash}));
+		print CFG "menu background back.jpg\n" if (!defined($opts{nosplash}));
 		print CFG "menu title Welcome!\n";
 		print CFG "menu tabmsg Press [Tab] to edit options\n";
 		print CFG "menu passprompt Password required\n";
