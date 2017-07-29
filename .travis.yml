@@ -28,7 +28,7 @@ script:
   - export LIVE_ISO=$(readlink -f ./live.iso)
   - mv $LIVE_ISO ./build_iso/
   - mv iso_build.log ./build_iso/
-  - rsync -arvz --progress --rsh=ssh -e "ssh -o StrictHostKeyChecking=no" ./build_iso iso@unitylinux.com:/var/www/html/isos/
+  - rsync -arvz --progress --rsh=ssh -e "ssh -o StrictHostKeyChecking=no" ./build_iso iso@unitylinux.com:/home/iso/
 
 after_success:
   - sudo -H pip install --upgrade pyOpenSSL ndg-httpsclient pyasn1 requests[security] marshmallow copr-cli simplejson
