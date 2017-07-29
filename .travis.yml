@@ -23,12 +23,13 @@ script:
   - docker exec $CID /bin/sh -c 'cd /rpmbuild && make spec && make srpm && make rpm &>> /rpmbuild/iso_build.log' --privileged=true
   - docker exec $CID /bin/sh -c 'dnf install /rpmbuild/RPMS/*/*.rpm task-unity-lxqt -y &>> /rpmbuild/iso_build.log' --privileged=true
   - mkdir build_iso  
-  - docker exec -d $CID /bin/sh -c 'mklivecd --tmp /rpmbuild --xz /rpmbuild/live.iso >> /rpmbuild/iso_build.log &'
+  - docker exec -d $CID /bin/sh -c 'mklivecd --tmp /rpmbuild --xz /rpmbuild/live.iso &>> /rpmbuild/iso_build.log'
   - docker exec $CID /bin/sh -c 'while ps ax | grep mklivecd | grep -v grep > /dev/null ; do sleep 60 ; export x="$(($x+1))" ; echo "--==|mklivecd has been running for $x minute(s)|==--" ; done'
-  - export LIVE_ISO=$(readlink -f ./live.iso)
+  - export LIVE_ISO=$(readlink -f ./*.iso)
   - mv $LIVE_ISO ./build_iso/
   - mv iso_build.log ./build_iso/
   - rsync -arz --progress --rsh=ssh -e "ssh -o StrictHostKeyChecking=no" ./build_iso foorbar2:public_html/pub/isos/
+  - if [ -z $LIVE_ISO ]; then echo "ISO Creation Failed"; exit 1;fi
 
 after_success:
   - sudo -H pip install --upgrade pyOpenSSL ndg-httpsclient pyasn1 requests[security] marshmallow copr-cli simplejson
