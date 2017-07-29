@@ -308,9 +308,9 @@ initialise() {
 find_cdroms() {
 	for m in $MODULES_PRELOAD; do
 		if [ "$m" = "loop" ]; then
-			/bin/probe-modules $m $MAX_LOOP
+			/bin/probe-modules $m $MAX_LOOP > /dev/null
 		else
-			/bin/probe-modules $m
+			/bin/probe-modules $m > /dev/null
 		fi
 	done
 	
