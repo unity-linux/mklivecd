@@ -9,6 +9,7 @@ Group:		System/Packaging
 URL:		https://github.com/unity-linux/mklivecd/
 Source0:	%{name}-%{version}.tar.xz
 BuildRequires:	intltool
+Requires:	imagemagick
 Requires:	busybox-static >= 1.18.4
 Requires:	cdrkit-genisoimage
 Requires:	squashfs-tools >= 4.2

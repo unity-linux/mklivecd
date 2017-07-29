@@ -808,7 +808,9 @@ sub create_initrd {
                 if (!defined($opts{nosplash})) {
                         my $bootsplashtest = $o_root."usr/share/gfxboot/themes/$opts{boottheme}/back.jpg";
                         die_("\nWARNING: The boot theme is missing, please install a bootsplash theme\n") unless (-e $bootsplashtest);
-                        do_copy($o_root."usr/share/gfxboot/themes/$opts{boottheme}/back.jpg", 644, "$workdir/livecd/isolinux/back.jpg", ++$pos);
+			do_cmd("convert $bootsplashtest -resize 640x480! $workdir/livecd/isolinux/back.jpg", ++$pos);
+			die_("\nWARNING: The boot theme copy/conversion failed, is ImageMagick installed?\n") unless (-e $workdir/livecd/isolinux/back.jpg);
+			#do_copy($o_root."usr/share/gfxboot/themes/$opts{boottheme}/back.jpg", 644, "$workdir/livecd/isolinux/back.jpg", ++$pos);
                 }
         } else {
                 do_copy($o_stage2, 644, "$workdir/livecd/boot/grub/stage2_eltorito", ++$pos);
@@ -989,7 +991,7 @@ sub create_isolinux {
 		print CFG "label linux0\n";
 		print CFG "menu label Launch system\n";
 		print CFG "kernel vmlinuz\n";
-		print CFG "append $appopt audit=0 splash=$o_splash\n";
+		print CFG "append $appopt audit=0 noiswmd audit=0 rd.luks=0 rd.lvm=0 rd.md=0 rd.dm=0 splash=$o_splash\n";
 
 		# missing install from cd boot stuff TODO
 		#print CFG "\n";
