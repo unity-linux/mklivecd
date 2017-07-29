@@ -195,7 +195,7 @@ setupinit() {
 	[ -f /etc/rc.d/init.d/netfs ] && sed -i.livecd -e 's,!\/\^#,!\/\(\^#\|loopfs\),g' /etc/rc.d/init.d/netfs
 
 	# make sure we get halt and reboot binaries
-	cp -f /sbin/halt /sbin/reboot /live/sbin
+	#cp -f /sbin/halt /sbin/reboot /live/sbin
 
 	# do we just want to complete the initrd (debug)?
 	if [ `grep -iq livecd=live /proc/cmdline` ]; then
@@ -208,16 +208,16 @@ setupinit() {
 
 	# clean up /sys (init mounts it via rc.sysinit)
 	docmd   "  Unmounting /sys filesystem" \
-		"umount /sys"
+		"/bin/umount /sys"
 
 	# clean up /proc/bus/usb (needed to be able to clean up /proc) quetly
 	echo "0" >/proc/sys/kernel/printk
-	umount /proc/bus/usb  >/dev/null 2>&1
+	/bin/umount /proc/bus/usb  >/dev/null 2>&1
 	echo "6" >/proc/sys/kernel/printk
 
 	# clean up /proc (init mounts it via rc.sysinit)
 	docmd   "  Unmounting /proc filesystem" \
-		"umount /proc"
+		"/bin/umount /proc"
 
 	# display some info
 	distro=`/bin/cat /etc/redhat-release | awk '{ print $1 }'`
@@ -254,7 +254,7 @@ do_union () {
 			CHANGES=/live/changes/changes
 		else
 			echo "ERROR: Unable to mount $CHANGES_FILE"
-			umount /part1
+			/bin/umount /part1
 		fi	
 	else 
 		if [ -n "$CHANGES_DEV" ]; then
@@ -265,7 +265,7 @@ do_union () {
 				CHANGES=/live/changes/changes
 			else
 				echo "ERROR: The $CHANGES_DEV has to be a Linux file system"
-				umount /live/changes
+				/bin/umount /live/changes
 			fi
 		fi
 	fi
