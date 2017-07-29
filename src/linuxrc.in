@@ -267,7 +267,7 @@ list_block_devices()
 initialise() {
 	busybox mount -n -t proc none /proc
 	
-	busybox --install -s
+	/bin/busybox --install -s
 	ln /bin/busybox /bin/awk
 	ln /bin/busybox /bin/sed
 	
