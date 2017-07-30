@@ -799,7 +799,7 @@ sub create_initrd {
 		do_cmd("[ -d $o_root/tmp ] || mkdir $o_root/tmp");
 		do_cmd("mv -f $initrd.gz /tmp");
 		if (!defined($opts{nosplash})) {
-			do_cmd("/tmp/bootsplash/scripts/make-boot-splash-raw $o_root/tmp/live.gz $o_theme");
+			do_cmd("/tmp/bootsplash/scripts/make-boot-splash-raw $o_root/tmp/live.gz $o_theme 2>/dev/null");
 		}
 		do_cmd("mv -f $o_root/tmp/live.gz $workdir/livecd/isolinux", ++$pos);
 	}
