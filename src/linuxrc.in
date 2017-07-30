@@ -55,8 +55,10 @@ MNTCDROM=live/cdrom
 MNTLIVECD=live/loopfs
 MNTRAMDISK=/ramfs
 MODEXT=".ko.xz"
-NEW_MODULES_PRELOAD="ata_generic pata_atiixp ata_piix ahci libahci libata pata_acpi autofs4 uas sata_nv pata_amd pata_via firewire_ohci firewire_core udf"
-MODULES_PRELOAD="scsi_mod sr_mod nls_iso8859_1 nls_iso8859_2 nls_iso8859_3 nls_iso8859_4 nls_iso8859_5 nls_iso8859_6 nls_iso8859_7 nls_iso8859_9 nls_iso8859_13 nls_iso8859_14 nls_iso8859_15 nls_utf8 isofs fat vfat crc_t10dif sd_mod usbcore usb_storage uhci_hcd ohci_hcd ehci_hcd loop squashfs overlayfs $NEW_MODULES_PRELOAD --cdrom"
+#NEW_MODULES_PRELOAD="ata_generic pata_atiixp ata_piix ahci libahci libata pata_acpi autofs4 uas sata_nv pata_amd pata_via firewire_ohci firewire_core udf"
+NEW_MODULES_PRELOAD="ata_generic pata_atiixp ata_piix ahci libahci libata autofs4 uas sata_nv pata_amd pata_via firewire_ohci firewire_core udf"
+#MODULES_PRELOAD="scsi_mod sr_mod nls_iso8859_1 nls_iso8859_2 nls_iso8859_3 nls_iso8859_4 nls_iso8859_5 nls_iso8859_6 nls_iso8859_7 nls_iso8859_9 nls_iso8859_13 nls_iso8859_14 nls_iso8859_15 nls_utf8 isofs fat vfat crc_t10dif sd_mod usbcore usb_storage uhci_hcd ohci_hcd ehci_hcd loop squashfs overlayfs $NEW_MODULES_PRELOAD --cdrom"
+MODULES_PRELOAD="scsi_mod sr_mod nls_iso8859_1 nls_iso8859_2 nls_iso8859_3 nls_iso8859_4 nls_iso8859_5 nls_iso8859_6 nls_iso8859_7 nls_iso8859_9 nls_iso8859_13 nls_iso8859_14 nls_iso8859_15 nls_utf8 isofs fat sd_mod usbcore usb_storage uhci_hcd ohci_hcd ehci_hcd loop overlayfs squashfs $NEW_MODULES_PRELOAD --cdrom"
 MAX_LOOP="max_loop=64"
 ### progress indicator
 progress_num=0
@@ -267,9 +269,9 @@ list_block_devices()
 initialise() {
 	busybox mount -n -t proc none /proc
 	
-	busybox --install -s
-	#ln /bin/busybox /bin/awk
-	#ln /bin/busybox /bin/sed
+	busybox --install 
+	ln /bin/busybox /bin/awk
+	ln /bin/busybox /bin/sed
 	
 	if [ -n "$DEBUG" ]; then
 		echo "--- MKLIVECD LINUXRC ---------------"
@@ -308,9 +310,15 @@ initialise() {
 find_cdroms() {
 	for m in $MODULES_PRELOAD; do
 		if [ "$m" = "loop" ]; then
-			/bin/probe-modules $m $MAX_LOOP > /dev/null
+			/bin/probe-modules $m $MAX_LOOP
+                       if [ -n "$DEBUG" ]; then
+                           echo "$m"
+                       fi
 		else
-			/bin/probe-modules $m > /dev/null
+			/bin/probe-modules $m
+                       if [ -n "$DEBUG" ]; then
+                           echo "$m"
+                       fi
 		fi
 	done
 	

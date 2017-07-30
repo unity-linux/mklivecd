@@ -971,6 +971,7 @@ sub create_isolinux {
 		open CFG, '>', "$workdir/livecd/isolinux/isolinux.cfg";
 		print CFG "default vesamenu.c32\n";
 		print CFG "timeout $o_timeout\n";
+		print CFG "menu vshift 8\n";
 		print CFG "menu background back.jpg\n" if (!defined($opts{nosplash}));
 		print CFG "menu title Welcome!\n";
 		print CFG "menu tabmsg Press [Tab] to edit options\n";
@@ -991,7 +992,7 @@ sub create_isolinux {
 		print CFG "label linux0\n";
 		print CFG "menu label Launch system\n";
 		print CFG "kernel vmlinuz\n";
-		print CFG "append $appopt audit=0 noiswmd audit=0 rd.luks=0 rd.lvm=0 rd.md=0 rd.dm=0 splash=$o_splash\n";
+		print CFG "append $appopt audit=0 rd.luks=0 rd.lvm=0 rd.md=0 rd.dm=0 splash=$o_splash\n";
 
 		# missing install from cd boot stuff TODO
 		#print CFG "\n";
@@ -1215,8 +1216,8 @@ MAIN: {
 	parse_options();
 
 	create_initrd();
-	create_compressed();
 	create_isolinux();
+	create_compressed();
 	create_finaliso();
 	create_md5() if (defined($opts{md5sum}));;
 	cleanup();

@@ -178,8 +178,8 @@ mountit(){
 setupinit() {
 	echo "6" >/proc/sys/kernel/printk
 	
-	# Don't run depmod (must be run before imaging system)
-	sed -i -e 's/action.*depmod/true/g' /etc/rc.d/rc.sysinit
+	# Don't run depmod (must be run before imaging system) --- Seems depricated with Systemd ---
+	#sed -i -e 's/action.*depmod/true/g' /etc/rc.d/rc.sysinit
 
 	# Do various other configuration tasks (now that /etc is available)
 	if [ -z "$hostname" ]; then
@@ -190,8 +190,8 @@ setupinit() {
 	cp -f /live/etc/fstab /etc
         echo "SOURCE=/union" > /etc/sysconfig/draklive-install
 
-	# clean up the shutdown sequence:
-	sed -i.livecd -e 's,\(.*\S*awk\S*.*\)\(\/.*\)\/.*\({next}.*$\),\1\2|\^\\\/live\\\/\.\*\/\3,;s,/sbin/halt.local,/live/sbin/halt.local,g;s,^\(runcmd.*mount.*proc.*\),#\1,g;s,   /live/sbin/halt.local,   exec /live/sbin/halt.local \$command,g;s,!\/\^#,!\/\(\^#\|loopfs\),g' /etc/rc.d/init.d/halt
+	# clean up the shutdown sequence: --- Seems depricated with Systemd ---
+	# sed -i.livecd -e 's,\(.*\S*awk\S*.*\)\(\/.*\)\/.*\({next}.*$\),\1\2|\^\\\/live\\\/\.\*\/\3,;s,/sbin/halt.local,/live/sbin/halt.local,g;s,^\(runcmd.*mount.*proc.*\),#\1,g;s,   /live/sbin/halt.local,   exec /live/sbin/halt.local \$command,g;s,!\/\^#,!\/\(\^#\|loopfs\),g' /etc/rc.d/init.d/halt
 	[ -f /etc/rc.d/init.d/netfs ] && sed -i.livecd -e 's,!\/\^#,!\/\(\^#\|loopfs\),g' /etc/rc.d/init.d/netfs
 
 	# make sure we get halt and reboot binaries
