@@ -809,7 +809,7 @@ sub create_initrd {
                         my $bootsplashtest = $o_root."usr/share/gfxboot/themes/$opts{boottheme}/back.jpg";
                         die_("\nWARNING: The boot theme is missing, please install a bootsplash theme\n") unless (-e $bootsplashtest);
 			do_cmd("convert $bootsplashtest -resize 640x480! $workdir/livecd/isolinux/back.jpg", ++$pos);
-			die_("\nWARNING: The boot theme copy/conversion failed, is ImageMagick installed?\n") unless (-e $workdir/livecd/isolinux/back.jpg);
+			die_("\nWARNING: The boot theme copy/conversion failed, is ImageMagick installed?\n") unless (-e "$workdir/livecd/isolinux/back.jpg");
 			#do_copy($o_root."usr/share/gfxboot/themes/$opts{boottheme}/back.jpg", 644, "$workdir/livecd/isolinux/back.jpg", ++$pos);
                 }
         } else {
