@@ -5,7 +5,7 @@ services:
 install: true
 
 before_install:
-  - openssl aes-256-cbc -K $encrypted_bcce873cdbb0_key -iv $encrypted_bcce873cdbb0_iv -in .stuff.tar.gz.enc -out stuff.tar.gz -d
+  - openssl aes-256-cbc -K $encrypted_2312699044a7_key -iv $encrypted_2312699044a7_iv -in .stuff.tar.gz.enc -out stuff.tar.gz -d
   - file stuff.tar.gz
   - tar xzvf stuff.tar.gz -C /tmp/
   - eval "$(ssh-agent -s)"
@@ -28,7 +28,8 @@ script:
   - export LIVE_ISO=$(readlink -f ./*.iso)
   - mv $LIVE_ISO ./build_iso/
   - mv iso_build.log ./build_iso/
-  - rsync -arz --progress --rsh=ssh -e "ssh -o StrictHostKeyChecking=no" ./build_iso foorbar2:public_html/pub/isos/
+  - rsync -arz --progress --rsh=ssh -e "ssh -o StrictHostKeyChecking=no" ./build_iso foobar2:public_html/pub/isos/
+  - rsync -arz --progress --rsh=ssh -e "ssh -o StrictHostKeyChecking=no" ./build_iso foobar:/var/www/html/isos/
   - if [ -z $LIVE_ISO ]; then echo "ISO Creation Failed"; exit 1;fi
 
 after_success:
