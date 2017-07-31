@@ -309,6 +309,7 @@ initialise() {
 }
 
 find_cdroms() {
+	depmod
 	for m in $MODULES_PRELOAD; do
 		if [ "$m" = "loop" ]; then
 			/bin/probe-modules $m $MAX_LOOP
@@ -445,6 +446,9 @@ findcloop() {
 								# free the boot device
 								umount $MNTLIVECD
 								umount $MNTCDROM
+                                				if [ -n "$DEBUG" ]; then
+                                    				   echo "Unmounted $MNTCDROM & $MNTLIVECD"
+                                 				fi
 								# and use our new directory as the new MNTLIVECD
 								`losetup -d $DEVLOOP 2>&1 >/dev/null`
 								losetup $DEVLOOP $RAMDIR/livecd.sqfs
@@ -452,6 +456,9 @@ findcloop() {
 								rm -rf /live/sbin/halt.local
 							else
 								`umount $RAMDIR 2>&1 >/dev/null`
+                                                                if [ -n "$DEBUG" ]; then
+                                                                   echo "Unmounted $RAMDIR"
+                                                                fi
 								echo -n "copy 2 ram was unsuccesfull"
 								printfail
 							fi
@@ -468,6 +475,9 @@ findcloop() {
 				fi
 			fi
 			`umount $MNTCDROM 2>&1 >/dev/null`
+			 if [ -n "$DEBUG" ]; then
+                            echo "Unmounted $MNTCDROM"
+                         fi
 		fi
 	done
 	echo "$PRINTK" >/proc/sys/kernel/printk
@@ -581,9 +591,15 @@ if [ -n "$ISO_PATH" ]; then
    			if [ -f $MNTCDROM/$ISO_PATH ]; then
    				LOOP_DEV=$CDDEV
    				`umount $MNTCDROM 2>&1 >/dev/null`
+		                 if [ -n "$DEBUG" ]; then
+                   		    echo "Unmounted $MNTCDROM"
+               			 fi
 				break
    			fi
    			`umount $MNTCDROM 2>&1 >/dev/null`
+                        if [ -n "$DEBUG" ]; then
+                           echo "Unmounted $MNTCDROM"
+                        fi
 		else
 			dbg "Could not mount $CDDEV on $MNTCDROM. The ISO_PATH is $ISO_PATH\n" 	
    		fi

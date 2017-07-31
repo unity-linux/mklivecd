@@ -566,7 +566,7 @@ sub check_services {
 	# disable some services
 	print STDERR N("\nDisabling Services not needed on the LiveCD\n\n");
 	if (defined($opts{nosyslog})){
-		foreach $eachserv ('atd','crond','rsyslog','kheader','xinetd','mdmonitor-takeover','mandi','gssproxy','fedora-loadmodules') {
+		foreach $eachserv ('atd','crond','rsyslog','kheader','xinetd','mdmonitor-takeover','mandi','gssproxy','fedora-loadmodules','hypervfcopyd','hypervvssd','hypervkvpd') {
 			(push(@services,$eachserv) and  services::do_not_start_service_on_boot($eachserv)) if (services::starts_on_boot($eachserv));
 		}
 	}
