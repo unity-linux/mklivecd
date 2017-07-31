@@ -971,7 +971,7 @@ sub create_isolinux {
 		open CFG, '>', "$workdir/livecd/isolinux/isolinux.cfg";
 		print CFG "default vesamenu.c32\n";
 		print CFG "timeout $o_timeout\n";
-		print CFG "menu vshift 8\n";
+		print CFG "menu vshift 7\n";
 		print CFG "menu background back.jpg\n" if (!defined($opts{nosplash}));
 		print CFG "menu title Welcome!\n";
 		print CFG "menu tabmsg Press [Tab] to edit options\n";

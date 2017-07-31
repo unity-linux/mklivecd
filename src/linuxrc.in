@@ -178,6 +178,9 @@ loadmod() {
 
 ### this is if we are to execute a limited shell
 execshell() {
+        if [ -e /bin/plymouthd -a /bin/plymouth ]; then
+                /bin/plymouth --quit
+        fi
 	export HOSTNAME="localhost.localdomain"
 	export PS1="$ "
 	export PS2="> "
@@ -268,6 +271,7 @@ list_block_devices()
 ### initialise
 initialise() {
 	busybox mount -n -t proc none /proc
+	busybox mount -n -t sys none /sys
 	
 	busybox --install 
 	busybox --install -s
@@ -502,7 +506,7 @@ createramdisk() {
 
 	# Check for sufficient memory to mount extra ramdisk for /etc, /home, /root, /var
 	if test -n "$TOTALMEM" -a "$TOTALMEM" -gt "$MINLEFT"; then
-		docmd   "  Creating 2.6 root filesystem (${RAMSIZE}/${FOUNDMEM}kB) on /dev/shm" \
+		docmd   "  Creating root filesystem (${RAMSIZE}/${FOUNDMEM}kB) on /dev/shm" \
 		"mkdir -p $MNTRAMDISK" \
 		"mount -t tmpfs -o 'size=${RAMSIZE}k' /dev/shm $MNTRAMDISK" \
 		"mkdir -p $MNTRAMDISK/live" \
@@ -532,14 +536,6 @@ createramdisk() {
 		"ln -s /proc/self/fd/2 /dev/stderr" \
 	  	"ln -s /proc/kcore /dev/core" 
 
-		if [ -e /bin/plymouthd -a /bin/plymouth ]; then
-			mdev -s
-			##mknod /dev/console c 5 1
-			mknod /dev/fb c 29 0
-			docmd "plymouth start" \
-			"/bin/plymouthd" \
-			"/bin/plymouth --show-splash"
-		fi
 	else
 		printfatal "ERROR: Insufficient memory to create ramdisk."
 	fi
@@ -556,6 +552,18 @@ initialise    ""
 
 $SETCOLOR_NORMAL
 createramdisk ""
+
+# Try Plymouth Now after ram disk
+if [ -e /bin/plymouthd -a /bin/plymouth ]; then
+   mdev -s
+   mknod /dev/console c 5 1
+   mknod /dev/fb c 29 0
+   docmd "plymouth start" \
+   "/bin/plymouthd" \
+   "/bin/plymouth --show-splash"
+fi
+
+
 
 # try to find all the cdrom and partitions
 find_cdroms ""
