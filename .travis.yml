@@ -24,7 +24,7 @@ script:
   - docker exec -d $CID /bin/sh -c 'dnf install /rpmbuild/RPMS/*/*.rpm task-unity-lxqt -y &>> /rpmbuild/iso_build.log'
   - mkdir build_iso  
   #- docker exec -d $CID /bin/sh -c 'mklivecd --tmp /rpmbuild --xz /rpmbuild/live.iso &>> /rpmbuild/iso_build.log'
-  - docker exec -d $CID /bin/sh -c 'mklivecd --tmp /rpmbuild --xz /rpmbuild/live.iso' --privileged=true
+  - docker exec $CID /bin/sh -c 'mklivecd --tmp /rpmbuild --xz /rpmbuild/live.iso' --privileged=true
   #- docker exec $CID /bin/sh -c 'while ps ax | grep mklivecd | grep -v grep > /dev/null ; do sleep 60 ; export x="$(($x+1))" ; echo "--==|mklivecd has been running for $x minute(s)|==--" ; done'
   - export LIVE_ISO=$(readlink -f ./*.iso)
   - mv $LIVE_ISO ./build_iso/
