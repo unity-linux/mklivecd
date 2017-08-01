@@ -15,7 +15,7 @@ before_install:
   - docker pull jmiahman/mageia-rpmbuilder
 
 script:
-  - export DID=$(docker image ls | grep -m1 mageia-rpmbuilder | awk '{print $3}')
+  - export DID=$(docker images -a | grep -m1 mageia-rpmbuilder | awk '{print $3}')
   - echo $DID
   - docker run --hostname=unity-linux --privileged=true -d -v "$(pwd):/rpmbuild" -v "/dev:/dev" -v "/sys/fs/cgroup:/sys/fs/cgroup:ro" $DID 
   - export CID=$(docker ps -l | awk '{print $1}' | grep -v -m1 'CONTAINER')
