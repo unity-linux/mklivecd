@@ -17,13 +17,11 @@ before_install:
 script:
   - export DID=$(docker images -a | grep -m1 mageia-rpmbuilder | awk '{print $3}')
   - echo $DID
-  - docker run --hostname=unity-linux --privileged=true -d -v "$(pwd):/rpmbuild" -v "/dev:/dev" -v "/sys/fs/cgroup:/sys/fs/cgroup:ro" $DID 
+  - docker run --hostname=unity-linux --privileged=true -d -v "$(pwd):/rpmbuild" -v "/dev:/dev" -v "/sys/fs/cgroup:/sys/fs/cgroup:ro" $DID tail -f /dev/null 
   - export CID=$(docker ps -l | awk '{print $1}' | grep -v -m1 'CONTAINER')
   - echo $CID
   - docker exec $CID /bin/sh -c 'cd /rpmbuild && make spec && make srpm && make rpm &>> /rpmbuild/iso_build.log'
-    #- docker exec -d $CID /bin/sh -c 'dnf install /rpmbuild/RPMS/*/*.rpm task-unity-lxqt -y &>> /rpmbuild/iso_build.log'
-  - docker exec $CID /bin/sh -c 'dnf install /rpmbuild/RPMS/*/*.rpm task-unity-lxqt -y'
-    #  - docker exec $CID /bin/sh -c 'while ps ax | grep dnf | grep -v grep > /dev/null ; do sleep 60 ; export x="$(($x+1))" ; echo "--==|dnf has been running for $x minute(s)|==--" ; done'
+  - docker exec -d $CID /bin/sh -c 'dnf install /rpmbuild/RPMS/*/*.rpm task-unity-lxqt -y &>> /rpmbuild/iso_build.log'
   - mkdir build_iso  
   - docker exec -d $CID /bin/sh -c 'mklivecd --tmp /rpmbuild --xz /rpmbuild/live.iso &>> /rpmbuild/iso_build.log'
   - docker exec $CID /bin/sh -c 'while ps ax | grep mklivecd | grep -v grep > /dev/null ; do sleep 60 ; export x="$(($x+1))" ; echo "--==|mklivecd has been running for $x minute(s)|==--" ; done'
