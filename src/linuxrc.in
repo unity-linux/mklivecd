@@ -550,13 +550,22 @@ fi
 
 initialise    ""
 
+# Try Plymouth Now before ram disk
+if [ -e /bin/plymouthd -a /bin/plymouth ]; then
+   mdev -s
+   mknod /dev/fb c 29 0
+   docmd "plymouth start" \
+   "/bin/plymouthd" \
+   "/bin/plymouth --show-splash"
+fi
+
+
 $SETCOLOR_NORMAL
 createramdisk ""
 
 # Try Plymouth Now after ram disk
 if [ -e /bin/plymouthd -a /bin/plymouth ]; then
    mdev -s
-   mknod /dev/console c 5 1
    mknod /dev/fb c 29 0
    docmd "plymouth start" \
    "/bin/plymouthd" \
