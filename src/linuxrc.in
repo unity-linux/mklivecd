@@ -270,8 +270,8 @@ list_block_devices()
 
 ### initialise
 initialise() {
-	busybox mount -n -t proc none /proc
-	busybox mount -n -t sys none /sys
+	busybox mount -n -t proc proc /proc
+	busybox mount -n -t sysfs sysfs /sys
 	
 	busybox --install 
 	busybox --install -s
@@ -377,6 +377,9 @@ findcloop() {
 		echo -n "  Searching for the loop image: "
 	fi
 	PRINTK=`cat /proc/sys/kernel/printk`
+        if [ -n "$DEBUG" ]; then
+                echo -n "  printk is set to: $PRINTK "
+        fi
 	echo "0" >/proc/sys/kernel/printk
    	for i in $1; do
    		CDDEV="$i"
