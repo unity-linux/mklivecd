@@ -288,8 +288,9 @@ initialise() {
 
 	docmd   "  Setting up kernel parameters" \
 	"echo '0' >/proc/sys/kernel/printk" \
-	"echo '/sbin/modprobe' >/proc/sys/kernel/modprobe" \
-	"exec >/dev/console </dev/console 2>&1"
+	"echo '/sbin/modprobe' >/proc/sys/kernel/modprobe"
+	#"echo '/sbin/modprobe' >/proc/sys/kernel/modprobe" \
+	#"exec >/dev/console </dev/console 2>&1"
 
 	# some kernel specifics
 	KERNELVER=`uname -r`

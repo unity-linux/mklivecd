@@ -190,6 +190,13 @@ setupinit() {
 	cp -f /live/etc/fstab /etc
         echo "SOURCE=/union" > /etc/sysconfig/draklive-install
 
+	#make sure mouse works
+	if [ ! -e /etc/sysconfig/mouse ]; then
+	   echo 'FULLNAME="Universal|Any PS/2 & USB mice"' > /etc/sysconfig/mouse
+           echo "MOUSETYPE=ps/2" >> /etc/sysconfig/mouse
+           echo "device=input/mice" >> /etc/sysconfig/mouse
+        fi
+
 	# clean up the shutdown sequence: --- Seems depricated with Systemd ---
 	# sed -i.livecd -e 's,\(.*\S*awk\S*.*\)\(\/.*\)\/.*\({next}.*$\),\1\2|\^\\\/live\\\/\.\*\/\3,;s,/sbin/halt.local,/live/sbin/halt.local,g;s,^\(runcmd.*mount.*proc.*\),#\1,g;s,   /live/sbin/halt.local,   exec /live/sbin/halt.local \$command,g;s,!\/\^#,!\/\(\^#\|loopfs\),g' /etc/rc.d/init.d/halt
 	[ -f /etc/rc.d/init.d/netfs ] && sed -i.livecd -e 's,!\/\^#,!\/\(\^#\|loopfs\),g' /etc/rc.d/init.d/netfs
@@ -210,7 +217,7 @@ setupinit() {
 	docmd   "  Unmounting /sys filesystem" \
 		"/bin/umount /sys"
 
-	# clean up /proc/bus/usb (needed to be able to clean up /proc) quetly
+	# clean up /proc/bus/usb (needed to be able to clean up /proc) quietly
 	echo "0" >/proc/sys/kernel/printk
 	/bin/umount /proc/bus/usb  >/dev/null 2>&1
 	echo "6" >/proc/sys/kernel/printk
