@@ -226,7 +226,8 @@ setupinit() {
 	docmd   "  Unmounting /proc filesystem" \
 		"/bin/umount /proc"
 
-	# Run mdev one more time
+	# Run mdev one more time for mouse support
+	modprobe usbcore hid usb_hid hid_generic psmouse
 	mdev -s
 
 	# display some info
