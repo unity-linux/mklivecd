@@ -28,7 +28,7 @@ script:
   - export LIVE_ISO=$(readlink -f ./*.iso)
   - mv $LIVE_ISO ./build_iso/mklivecd-"$(date +%N)".iso
   - mv iso_build.log ./build_iso/
-  - export NEW_ISO=$(readlink -f ./*.iso)
+  - export NEW_ISO=$(readlink -f ./build_iso/*.iso)
   - md5sum "$NEW_ISO" > ./build_iso/"$NEW_ISO".md5
   - rsync -arz --progress --rsh=ssh -e "ssh -o StrictHostKeyChecking=no" ./build_iso foobar2:public_html/pub/isos/
   - rsync -arz --progress --rsh=ssh -e "ssh -o StrictHostKeyChecking=no" ./build_iso foobar:/var/www/html/isos/
