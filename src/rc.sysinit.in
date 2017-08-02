@@ -226,10 +226,6 @@ setupinit() {
 	docmd   "  Unmounting /proc filesystem" \
 		"/bin/umount /proc"
 
-	# Run mdev one more time for mouse support
-	modprobe usbcore hid usb_hid hid_generic psmouse
-	mdev -s
-
 	# display some info
 	distro=`/bin/cat /etc/redhat-release | awk '{ print $1 }'`
 	echo "  Starting $distro Linux init sequence ..."
@@ -341,6 +337,12 @@ do_union () {
 
 	# Check if null is not a char device, remove and readd
 	if [ ! -c /dev/null ]; then rm -f /dev/null && mknod -m 666 /dev/null c 1 3; fi	
+
+	# Run mdev one more time for mouse support
+        if [ ! -c /dev/input/event* ]; then
+           ls /dev/input/
+	   mdev -s
+        fi
 
 	## fix /var/tmp
 	rm -f /var/tmp; ln -s /tmp /var/tmp
