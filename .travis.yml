@@ -30,8 +30,8 @@ script:
   - mv iso_build.log ./build_iso/
   - export NEW_ISO=$(readlink -f ./build_iso/*.iso)
   - echo "$NEW_ISO"
-  - md5sum "$NEW_ISO" > ./build_iso/"$NEW_ISO".md5
-  - rsync -arz --progress --rsh=ssh -e "ssh -o StrictHostKeyChecking=no" ./build_iso foobar2:public_html/pub/isos/
+  - md5sum "$NEW_ISO" > ./build_iso/$(basename "$NEW_ISO").md5
+  - rsync -arz --progress --rsh=ssh -e "ssh -o StrictHostKeyChecking=no" ./build_iso foobar2:public_html/pub/isos/ &
   - rsync -arz --progress --rsh=ssh -e "ssh -o StrictHostKeyChecking=no" ./build_iso foobar:/var/www/html/isos/
   - if [ -z $LIVE_ISO ]; then echo "ISO Creation Failed"; exit 1;fi
 
