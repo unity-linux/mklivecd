@@ -226,6 +226,9 @@ setupinit() {
 	docmd   "  Unmounting /proc filesystem" \
 		"/bin/umount /proc"
 
+	# Run mdev one more time
+	mdev -s
+
 	# display some info
 	distro=`/bin/cat /etc/redhat-release | awk '{ print $1 }'`
 	echo "  Starting $distro Linux init sequence ..."
