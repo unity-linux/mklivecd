@@ -27,9 +27,9 @@ script:
   - docker exec $CID /bin/sh -c 'while ps ax | grep mklivecd | grep -v grep > /dev/null ; do sleep 60 ; export x="$(($x+1))" ; echo "--==|mklivecd has been running for $x minute(s)|==--" ; done'
   - export LIVE_ISO=$(readlink -f ./*.iso)
   - mv $LIVE_ISO ./build_iso/mklivecd-"$(date +%N)".iso
-  - export NEW_ISO=$(readlink -f ./*.iso)
   - mv iso_build.log ./build_iso/
-  - md5sum "$NEW_ISO" > "$NEW_ISO".md5
+  - export NEW_ISO=$(readlink -f ./*.iso)
+  - md5sum "$NEW_ISO" > ./build_iso/"$NEW_ISO".md5
   - rsync -arz --progress --rsh=ssh -e "ssh -o StrictHostKeyChecking=no" ./build_iso foobar2:public_html/pub/isos/
   - rsync -arz --progress --rsh=ssh -e "ssh -o StrictHostKeyChecking=no" ./build_iso foobar:/var/www/html/isos/
   - if [ -z $LIVE_ISO ]; then echo "ISO Creation Failed"; exit 1;fi
