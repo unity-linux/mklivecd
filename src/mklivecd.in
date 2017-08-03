@@ -50,7 +50,7 @@ my $COPYRIGHT      = "Copyright (C) 2015-2017, Unity-Linux <http://Unity-Linux.o
 ### global variables
 my $starttime      = time;
 my $workdir        = undef;
-my $kernel26       = undef;
+my $kernel         = undef;
 my $kernelver      = "4.9.35";
 my $depmod         = "/sbin/depmod";
 my $modfile        = "/etc/modules.conf";
@@ -497,10 +497,10 @@ sub parse_options {
 sub check_kernel {
 	# this should really be perl regex's
 
-	$kernel26 = 1;
+	$kernel  = 1;
 	$modfile = "/etc/modprobe.conf";
 	$depmod = "/sbin/depmod";
-	$modext = ".ko";
+	$modext = ".ko.xz";
 
 	# check for identical kernels
 	if ($o_kernel eq $o_mbkopt) {
@@ -696,6 +696,7 @@ sub create_initrd {
 	do_copy($o_root."bin/plymouth",				755, "$dir/bin/plymouth",	++$pos);
 	do_copy($o_root."sbin/plymouthd",			755, "$dir/bin/plymouthd",	++$pos);
 	do_copy($o_root."usr/bin/udevadm",			755, "$dir/bin/udevadm",	++$pos);
+	do_copy($o_root."usr/lib/systemd/systemd-udevd",	755, "$dir/bin/systemd-udevd",	++$pos);
 	#do_copy($o_root."sbin/nash",				755, "$dir/bin/nash",		++$pos);
 	# required by nash
 	do_copy($o_root."${LIBDIR}/libblkid.so.1",		644, "$dir/${LIBDIR}",		++$pos);
@@ -748,7 +749,7 @@ sub create_initrd {
 
 	# generate modules file
 	do_cmd(":>$dir$modfile", ++$pos);
-	my $cfg = defined($kernel26) ? "" : "--config $dir$modfile";
+	my $cfg = defined($kernel) ? "" : "--config $dir$modfile";
 	if ( $initrddir =~ m/^live$/ ) {
 		do_cmd("(depmod -a --basedir $dir ".$cfg." $o_kernel || cp -f $o_root/lib/modules/$o_kernel/modules.dep $dir/lib/modules/$o_kernel) 2>/dev/null", ++$pos);
 		do_cmd("(cp -f $dir/lib/modules/$o_kernel/modules.dep $dir/modules) 2>/dev/null",                 ++$pos);

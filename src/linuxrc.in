@@ -55,10 +55,8 @@ MNTCDROM=live/cdrom
 MNTLIVECD=live/loopfs
 MNTRAMDISK=/ramfs
 MODEXT=".ko.xz"
-#NEW_MODULES_PRELOAD="ata_generic pata_atiixp ata_piix ahci libahci libata pata_acpi autofs4 uas sata_nv pata_amd pata_via firewire_ohci firewire_core udf"
-NEW_MODULES_PRELOAD="ata_generic pata_atiixp ata_piix ahci libahci libata autofs4 uas sata_nv pata_amd pata_via firewire_ohci firewire_core udf"
-#MODULES_PRELOAD="scsi_mod sr_mod nls_iso8859_1 nls_iso8859_2 nls_iso8859_3 nls_iso8859_4 nls_iso8859_5 nls_iso8859_6 nls_iso8859_7 nls_iso8859_9 nls_iso8859_13 nls_iso8859_14 nls_iso8859_15 nls_utf8 isofs fat vfat crc_t10dif sd_mod usbcore usb_storage uhci_hcd ohci_hcd ehci_hcd loop squashfs overlayfs $NEW_MODULES_PRELOAD --cdrom"
-MODULES_PRELOAD="scsi_mod sr_mod nls_iso8859_1 nls_iso8859_2 nls_iso8859_3 nls_iso8859_4 nls_iso8859_5 nls_iso8859_6 nls_iso8859_7 nls_iso8859_9 nls_iso8859_13 nls_iso8859_14 nls_iso8859_15 nls_utf8 isofs fat sd_mod usbcore usb_storage uhci_hcd ohci_hcd ehci_hcd loop overlayfs squashfs $NEW_MODULES_PRELOAD --cdrom"
+NEW_MODULES_PRELOAD="ata_generic pata_atiixp ata_piix ahci libahci libata pata_acpi autofs4 uas sata_nv pata_amd pata_via firewire_ohci firewire_core udf"
+MODULES_PRELOAD="scsi_mod sr_mod nls_iso8859_1 nls_iso8859_2 nls_iso8859_3 nls_iso8859_4 nls_iso8859_5 nls_iso8859_6 nls_iso8859_7 nls_iso8859_9 nls_iso8859_13 nls_iso8859_14 nls_iso8859_15 nls_utf8 isofs fat vfat crc_t10dif sd_mod usbcore usb_storage uhci_hcd ohci_hcd ehci_hcd loop squashfs overlayfs $NEW_MODULES_PRELOAD --cdrom"
 MAX_LOOP="max_loop=64"
 ### progress indicator
 progress_num=0
@@ -270,14 +268,25 @@ list_block_devices()
 
 ### initialise
 initialise() {
+
+	#Just in case
+	mkdir -m 555 /proc
+	mkdir -m 555 /sys
+	mkdir -m 755 /run	
+
 	busybox mount -n -t proc proc /proc
 	busybox mount -n -t sysfs sysfs /sys
+	busybox mount -n -t tmpfs tmpfs /run
+
+	#Needed early on for systemd-udevd (udev)
+	mkdir -m 755 /run/udev
 	
 	busybox --install 
 	busybox --install -s
 	ln /bin/busybox /bin/awk
 	ln /bin/busybox /bin/sed
-	
+	ln /bin/busybox /bin/depmod
+	ln /sbin/modprobe /usr/sbin/modprobe	
 	if [ -n "$DEBUG" ]; then
 		echo "--- MKLIVECD LINUXRC ---------------"
 	else
@@ -287,8 +296,8 @@ initialise() {
 	mv /sbin/init.dynamic /sbin/init
 
 	docmd   "  Setting up kernel parameters" \
-	"echo '0' >/proc/sys/kernel/printk" \
-	"echo '/sbin/modprobe' >/proc/sys/kernel/modprobe"
+	"echo '0 0 0 0' >/proc/sys/kernel/printk" 
+	#"echo '/usr/sbin/modprobe' >/proc/sys/kernel/modprobe"
 	#"echo '/sbin/modprobe' >/proc/sys/kernel/modprobe" \
 	#"exec >/dev/console </dev/console 2>&1"
 
@@ -314,7 +323,9 @@ initialise() {
 }
 
 find_cdroms() {
-	depmod
+        ## Search for cdrom devices and add them to CDROM_LIST
+        ## Check for ide channels.
+	/bin/systemd-udevd --daemon
 	for m in $MODULES_PRELOAD; do
 		if [ "$m" = "loop" ]; then
 			/bin/probe-modules $m $MAX_LOOP
@@ -328,12 +339,11 @@ find_cdroms() {
                        fi
 		fi
 	done
+
+        mdev -s
+        udevadm trigger --action=add
 	
 	sleep 2
-
-	## Search for cdrom devices and add them to CDROM_LIST
-	## Check for ide channels.
-	mdev -s
 
 	if [ -n "$usblive" ]; then
 		rm -rf /live/sbin/halt.local
@@ -570,7 +580,6 @@ createramdisk ""
 # Try Plymouth Now after ram disk
 if [ -e /bin/plymouthd -a /bin/plymouth ]; then
    mdev -s
-   mknod /dev/fb c 29 0
    docmd "plymouth start" \
    "/bin/plymouthd" \
    "/bin/plymouth --show-splash"
