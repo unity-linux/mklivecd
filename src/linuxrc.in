@@ -323,9 +323,16 @@ initialise() {
 }
 
 find_cdroms() {
+
+	#Run udevd early as it is needed by probe-modules
+        if [ -n "$DEBUG" ]; then
+                /bin/systemd-udevd --daemon --debug
+        else
+                /bin/systemd-udevd --daemon
+        fi
+
         ## Search for cdrom devices and add them to CDROM_LIST
         ## Check for ide channels.
-	/bin/systemd-udevd --daemon
 	for m in $MODULES_PRELOAD; do
 		if [ "$m" = "loop" ]; then
 			/bin/probe-modules $m $MAX_LOOP

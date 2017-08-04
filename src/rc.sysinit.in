@@ -341,7 +341,6 @@ do_union () {
         ln -s /usr/lib /lib
         ln -s /usr/lib64 /lib64
 	ln -s /usr/bin/busybox.static /usr/sbin/mdev
-	ln -s /usr/lib/systemd/systemd-udevd /bin/systemd-udevd
 	#link in Union
 	rm -rf /union/run
         mkdir -p /run/lock
