@@ -340,7 +340,7 @@ do_union () {
 	ln -s /usr/sbin /sbin
         ln -s /usr/lib /lib
         ln -s /usr/lib64 /lib64
-	ln -s /usr/bin/busybox.static /usr/sbin/mdev
+
 	#link in Union
 	rm -rf /union/run
         mkdir -p /run/lock
@@ -348,20 +348,16 @@ do_union () {
 	# Check if null is not a char device, remove and readd
 	if [ ! -c /dev/null ]; then rm -f /dev/null && mknod -m 666 /dev/null c 1 3; fi	
 
-        # Lets load all the drivers for now
-        for i in $(find /lib/modules/$KERNELVER/ -name *.ko* | grep -o '[^/]*$' | grep 'hid\|snd' | cut -d. -f1)
+        # Lets load all the hid drivers for now
+        for i in $(find /lib/modules/$KERNELVER/ -name *.ko* | grep -o '[^/]*$' | grep 'hid' | cut -d. -f1)
         do
                 /sbin/modprobe $i &> /dev/null
         done
 
-	# Run mdev one more time for mouse support
+	# Run udev one more time if no imput events (hid) are found
         if [ ! -c /dev/input/event* ]; then
-	   rm -rf /dev/input
-           mkdir -p /dev/input
 	   docmd   "  Rerunning mdev to pick up any added hardware" \
-           "mdev -s" \
            "udevadm trigger --action=add" 
-           ls /dev/input/
         fi
 
 	## fix /var/tmp

@@ -347,7 +347,6 @@ find_cdroms() {
 		fi
 	done
 
-        mdev -s
         udevadm trigger --action=add
 	
 	sleep 2
@@ -537,7 +536,7 @@ createramdisk() {
 		"mkdir -p /sys && mount -n -t sysfs none /sys" \
 		"mkdir -p /tmp && chmod 1777 /tmp" \
 		"mkdir -p /media && chmod 755 /media" \
-		"mkdir -p /dev && mount -n -t tmpfs none /dev" \
+		"mkdir -p -m 777 /dev && mount -n -t devtmpfs devtmpfs /dev" \
 		"mkdir -p /dev/pts" \
 		"cd /" \
 		"ln -s /live/bin" \
@@ -573,8 +572,6 @@ initialise    ""
 
 # Try Plymouth Now before ram disk
 if [ -e /bin/plymouthd -a /bin/plymouth ]; then
-   mdev -s
-   mknod /dev/fb c 29 0
    docmd "plymouth start" \
    "/bin/plymouthd" \
    "/bin/plymouth --show-splash"
@@ -586,7 +583,6 @@ createramdisk ""
 
 # Try Plymouth Now after ram disk
 if [ -e /bin/plymouthd -a /bin/plymouth ]; then
-   mdev -s
    docmd "plymouth start" \
    "/bin/plymouthd" \
    "/bin/plymouth --show-splash"
