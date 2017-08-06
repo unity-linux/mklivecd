@@ -9,6 +9,7 @@ Group:		System/Packaging
 URL:		https://github.com/unity-linux/mklivecd/
 Source0:	%{name}-%{version}.tar.xz
 BuildRequires:	intltool
+Requires:	beesu
 Requires:	zenity
 Requires:	imagemagick
 Requires:	busybox-static >= 1.18.4
@@ -68,4 +69,3 @@ cat mklivecd.lang mkremaster.lang >> %{name}.list
 %{_datadir}/applications/mkremaster.desktop
 %{_datadir}/applications/mkremaster-tinyme.desktop
 %{_datadir}/pixmaps/mkremaster.png
-%{_datadir}/polkit-1/actions/*.policy

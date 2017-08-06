@@ -69,7 +69,6 @@ ICONSDIR=$(prefix)/share/pixmaps
 DOCDIR=$(prefix)/share/doc/$(PKGNAME)-$(MKLIVECDVER)
 SBINDIR=$(SBINPREFIX)/sbin
 RCDIR=$(SHAREDIR)/init.d
-POLKITDIR=$(prefix)/share/polkit-1/actions
 DESKTOPDIR=$(prefix)/share/applications
 LOCALEDIR=$(prefix)/share/locale
 
@@ -128,7 +127,6 @@ MKREMASTERDIST=\
 	$(MKREMASTERDIR)/mkremaster.desktop.in \
 	$(MKREMASTERDIR)/mkremaster-kde.desktop.in \
 	$(MKREMASTERDIR)/mkremaster-tinyme.desktop.in \
-	$(MKREMASTERDIR)/org.mklivecd.mkremaster.policy \
 	$(MKREMASTERDIR)/mkremaster.png \
 	$(MKREMASTERDIR)/Makefile
 

@@ -13,7 +13,7 @@ BRANDNAME=Unity
 DISKNAME=Unity.$$
 RPM_TMP=/tmp/Unity-RPMS.$$
 chrtopt="$RPM_TMP /bin/su root -c"
-FIRST_ELEMENT_LIST="perl rpm bootloader-utils smart"
+FIRST_ELEMENT_LIST="perl rpm bootloader-utils dnf"
 SMART_ERROR=
 FIX_SUCCESS=
 	

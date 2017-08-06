@@ -57,8 +57,6 @@ install:
 	@echo 'Created directory $(DESTDIR)$(SHAREDIR)'
 	@$(MKDIR) -p $(DESTDIR)$(SBINDIR)
 	@echo 'Created directory $(DESTDIR)$(SBINDIR)'
-	@$(MKDIR) -p $(DESTDIR)$(POLKITDIR)
-	@echo 'Created directory $(DESTDIR)$(POLKITDIR)'
 	@$(MKDIR) -p $(DESTDIR)$(DESKTOPDIR)
 	@echo 'Created directory $(DESTDIR)$(DESKTOPDIR)'
 	@$(MKDIR) -p $(DESTDIR)$(ICONSDIR)
@@ -69,8 +67,6 @@ install:
 	@echo 'Installed halt.local to $(DESTDIR)$(SHAREDIR)'
 	@$(INSTALL) -m 644 $(DISTDIR)/rc.sysinit $(DESTDIR)$(SHAREDIR)
 	@echo 'Installed rc.sysinit to $(DESTDIR)$(SHAREDIR)'
-	@$(INSTALL) -m 644 $(DISTDIR)/org.mklivecd.mkremaster.policy $(DESTDIR)$(POLKITDIR)
-	@echo 'Installed polkit files to $(DESTDIR)$(POLKITDIR)'
 	@$(INSTALL) -m 644 $(DISTDIR)/*.desktop $(DESTDIR)$(DESKTOPDIR)
 	@echo 'Installed desktop files to $(DESTDIR)$(DESKTOPDIR)'
 	@$(INSTALL) -m 755 $(DISTDIR)/$(PKGNAME) $(DESTDIR)$(SBINDIR)
