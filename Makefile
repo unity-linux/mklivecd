@@ -27,7 +27,6 @@ all:
 			>$(DISTDIR)/linuxrc
 	@$(CP) $(SRCDIR)/halt.local.in $(DISTDIR)/halt.local
 	@$(CP) $(MKREMASTERDIR)/mkremaster.in $(DISTDIR)/mkremaster
-	@$(CP) $(MKREMASTERDIR)/org.mklivecd.mkremaster.policy $(DISTDIR)/
 	@$(CP) $(MKREMASTERDIR)/*.desktop $(DISTDIR)/
 	@$(CP) $(MKREMASTERDIR)/mkremaster.png $(DISTDIR)/
 	@$(CP) $(SRCDIR)/gfxboot.cfg.in $(DISTDIR)/gfxboot.cfg
