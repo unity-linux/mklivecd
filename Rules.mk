@@ -69,7 +69,7 @@ ICONSDIR=$(prefix)/share/pixmaps
 DOCDIR=$(prefix)/share/doc/$(PKGNAME)-$(MKLIVECDVER)
 SBINDIR=$(SBINPREFIX)/sbin
 RCDIR=$(SHAREDIR)/init.d
-POLKITDIR=$(SHAREDIR)/polkit-1/actions
+POLKITDIR=$(prefix)/share/polkit-1/actions
 DESKTOPDIR=$(prefix)/share/applications
 LOCALEDIR=$(prefix)/share/locale
 

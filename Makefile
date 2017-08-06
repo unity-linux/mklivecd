@@ -57,7 +57,8 @@ install:
 	@echo 'Created directory $(DESTDIR)$(SHAREDIR)'
 	@$(MKDIR) -p $(DESTDIR)$(SBINDIR)
 	@echo 'Created directory $(DESTDIR)$(SBINDIR)'
-	@$(MKDIR) -p $(DESTDIR)$(POKLITDIR)
+	@$(MKDIR) -p $(DESTDIR)$(POLKITDIR)
+	@echo 'Created directory $(DESTDIR)$(POLKITDIR)'
 	@$(MKDIR) -p $(DESTDIR)$(DESKTOPDIR)
 	@echo 'Created directory $(DESTDIR)$(DESKTOPDIR)'
 	@$(MKDIR) -p $(DESTDIR)$(ICONSDIR)
