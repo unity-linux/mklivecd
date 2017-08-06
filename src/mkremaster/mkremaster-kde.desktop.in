@@ -2,7 +2,7 @@
 Encoding=UTF-8
 _Name=Make Remaster
 _Comment=Remaster while running from livecd/harddrive
-Exec=kdesu /usr/sbin/mkremaster
+Exec=pkexec /usr/sbin/mkremaster
 Icon=mkremaster
 Terminal=false
 Type=Application

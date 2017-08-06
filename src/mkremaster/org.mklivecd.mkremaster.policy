@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE policyconfig PUBLIC
+ "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
+ "http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd">
+<policyconfig>
+
+  <vendor>mklivecd</vendor>
+  <vendor_url>http://hal.freedesktop.org/docs/PolicyKit/</vendor_url>
+
+  <action id="org.freedesktop.policykit.example.pkexec.run-frobnicate">
+    <description>Run mkremaster as root</description>
+    <message>Authentication is required to run mkremaster (user=$(user), program=$(program), command_line=$(command_line))</message>
+    <icon_name>audio-x-generic</icon_name> 
+    <defaults>
+      <allow_any>no</allow_any>
+      <allow_inactive>no</allow_inactive>
+      <allow_active>auth_self_keep</allow_active>
+    </defaults>
+    <annotate key="org.mklivecd.mkremaster.exec.path">/usr/sbin/mkremaster</annotate>
+  </action>
+
+</policyconfig>

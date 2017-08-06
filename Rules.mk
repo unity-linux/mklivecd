@@ -33,7 +33,7 @@ PKGNAME=mklivecd
 MAJORVER=0
 MINORVER=9
 PATCHVER=5
-RELVER=13
+RELVER=14
 CVSVER=no
 
 # Automatic variable updates, leave alone
@@ -69,6 +69,7 @@ ICONSDIR=$(prefix)/share/pixmaps
 DOCDIR=$(prefix)/share/doc/$(PKGNAME)-$(MKLIVECDVER)
 SBINDIR=$(SBINPREFIX)/sbin
 RCDIR=$(SHAREDIR)/init.d
+POLKITDIR=$(SHAREDIR)/polkit-1/actions
 DESKTOPDIR=$(prefix)/share/applications
 LOCALEDIR=$(prefix)/share/locale
 
