@@ -128,6 +128,7 @@ MKREMASTERDIST=\
 	$(MKREMASTERDIR)/mkremaster.desktop.in \
 	$(MKREMASTERDIR)/mkremaster-kde.desktop.in \
 	$(MKREMASTERDIR)/mkremaster-tinyme.desktop.in \
+	$(MKREMASTERDIR)/org.mklivecd.mkremaster.policy \
 	$(MKREMASTERDIR)/mkremaster.png \
 	$(MKREMASTERDIR)/Makefile
 

@@ -27,7 +27,7 @@ all:
 			>$(DISTDIR)/linuxrc
 	@$(CP) $(SRCDIR)/halt.local.in $(DISTDIR)/halt.local
 	@$(CP) $(MKREMASTERDIR)/mkremaster.in $(DISTDIR)/mkremaster
-	@$(CP) $(MKREMASTERDIR)/org.mklivecd.mkremaster.policy $(DISTDIR)/org.mklivecd.mkremaster.policy
+	@$(CP) $(MKREMASTERDIR)/org.mklivecd.mkremaster.policy $(DISTDIR)/
 	@$(CP) $(MKREMASTERDIR)/*.desktop $(DISTDIR)/
 	@$(CP) $(MKREMASTERDIR)/mkremaster.png $(DISTDIR)/
 	@$(CP) $(SRCDIR)/gfxboot.cfg.in $(DISTDIR)/gfxboot.cfg
@@ -70,7 +70,7 @@ install:
 	@$(INSTALL) -m 644 $(DISTDIR)/rc.sysinit $(DESTDIR)$(SHAREDIR)
 	@echo 'Installed rc.sysinit to $(DESTDIR)$(SHAREDIR)'
 	@$(INSTALL) -m 644 $(DISTDIR)/org.mklivecd.mkremaster.policy $(DESTDIR)$(POLKITDIR)
-	@echo 'Installed polikit files to $(DESTDIR)$(DESKTOPDIR)'
+	@echo 'Installed polkit files to $(DESTDIR)$(POLKITDIR)'
 	@$(INSTALL) -m 644 $(DISTDIR)/*.desktop $(DESTDIR)$(DESKTOPDIR)
 	@echo 'Installed desktop files to $(DESTDIR)$(DESKTOPDIR)'
 	@$(INSTALL) -m 755 $(DISTDIR)/$(PKGNAME) $(DESTDIR)$(SBINDIR)
