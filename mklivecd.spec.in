@@ -24,18 +24,18 @@ Suggests:	mageia-theme
 
 %description
 The mklivecd tools are dedicated to providing you with the capability to
-create your own LiveCD or LiveDVD from a currently installed Mageia 
-distribution.  It can be used to create your own travelling Mageia-based 
-LiveCD, specialised LiveCD featuring custom-developed applications or to 
-put together a demo disk to show off the power of our favourite OS. The 
+create your own Live CD or Live DVD from a currently installed Mageia
+distribution. It can be used to create your own travelling Mageia-based
+Live CD, specialized Live CD featuring custom-developed applications or to
+put together a demo disk to show off the power of our favorite OS. The
 possibilities are endless!
 
-Created CD's feature automatic hardware detection and setup. In addition, 
-it utilises compression technology allowing you to build a LiveCD from a 
-partition much larger than will typically fit on a CD or DVD.(Up to 2GB 
-for a normal 650MB CD or around 10GB for a normal 4GB DVD) When booting 
-from this LiveCD, the data is transparently decompressed as needed with 
-almost no performance impact.
+Created CDs feature automatic hardware detection and setup. In addition,
+it utilizes compression technology to allow building a Live CD from a
+partition much larger than will typically fit on a CD or DVD, usually up
+to 2GB for a normal 650MB CD or around 10GB for a normal 4GB DVD. When
+booting from this LiveCD, the data is transparently decompressed as
+needed with almost no performance impact.
 
 %prep
 %setup -q
@@ -51,7 +51,8 @@ almost no performance impact.
 cat mklivecd.lang mkremaster.lang >> %{name}.list
 
 %files -f %{name}.list
-%doc AUTHORS COPYING CHANGELOG FAQ README.md README.BOOTCODES README.USB TODO
+%license COPYING
+%doc AUTHORS CHANGELOG FAQ README.md README.BOOTCODES README.USB TODO
 %{_sbindir}/mklivecd
 %{_sbindir}/hwdetect2
 %{_sbindir}/mkremaster
