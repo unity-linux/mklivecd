@@ -1,19 +1,19 @@
 [![Build Status](https://travis-ci.org/unity-linux/mklivecd.svg?branch=master)](https://travis-ci.org/unity-linux/mklivecd)
 
-# mklivecd: 
-has a long and sorted history. Many folks have worked on it inlcuding 
-Tom Kelly, Jaco Greeff and various distro teams ranging from Mandrake, 
-(Mandriva) PCLinuxOS, to Unity-Linux. It currently lives on in a different
-form called mylivecd which was forked for PCLinuxOS. I have decided to 
-revive the old version that had been maintained by Unity-Linux until it 
-went defunct. mklivecd comes from Mandrake and was dependant on drakxtools.
-Newer innerations of Mandrake ie. OpenMandriva no longer depend on these
-tools or even use them, however a fork from Mandriva called Mageia that
-still uses drakxtools can still utilize this tool, with minimal updates. 
-Eventually the dependacy on drakxtools should be dropped and this tool 
-should be able to be used on OpenMandriva, Fedora and Mageia as features
-in dracut should allow it. However, until then it's current focus will 
-be for functionality on Mageia.
+# mklivecd
+mklivecd has a long and storied history. Many folks have worked on it,
+including Tom Kelly, Jaco Greeff and various distro teams ranging from
+Mandrake (Mandriva), PCLinuxOS, to Unity-Linux. It currently lives on
+in a different form called mylivecd which was forked for PCLinuxOS. I
+have decided to revive the old version that had been maintained by
+Unity-Linux until it went defunct. mklivecd comes from Mandrake and was
+dependant on drakxtools. Some descendants of Mandrake (like OpenMandriva)
+no longer depend on these tools or even use them. However, a fork of
+Mandriva called Mageia still uses drakxtools, and thus can still utilize
+this tool with minimal updates. Eventually the dependacy on drakxtools
+will be dropped and this tool should be able to be used on Fedora, Mageia,
+and OpenMandriva as features in dracut should allow it. Until then, its
+current focus will be for functionality on Mageia.
 
 Below you will fild the old ReadMe which will eventually be updated.
 
