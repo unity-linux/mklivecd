@@ -32,8 +32,8 @@ VAL_SPLASH_FULL=20
 PKGNAME=mklivecd
 MAJORVER=0
 MINORVER=9
-PATCHVER=5
-RELVER=14
+PATCHVER=6
+RELVER=0.1
 CVSVER=no
 
 # Automatic variable updates, leave alone
