@@ -348,12 +348,6 @@ do_union () {
 	# Check if null is not a char device, remove and readd
 	if [ ! -c /dev/null ]; then rm -f /dev/null && mknod -m 666 /dev/null c 1 3; fi	
 
-        # Lets load all the hid drivers for now
-        for i in $(find /lib/modules/$KERNELVER/ -name *.ko* | grep -o '[^/]*$' | grep 'hid' | cut -d. -f1)
-        do
-                /sbin/modprobe $i &> /dev/null
-        done
-
 	# Run udev one more time if no imput events (hid) are found
         if [ ! -c /dev/input/event* ]; then
 	   docmd   "  Rerunning mdev to pick up any added hardware" \
