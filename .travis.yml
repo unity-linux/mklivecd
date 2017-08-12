@@ -31,6 +31,7 @@ script:
   - export NEW_ISO=$(readlink -f ./build_iso/*.iso)
   - echo "$NEW_ISO"
   - md5sum "$NEW_ISO" > ./build_iso/$(basename "$NEW_ISO").md5
+  - if [ "$TRAVIS_TEST_RESULT" == "1" ]; then rsync -arz --progress --rsh=ssh -e "ssh -o StrictHostKeyChecking=no" ./build_iso foobar:/var/www/html/isos/; fi
 
 after_success:
   - sudo -H pip install --upgrade pyOpenSSL ndg-httpsclient pyasn1 jinja2 requests[security] marshmallow copr-cli simplejson
