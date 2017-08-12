@@ -174,9 +174,9 @@ mountit(){
 # Display debugging info if debug is on. Allow extended echo chars.  #
 #--------------------------------------------------------------------#
 
-### setup for init of the actual mdk image
+### setup for init of the actual mga image
 setupinit() {
-	echo "6" >/proc/sys/kernel/printk
+	echo "0" >/proc/sys/kernel/printk
 	
 	# Don't run depmod (must be run before imaging system) --- Seems depricated with Systemd ---
 	#sed -i -e 's/action.*depmod/true/g' /etc/rc.d/rc.sysinit
@@ -219,17 +219,17 @@ setupinit() {
         fi
 
         # kill any udevd running
-	udevadm settle --timeout=3 --quiet
-        killall "systemd-udevd" 2>/dev/null
+	udevadm settle --timeout=3 >/dev/null 2>&1
+        killall "systemd-udevd" >/dev/null 2>&1
 
 	# clean up /sys (init mounts it via rc.sysinit)
-	docmd   "  Unmounting /sys filesystem" \
-		"/bin/umount /sys"
+	#docmd   "  Unmounting /sys filesystem" \
+	#	"/bin/umount /sys"
 
 	# clean up /proc/bus/usb (needed to be able to clean up /proc) quietly
 	echo "0" >/proc/sys/kernel/printk
 	/bin/umount /proc/bus/usb  >/dev/null 2>&1
-	echo "6" >/proc/sys/kernel/printk
+	echo "0" >/proc/sys/kernel/printk
 
 
 	# clean up /proc (init mounts it via rc.sysinit)
@@ -289,29 +289,13 @@ do_union () {
 
 	dbg "The CHANGESDEV is $CHANGES_DEV, the CHANGES is $CHANGES \n"
 	mkdir $CHANGES
-	modprobe -a overlay squashfs
+	modprobe -a overlay squashfs >/dev/null 2>&1
 
 	docmd   "  Mounting unioning filesystem" \
 	"mount -t overlay overlay -o lowerdir=/live/loopfs,upperdir=$CHANGES,workdir=/work /union"
 
 	export PATH=/bin:/sbin:/usr/bin:/usr/sbin:$PATH
-	echo "6" > /proc/sys/kernel/printk # enable kernel messages
-
-	## Make the directories writeable
-	#for d in $MNTLIVECD/*; do
-	#	d=${d#$MNTLIVECD/}
-	#	if [ -d $MNTLIVECD/$d ]; then
-	#		case $d in
-	#			dev|proc|sys|usr|media|mnt|tmp|udev|live|run|var/run|var/lock|home/guest/tmp|changes)  	# Remain in RAM
-	#		;;
-	#			*)					# Any extra/custom dirs
-	#			rm -f $d && ln -s /union/$d /$d		# Replace link
-	#		;;
-	#		esac
-	#	else
-	#		ln -s /union/$d /$d  ## link the files
-	#	fi
-	#done
+	#echo "6" > /proc/sys/kernel/printk # enable kernel messages
 
         # rebuild / with binding union
         rm -rf /boot /etc /home /opt /root /srv /usr /var
@@ -348,16 +332,10 @@ do_union () {
 	# Check if null is not a char device, remove and readd
 	if [ ! -c /dev/null ]; then rm -f /dev/null && mknod -m 666 /dev/null c 1 3; fi	
 
-        # Lets load all the hid drivers for now
-        for i in $(find /lib/modules/$KERNELVER/ -name *.ko* | grep -o '[^/]*$' | grep 'hid' | cut -d. -f1)
-        do
-                /sbin/modprobe $i &> /dev/null
-        done
-
 	# Run udev one more time if no imput events (hid) are found
         if [ ! -c /dev/input/event* ]; then
-	   docmd   "  Rerunning mdev to pick up any added hardware" \
-           "udevadm trigger --action=add" 
+	   docmd   "  Rerunning udev to pick up any added hardware" \
+           "udevadm trigger --action=add >/dev/null 2>&1" 
         fi
 
 	## fix /var/tmp

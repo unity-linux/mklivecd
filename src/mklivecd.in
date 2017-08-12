@@ -751,6 +751,7 @@ sub create_initrd {
 	do_cmd(":>$dir$modfile", ++$pos);
 	my $cfg = defined($kernel) ? "" : "--config $dir$modfile";
 	if ( $initrddir =~ m/^live$/ ) {
+		do_cmd("(depmod -a $o_kernel) 2>/dev/null", ++$pos);
 		do_cmd("(depmod -a --basedir $dir ".$cfg." $o_kernel || cp -f $o_root/lib/modules/$o_kernel/modules.dep $dir/lib/modules/$o_kernel) 2>/dev/null", ++$pos);
 		do_cmd("(cp -f $dir/lib/modules/$o_kernel/modules.dep $dir/modules) 2>/dev/null",                 ++$pos);
 	} elsif ( $initrddir =~ m/^live2$/ ) {
