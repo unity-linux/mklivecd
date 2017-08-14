@@ -236,10 +236,6 @@ setupinit() {
 	docmd   "  Unmounting /proc filesystem" \
 		"/bin/umount /proc"
 
-	# clean up dev pts
-	docmd   "  Unmounting /dev/pts filesystem" \
-		"/bin/umount /dev/pts"
-
 	# display some info
 	distro=`/bin/cat /etc/redhat-release | awk '{ print $1 }'`
 	echo "  Starting $distro Linux init sequence ..."

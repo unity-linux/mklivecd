@@ -229,7 +229,7 @@ mountit(){
 list_cdrom_devices()
 {
 	if [ -n "$nocd" ]; then return 1; fi
-	for CDDEVICE in `cat /proc/scsi/scsi | head -n 3 | tail -n 1 | cut -d ":" -f 2`; do
+	for CDDEVICE in $(cat /proc/scsi/scsi | head -n 3 | tail -n 1 | cut -d ":" -f 2); do
 		cdrom_dev="/dev/$CDDEVICE"
 	done
 }
@@ -241,16 +241,9 @@ list_cdrom_devices()
 list_partition_devices()
 {
 	if [ -n "$nohd" ]; then return 1; fi
-	for part in `cat /proc/partitions|tail  +3|awk '{print $4}'`; do
+	for part in $(cat /proc/partitions|tail -n+3|awk '{print $4}'); do
 		part_dev="/dev/$part"
 	done
-}
-
-# List all disk devices
-#
-list_disk_devices()
-{
-	list_partition_devices | grep  "[0-9]"
 }
 
 # List all block devices
@@ -258,7 +251,7 @@ list_disk_devices()
 list_block_devices()
 {
 	list_cdrom_devices
-	list_disk_devices
+	list_partition_devices
 }
 
 #--------------------------------------------------------------------#
@@ -401,14 +394,14 @@ checkmd5() {
 
 
 findcloop() {
+        PRINTK=`cat /proc/sys/kernel/printk`
+        if [ -n "$DEBUG" ]; then
+                dbg "  printk is set to: $PRINTK\n"
+        fi
 	## Now try to find and mount the boot CD (we use ID as identification)
 	if [ -n "$DEBUG" ]; then
 		echo -n "  Searching for the loop image: "
 	fi
-	PRINTK=`cat /proc/sys/kernel/printk`
-        if [ -n "$DEBUG" ]; then
-                echo -n "  printk is set to: $PRINTK "
-        fi
 	echo "0" >/proc/sys/kernel/printk
    	for i in $1; do
    		CDDEV="$i"
