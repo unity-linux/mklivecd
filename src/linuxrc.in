@@ -283,11 +283,11 @@ initialise() {
 	mkdir -m 755 /run/plymouth
 	
 	busybox --install 
-	busybox --install -s
 	ln /bin/busybox /bin/awk
 	ln /bin/busybox /bin/sed
 	ln /bin/busybox /bin/depmod
 	ln /sbin/modprobe /usr/sbin/modprobe	
+
 	if [ -n "$DEBUG" ]; then
 		echo "--- MKLIVECD LINUXRC ---------------"
 	else
@@ -297,10 +297,8 @@ initialise() {
 	mv /sbin/init.dynamic /sbin/init
 
 	docmd   "  Setting up kernel parameters" \
-	"echo '0 0 0 0' >/proc/sys/kernel/printk" 
-	#"echo '/usr/sbin/modprobe' >/proc/sys/kernel/modprobe"
-	#"echo '/sbin/modprobe' >/proc/sys/kernel/modprobe" \
-	#"exec >/dev/console </dev/console 2>&1"
+	"echo '0 0 0 0' >/proc/sys/kernel/printk" \
+	"exec >/dev/console </dev/console 2>&1"
 
 	# some kernel specifics
 	KERNELVER=`uname -r`
@@ -334,12 +332,14 @@ find_cdroms() {
 
 	# Try Plymouth Now after ram disk
 	if [ -e /bin/plymouthd -a /bin/plymouth ]; then
+	   busybox mount -t devpts -o gid=5,mode=620 /dev/pts /dev/pts
+	   mknod /dev/fb c 29 0
    	   udevadm trigger --action=add --attr-match=class=0x030000 >/dev/null 2>&1
    	   udevadm trigger --action=add --subsystem-match=graphics --subsystem-match=drm --subsystem-match=tty >/dev/null 2>&1
    	   udevadm settle --timeout=30 >/dev/null 2>&1
    	   docmd "plymouth start" \
-   	   "/bin/plymouthd --attach-to-session --pid-file /run/plymouth/pid >/dev/null 2>&1" \
-   	   "/bin/plymouth --show-splash >/dev/null 2>&1"
+   	   "/bin/plymouthd --attach-to-session --pid-file /run/plymouth/pid" \
+   	   "/bin/plymouth --show-splash"
 	fi
 
 
