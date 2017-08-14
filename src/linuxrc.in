@@ -359,7 +359,7 @@ find_cdroms() {
 	if [ -n "$usblive" ]; then
 		rm -rf /live/sbin/halt.local
 		## Check for usb stick
-		for usb_device in /dev/sr[0-99] /dev/sd[a-z][0-99]; do
+		for usb_device in /dev/sr[0-99] /dev/sd[a-z]; do
 			if [ -e "$usb_device" ]; then
 				CDROM_LIST="$CDROM_LIST $usb_device"
 			fi
