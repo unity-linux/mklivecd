@@ -1216,7 +1216,7 @@ sub create_finaliso {
                 do_cmd("isohybrid -u $finaliso");
         }
         else {
-                do_cmd("isohybrid -o 1 $finaliso");
+                do_cmd("isohybrid -o 1 $finaliso 2>/dev/null");
         }
         end_progress();
 

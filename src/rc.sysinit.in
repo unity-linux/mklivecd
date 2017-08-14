@@ -223,8 +223,8 @@ setupinit() {
         killall "systemd-udevd" >/dev/null 2>&1
 
 	# clean up /sys (init mounts it via rc.sysinit)
-	#docmd   "  Unmounting /sys filesystem" \
-	#	"/bin/umount /sys"
+	docmd   "  Unmounting /sys filesystem" \
+		"/bin/umount /sys"
 
 	# clean up /proc/bus/usb (needed to be able to clean up /proc) quietly
 	echo "0" >/proc/sys/kernel/printk
@@ -235,6 +235,10 @@ setupinit() {
 	# clean up /proc (init mounts it via rc.sysinit)
 	docmd   "  Unmounting /proc filesystem" \
 		"/bin/umount /proc"
+
+	# clean up dev pts
+	docmd   "  Unmounting /dev/pts filesystem" \
+		"/bin/umount /dev/pts"
 
 	# display some info
 	distro=`/bin/cat /etc/redhat-release | awk '{ print $1 }'`
