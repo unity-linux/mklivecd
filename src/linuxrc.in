@@ -369,7 +369,7 @@ find_cdroms() {
 		CDROM_LIST=`list_block_devices`
 
 		## Check for scsi cds and partitions - if exist, add to the list 
-		for scsi_cdrom in /dev/scd[0-99] /dev/sr[0-99] /dev/sd[a-z][0-99]; do
+		for scsi_cdrom in /dev/scd[0-99] /dev/sr[0-99] /dev/sd[a-z]; do
 			if [ -e "$scsi_cdrom" ]; then
 				CDROM_LIST="$CDROM_LIST $scsi_cdrom"
 			fi

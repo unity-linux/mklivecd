@@ -618,7 +618,7 @@ sub create_initrd {
 	mkdir_p("$dir/$_") foreach qw(bin dev etc/sysconfig etc/livecd/hwdetect etc/rc.d/ etc/profile.d proc sys lib lib64 ramfs sbin usr/bin usr/sbin modules usr/lib usr/lib64 usr/share/ldetect-lst usr/share/plymouth lib/plymouth lib64/plymouth lib/module-init-tools cdrom loopfs tmp ramfs);
 
 	# dropped modules parport pcmcia uwb
-	my @kernel_drivers = qw(ata block firewire message scsi usb);
+	my @kernel_drivers = qw(ata block firewire message scsi usb gpu);
 	my @kernel_fs = qw(fat isofs nls overlayfs squashfs udf);
 	my $kernel_dir = "lib/modules/${o_kernel}";
 	my $kmod_dir = "$kernel_dir/kernel";
