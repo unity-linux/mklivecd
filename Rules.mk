@@ -22,7 +22,7 @@ MAX_SPLASH=32768
 ### no more user-editable parameters after this line
 
 # various script number of splash steps
-VAL_SPLASH_LINUXRC=6
+VAL_SPLASH_LINUXRC=0
 VAL_SPLASH_SYSINIT=1
 VAL_SPLASH_HWDETECT=17
 VAL_SPLASH_FULL=20

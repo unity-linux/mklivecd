@@ -35,7 +35,7 @@ script:
 
 after_success:
   - sudo -H pip install --upgrade pyOpenSSL ndg-httpsclient pyasn1 jinja2 requests[security] marshmallow copr-cli simplejson
-  - if [ -f ./SRPMS/*.src.rpm ]; then copr-cli --config /tmp/stuff/.copr build -r Mageia-6-x86_64 jmiahman/mklivecd ./SRPMS/*.src.rpm ; fi 
+  - if [ -f ./SRPMS/*.src.rpm ]; then copr-cli --config /tmp/stuff/.copr build -r Mageia-6-x86_64 jmiahman/mklivecd ./SRPMS/*.src.rpm; fi 
   - if [ "$TRAVIS_BRANCH" == "master" ] && [ -f ./SRPMS/*.src.rpm ]; then copr-cli --config /tmp/stuff/.copr build -r Mageia-6-x86_64 jmiahman/Unity-Linux ./SRPMS/*.src.rpm; fi
   - rsync -arz --progress --delete --rsh=ssh -e "ssh -o StrictHostKeyChecking=no" ./build_iso foobar2:public_html/pub/isos/ &
   - rsync -arz --progress --delete --rsh=ssh -e "ssh -o StrictHostKeyChecking=no" ./build_iso foobar:/var/www/html/isos/
