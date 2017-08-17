@@ -229,7 +229,7 @@ mountit(){
 list_cdrom_devices()
 {
 	if [ -n "$nocd" ]; then return 1; fi
-	for CDDEVICE in `cat /proc/scsi/scsi | head -n 3 | tail -n 1 | cut -d ":" -f 2`; do
+	for CDDEVICE in $(cat /proc/scsi/scsi | head -n 3 | tail -n 1 | cut -d ":" -f 2); do
 		cdrom_dev="/dev/$CDDEVICE"
 	done
 }
@@ -241,16 +241,9 @@ list_cdrom_devices()
 list_partition_devices()
 {
 	if [ -n "$nohd" ]; then return 1; fi
-	for part in `cat /proc/partitions|tail  +3|awk '{print $4}'`; do
+	for part in $(cat /proc/partitions|tail -n+3|awk '{print $4}'); do
 		part_dev="/dev/$part"
 	done
-}
-
-# List all disk devices
-#
-list_disk_devices()
-{
-	list_partition_devices | grep  "[0-9]"
 }
 
 # List all block devices
@@ -258,7 +251,7 @@ list_disk_devices()
 list_block_devices()
 {
 	list_cdrom_devices
-	list_disk_devices
+	list_partition_devices
 }
 
 #--------------------------------------------------------------------#
@@ -280,13 +273,14 @@ initialise() {
 
 	#Needed early on for systemd-udevd (udev)
 	mkdir -m 755 /run/udev
+	mkdir -m 755 /run/plymouth
 	
 	busybox --install 
-	busybox --install -s
 	ln /bin/busybox /bin/awk
 	ln /bin/busybox /bin/sed
 	ln /bin/busybox /bin/depmod
 	ln /sbin/modprobe /usr/sbin/modprobe	
+
 	if [ -n "$DEBUG" ]; then
 		echo "--- MKLIVECD LINUXRC ---------------"
 	else
@@ -296,10 +290,8 @@ initialise() {
 	mv /sbin/init.dynamic /sbin/init
 
 	docmd   "  Setting up kernel parameters" \
-	"echo '0 0 0 0' >/proc/sys/kernel/printk" 
-	#"echo '/usr/sbin/modprobe' >/proc/sys/kernel/modprobe"
-	#"echo '/sbin/modprobe' >/proc/sys/kernel/modprobe" \
-	#"exec >/dev/console </dev/console 2>&1"
+	"echo '0 0 0 0' >/proc/sys/kernel/printk" \
+	"exec >/dev/console </dev/console 2>&1"
 
 	# some kernel specifics
 	KERNELVER=`uname -r`
@@ -328,8 +320,21 @@ find_cdroms() {
         if [ -n "$DEBUG" ]; then
                 /bin/systemd-udevd --daemon --debug
         else
-                /bin/systemd-udevd --daemon
+                /bin/systemd-udevd --daemon >/dev/null 2>&1
         fi
+
+	# Try Plymouth Now after ram disk
+	if [ -e /bin/plymouthd -a /bin/plymouth ]; then
+	   busybox mount -t devpts -o gid=5,mode=620 /dev/pts /dev/pts
+	   mknod /dev/fb c 29 0
+   	   udevadm trigger --action=add --attr-match=class=0x030000 >/dev/null 2>&1
+   	   udevadm trigger --action=add --subsystem-match=graphics --subsystem-match=drm --subsystem-match=tty >/dev/null 2>&1
+   	   udevadm settle --timeout=30 >/dev/null 2>&1
+   	   docmd "plymouth start" \
+   	   "/bin/plymouthd --attach-to-session --pid-file /run/plymouth/pid" \
+   	   "/bin/plymouth --show-splash"
+	fi
+
 
         ## Search for cdrom devices and add them to CDROM_LIST
         ## Check for ide channels.
@@ -347,14 +352,14 @@ find_cdroms() {
 		fi
 	done
 
-        udevadm trigger --action=add
+        udevadm trigger --action=add >/dev/null 2>&1
 	
 	sleep 2
 
 	if [ -n "$usblive" ]; then
 		rm -rf /live/sbin/halt.local
 		## Check for usb stick
-		for usb_device in /dev/sr[0-99] /dev/sd[a-z][0-99]; do
+		for usb_device in /dev/sr[0-99] /dev/sd[a-z]; do
 			if [ -e "$usb_device" ]; then
 				CDROM_LIST="$CDROM_LIST $usb_device"
 			fi
@@ -364,7 +369,7 @@ find_cdroms() {
 		CDROM_LIST=`list_block_devices`
 
 		## Check for scsi cds and partitions - if exist, add to the list 
-		for scsi_cdrom in /dev/scd[0-99] /dev/sr[0-99] /dev/sd[a-z][0-99]; do
+		for scsi_cdrom in /dev/scd[0-99] /dev/sr[0-99] /dev/sd[a-z]; do
 			if [ -e "$scsi_cdrom" ]; then
 				CDROM_LIST="$CDROM_LIST $scsi_cdrom"
 			fi
@@ -389,14 +394,14 @@ checkmd5() {
 
 
 findcloop() {
+        PRINTK=`cat /proc/sys/kernel/printk`
+        if [ -n "$DEBUG" ]; then
+                dbg "  printk is set to: $PRINTK\n"
+        fi
 	## Now try to find and mount the boot CD (we use ID as identification)
 	if [ -n "$DEBUG" ]; then
 		echo -n "  Searching for the loop image: "
 	fi
-	PRINTK=`cat /proc/sys/kernel/printk`
-        if [ -n "$DEBUG" ]; then
-                echo -n "  printk is set to: $PRINTK "
-        fi
 	echo "0" >/proc/sys/kernel/printk
    	for i in $1; do
    		CDDEV="$i"
@@ -570,25 +575,8 @@ fi
 
 initialise    ""
 
-# Try Plymouth Now before ram disk
-if [ -e /bin/plymouthd -a /bin/plymouth ]; then
-   docmd "plymouth start" \
-   "/bin/plymouthd" \
-   "/bin/plymouth --show-splash"
-fi
-
-
 $SETCOLOR_NORMAL
 createramdisk ""
-
-# Try Plymouth Now after ram disk
-if [ -e /bin/plymouthd -a /bin/plymouth ]; then
-   docmd "plymouth start" \
-   "/bin/plymouthd" \
-   "/bin/plymouth --show-splash"
-fi
-
-
 
 # try to find all the cdrom and partitions
 find_cdroms ""

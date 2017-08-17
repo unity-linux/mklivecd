@@ -551,10 +551,11 @@ sub check_root {
 	die_("\nFATAL: You have to be root to execute this program\n") if ($> > 0);
 }
 
-### see if we are indeed root
+### check beforehand if we have needed apps installed
 sub check_apps {
 	die_("\nFATAL: The '/usr/bin/genisoimage' program is not available, please install the correct package\n") unless (-f '/usr/bin/genisoimage');
 	die_("\nFATAL: The 'md5sum' program is not available, please install the coreutils package\n") unless (-f '/usr/bin/md5sum');
+	die_(N("\nFATAL: '%s' does not exist on your machine. You need to install the syslinux package.\n", '/usr/bin/isohybrid')) unless (-f '/usr/bin/isohybrid');
 	if (($o_bootloader =~m/^grub/) && ($o_stage2 eq '')) {
 	    die("\nFATAL: The Grub program is not available, please install the correct package\n")
 	}
@@ -617,7 +618,7 @@ sub create_initrd {
 	mkdir_p("$dir/$_") foreach qw(bin dev etc/sysconfig etc/livecd/hwdetect etc/rc.d/ etc/profile.d proc sys lib lib64 ramfs sbin usr/bin usr/sbin modules usr/lib usr/lib64 usr/share/ldetect-lst usr/share/plymouth lib/plymouth lib64/plymouth lib/module-init-tools cdrom loopfs tmp ramfs);
 
 	# dropped modules parport pcmcia uwb
-	my @kernel_drivers = qw(ata block firewire message scsi usb);
+	my @kernel_drivers = qw(ata block firewire message scsi usb gpu);
 	my @kernel_fs = qw(fat isofs nls overlayfs squashfs udf);
 	my $kernel_dir = "lib/modules/${o_kernel}";
 	my $kmod_dir = "$kernel_dir/kernel";
@@ -751,6 +752,7 @@ sub create_initrd {
 	do_cmd(":>$dir$modfile", ++$pos);
 	my $cfg = defined($kernel) ? "" : "--config $dir$modfile";
 	if ( $initrddir =~ m/^live$/ ) {
+		do_cmd("(depmod -a $o_kernel) 2>/dev/null", ++$pos);
 		do_cmd("(depmod -a --basedir $dir ".$cfg." $o_kernel || cp -f $o_root/lib/modules/$o_kernel/modules.dep $dir/lib/modules/$o_kernel) 2>/dev/null", ++$pos);
 		do_cmd("(cp -f $dir/lib/modules/$o_kernel/modules.dep $dir/modules) 2>/dev/null",                 ++$pos);
 	} elsif ( $initrddir =~ m/^live2$/ ) {
@@ -912,6 +914,68 @@ sub create_compressed {
 			end_progress();
 		}
 	}
+}
+
+### create UEFI boot image
+sub create_efiimage {
+        my $pos = 0;
+        start_progress("Creating UEFI boot image", 3);
+
+        my $efiimage = "$workdir/livecd/isolinux/efiboot.img";
+        my $efi_dir = "$workdir/livecd/EFI";
+        my $mnt = "$workdir/efi_mnt";
+
+        # Modules needed in EFI app
+        my $core_mods = "configfile normal boot echo linux loadenv ls reboot search search_label part_msdos part_gpt part_apple fat iso9660 udf ext2";
+        my $gfx_mods = "gfxmenu gfxterm efi_gop efi_uga video video_bochs video_cirrus video_fb font png";
+
+        # make GRUB2 EFI bootloader app
+        do_cmd("mkdir -p $efi_dir/BOOT");
+        do_cmd("grub2-mkimage --prefix='/EFI/BOOT' -O x86_64-efi -o $efi_dir/BOOT/bootx64.efi $core_mods $gfx_mods", ++$pos);
+
+        # add theme if present
+        if ( -e "$o_root/boot/grub2/themes/mageia/theme.txt" ) {
+                do_cmd("cp -pr $o_root/boot/grub2/fonts $efi_dir/BOOT");
+                do_cmd("cp -pr $o_root/boot/grub2/themes $efi_dir/BOOT");
+        }
+
+        # build the GRUB2 config for the LiveCD
+        open CFG, '>', "$efi_dir/BOOT/grub.cfg";
+        print CFG "insmod $_\n" foreach qw(part_gpt part_msdos fat efi_gop efi_uga video_bochs video_cirrus video_fb font);
+        print CFG 'if loadfont "${prefix}/fonts/unicode.pf2" ; then',"\n";
+        print CFG '   insmod gfxterm',"\n";
+        print CFG '   set gfxmode=auto',"\n";
+        print CFG '   set gfxpayload=keep',"\n";
+        print CFG '   terminal_input console',"\n";
+        print CFG '   terminal_output gfxterm',"\n";
+        print CFG 'fi',"\n";
+        if ( -e "$efi_dir/BOOT/themes/mageia/theme.txt" ) {
+                print CFG 'insmod png',"\n";
+                print CFG 'set theme=($root)/EFI/BOOT/themes/mageia/theme.txt',"\n";
+                print CFG 'export theme',,"\n";
+        }
+        print CFG "search --no-floppy --set=root --label $opts{volumeid}\n";
+        print CFG 'menuentry "Start Live (UEFI mode)" {',"\n";
+        print CFG "   linux /isolinux/vmlinuz livecd=livecd root=/dev/rd/3 vga=$o_vgamode keyb=$o_keyboard quiet splash=$o_splash\n";
+        print CFG "   initrd /isolinux/initrd.gz\n";
+        print CFG "}\n";
+        print CFG 'menuentry "Install (UEFI mode)" {',"\n";
+        print CFG "   linux /isolinux/vmlinuz livecd=livecd root=/dev/rd/3 vga=$o_vgamode keyb=$o_keyboard quiet splash=$o_splash install\n";
+        print CFG "   initrd /isolinux/initrd.gz\n";
+        print CFG "}\n";
+        close CFG;
+
+        # make the EFI image
+        my $efisize = ceil(chomp_(`du -s -k $efi_dir`) / 1024) * 1024;
+        do_cmd("dd if=/dev/zero of=$efiimage bs=1k count=$efisize 2> /dev/null",  ++$pos);
+        do_cmd("mkdosfs -F 12 $efiimage >/dev/null");
+        do_cmd("mkdir -p $mnt ; mount -o loop $efiimage $mnt");
+        do_cmd("rm -rf $mnt/lost+found");
+        do_cmd("mkdir -p $mnt/EFI/BOOT");
+        do_cmd("cp -r $efi_dir/BOOT $mnt/EFI",                                    ++$pos);
+        do_cmd("umount $mnt");
+
+        end_progress();
 }
 
 ### create the isolinux stuff
@@ -1148,10 +1212,14 @@ sub create_finaliso {
 		set_progress($pos, $line);
 	}
 	close ISO;
-	end_progress();
-	my $hybridbin = $o_root."usr/bin/isohybrid";
-        die_(N("\nFATAL: '%s' does not exist on your machine. You need to install the syslinux package.\n", $hybridbin)) unless (-f $hybridbin);
-	do_cmd("$hybridbin $finaliso");
+	if (defined($opts{uefi})) {
+                do_cmd("isohybrid -u $finaliso");
+        }
+        else {
+                do_cmd("isohybrid -o 1 $finaliso 2>/dev/null");
+        }
+        end_progress();
+
 }
 
 ### create the embedded md5sum
@@ -1218,6 +1286,7 @@ MAIN: {
 
 	create_initrd();
 	create_isolinux();
+	create_efiimage() if (defined($opts{uefi}));
 	create_compressed();
 	create_finaliso();
 	create_md5() if (defined($opts{md5sum}));;
