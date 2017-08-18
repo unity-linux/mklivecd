@@ -458,7 +458,7 @@ sub parse_options {
 	$opts{application} = "$distro $version LiveCD" unless (defined($opts{application}));
 	$opts{preparer} = "$PROG_NAME $PROG_VERSION" unless (defined($opts{preparer}));
 	$opts{publisher} = "$URL" unless (defined($opts{publisher}));
-	$opts{boottheme} = "Mageia-Default" unless (defined($opts{boottheme}));
+	$opts{boottheme} = "Unity-Default" unless (defined($opts{boottheme}));
 	$opts{bootlang} = "en" unless (defined($opts{bootlang}));
 
 	# create our working dir if none given
