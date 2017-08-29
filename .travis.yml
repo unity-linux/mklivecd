@@ -27,7 +27,7 @@ script:
   - docker exec -d $CID /bin/sh -c 'mklivecd --tmp /rpmbuild --xz /rpmbuild/live.iso &>> /rpmbuild/iso_build.log'
   - docker exec $CID /bin/sh -c 'while ps ax | grep mklivecd | grep -v grep > /dev/null ; do sleep 60 ; export x="$(($x+1))" ; echo "--==|mklivecd has been running for $x minute(s)|==--" ; done'
   - export LIVE_ISO=$(readlink -f ./*.iso)
-  - mv $LIVE_ISO ./build_iso/mklivecd-"$(date +%N)".iso
+  - mv $LIVE_ISO ./build_iso/Unity-Linux-"$(date +%Y%m%d%H)".iso
   - mv iso_build.log ./build_iso/
   - export NEW_ISO=$(readlink -f ./build_iso/*.iso)
   - echo "$NEW_ISO"
