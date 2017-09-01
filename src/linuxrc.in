@@ -324,7 +324,7 @@ find_cdroms() {
         fi
 
 	# Try Plymouth Now after ram disk
-	if [ -e /bin/plymouthd -a -e /bin/plymouth -a "$splash" = "y" ]; then
+	if [ -e /bin/plymouthd -a -e /bin/plymouth -a "$silent" = "y" ]; then
 	   busybox mkdir -p /dev/pts
 	   busybox mount -t devpts -o gid=5,mode=620 /dev/pts /dev/pts
 	   mknod /dev/fb c 29 0
