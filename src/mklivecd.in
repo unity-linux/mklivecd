@@ -625,6 +625,7 @@ sub create_initrd {
 	mkdir_p("$dir/$kmod_dir/drivers/$_") foreach @kernel_drivers;
 	mkdir_p("$dir/$kmod_dir/fs/$_") foreach @kernel_fs;
 	mkdir_p("$dir/$kmod_dir/lib");
+	mkdir_p("$dir/lib/firmware");
 	set_progress(++$pos, "mkdir -p $dir/...");
 
 	# copy files
@@ -643,6 +644,11 @@ sub create_initrd {
 	do_copy($o_root."$kernel_dir/modules.dep",		0, "$dir/lib/modules",		++$pos);
 	#do_copy($o_root."$kernel_dir/modules.description",	0, "$dir/lib/modules",		++$pos);
 	do_copy($o_root."$kernel_dir/modules.alias",		0, "$dir/lib/modules",		++$pos);
+
+	#Get some firmware like microcode
+	do_copy($o_root."lib/firmware/intel*",			0, "$dir/lib/firmware",		++$pos);
+	do_copy($o_root."lib/firmware/amd*",			0, "$dir/lib/firmware",		++$pos);
+	do_copy($o_root."lib/firmware/i915",			0, "$dir/lib/firmware",		++$pos);
 
 	do_copy($o_root."$kmod_dir/drivers/$_",			0, "$dir/$kmod_dir/drivers/$_",	++$pos) foreach @kernel_drivers;
 	do_copy($o_root."$kmod_dir/fs/$_",			0, "$dir/$kmod_dir/fs/$_",	++$pos) foreach @kernel_fs;

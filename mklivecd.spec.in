@@ -20,6 +20,7 @@ Requires:	drakx-installer-binaries-probe
 Requires:	plymouth-scripts
 Requires:	plymouth
 Requires:	bootsplash
+Requires:	microcode
 
 # We need a theme for testing
 Suggests:	mageia-theme
