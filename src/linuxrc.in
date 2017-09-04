@@ -312,6 +312,8 @@ initialise() {
 	done
 	# this allows the option to be removed from the bootcmd
 	[ -z "$BASEIMG" ] &&  BASEIMG="livecd"
+	# Check and see if there's microcode to load
+	echo 1 > /sys/devices/system/cpu/microcode/reload
 }
 
 find_cdroms() {
