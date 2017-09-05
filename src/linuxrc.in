@@ -176,7 +176,7 @@ loadmod() {
 
 ### this is if we are to execute a limited shell
 execshell() {
-        if [ -e /bin/plymouthd -a /bin/plymouth ]; then
+        if [ -e /bin/plymouthd -a -e /bin/plymouth ]; then
                 /bin/plymouth --quit
         fi
 	export HOSTNAME="localhost.localdomain"
@@ -308,6 +308,7 @@ initialise() {
 			fromusb) usblive=y; ;;
 			livecd=*) BASEIMG="${x#livecd=}";;
 			bootfromiso=*) ISO_PATH="${x#bootfromiso=}"; ;;
+			execshell) execshell=y; ;;
 		esac
 	done
 	# this allows the option to be removed from the bootcmd
