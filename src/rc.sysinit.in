@@ -132,6 +132,9 @@ dbg() {
 
 ### this is if we are to execute a limited shell
 execshell() {
+	if [ -e /bin/plymouthd -a -e /bin/plymouth ]; then
+		/bin/plymouth --quit
+	fi
 	export HOSTNAME="localhost.localdomain"
 	export PS1="$ "
 	export PS2="> "
