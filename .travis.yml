@@ -26,7 +26,7 @@ script:
   - docker exec $CID /bin/sh -c 'dnf update --setopt=install_weak_deps=False -y &>> /rpmbuild/iso_build.log'
   - docker exec $CID /bin/sh -c 'dnf clean all &>> /rpmbuild/iso_build.log'
   - mkdir build_iso
-  - if [ "$TRAVIS_TEST_RESULT" == "1" ]; then mv iso_build.log ./build_iso/ && rsync -arz --progress --rsh=ssh -e "ssh -o StrictHostKeyChecking=no" ./build_iso foobar:/var/www/html/isos/; exit 1 fi
+  - if [ "$TRAVIS_TEST_RESULT" == "1" ]; then mv iso_build.log ./build_iso/ && rsync -arz --progress --rsh=ssh -e "ssh -o StrictHostKeyChecking=no" ./build_iso foobar:/var/www/html/isos/; exit 1; fi
   - docker exec -d $CID /bin/sh -c 'mklivecd --tmp /rpmbuild --xz /rpmbuild/live.iso &>> /rpmbuild/iso_build.log'
   - docker exec $CID /bin/sh -c 'while ps ax | grep mklivecd | grep -v grep > /dev/null ; do sleep 60 ; export x="$(($x+1))" ; echo "--==|mklivecd has been running for $x minute(s)|==--" ; done'
   - export LIVE_ISO=$(readlink -f ./*.iso)
