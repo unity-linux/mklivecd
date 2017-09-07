@@ -36,6 +36,7 @@ use MDK::Common;
 use Storable qw(store);
 use threads::shared;
 use common;
+use POSIX qw(ceil);
 
 ### useful functions
 sub get_exec { my $r = qx($_[0]); chomp($r); $r; };
