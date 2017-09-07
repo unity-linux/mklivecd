@@ -181,6 +181,7 @@ Boot options:
                                    in seconds.
                                    (default: %s)
    --noprompt                      Disable ISO Linux prompt (i.e. prompt 0).
+   --uefi                          Enable uefi boot.
    --keyboard <mapping>            Specify a different keyboard layout as
                                    default for the LiveCD.
                                    (default: %s)
@@ -395,6 +396,7 @@ sub parse_options {
 		'bootimg=s',
 		'timeout=i',
 		'noprompt',
+		'uefi',
 		'keyboard=s',
 		'resolution=s',
 		'splash=s',
