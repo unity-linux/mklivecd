@@ -593,6 +593,12 @@ sub do_copy {
 	set_progress($prog, $cmd) if (defined($prog));
 }    	
 
+### create an dracut initrd image
+sub create_dracut_initrd {
+
+}
+
+
 ### create an initrd image
 sub create_initrd {
 
