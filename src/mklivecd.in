@@ -611,7 +611,7 @@ sub create_dracut_initrd {
 	do_cmd("mkdir -p $workdir/livecd/isolinux",                         ++$pos);
         do_cmd("mkdir -p $workdir/livecd/boot/grub",                        ++$pos);
 	do_cmd("mkdir -p $workdir/livecd/loopbacks",                        ++$pos);
-	do_cmd("dracut -f $workdir/livecd/isolinux/live.gz $o_kernel", ++$pos);
+	do_cmd("dracut --early-microcode -f $workdir/livecd/isolinux/live.gz $o_kernel", ++$pos);
 
 	end_progress();
 }
