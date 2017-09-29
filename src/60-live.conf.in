@@ -1,0 +1,16 @@
+# it is a live, build initrd to boot any hardware
+hostonly="no"
+# load mga livecd support
+add_dracutmodules+=" mgalive "
+# block some dracut modules we dont want / use
+omit_dracutmodules+=" caps crypt dm dmraid mdraid lvm nfs i18n resume modsign "
+# compress initrd with xz
+compress_l="xz"
+# whitelist only the filesystems needed by live CDs and live USB
+filesystems="iso9660 vfat =fs/nls squashfs overlay"
+# ensure drm drivers are available early in the boot sequence
+add_drivers+=" amdgpu radeon nouveau i915 vboxvideo "
+# fibre channel & iSCSI modules are unneeded on live CD/USB and pull 1MB+ of firmware files
+omit_drivers+=" qla1280 qla2xxx qla4xxx "
+# pata_acpi is not wanted on boot
+omit_drivers+=" pata_acpi "

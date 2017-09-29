@@ -183,6 +183,7 @@ Boot options:
                                    (default: %s)
    --noprompt                      Disable ISO Linux prompt (i.e. prompt 0).
    --uefi                          Enable uefi boot.
+   --oldinit			   Use old init system (will be depricated)
    --keyboard <mapping>            Specify a different keyboard layout as
                                    default for the LiveCD.
                                    (default: %s)
@@ -398,6 +399,7 @@ sub parse_options {
 		'timeout=i',
 		'noprompt',
 		'uefi',
+		'oldinit',
 		'keyboard=s',
 		'resolution=s',
 		'splash=s',
@@ -593,6 +595,28 @@ sub do_copy {
 	set_progress($prog, $cmd) if (defined($prog));
 }    	
 
+### create an dracut initrd image
+sub create_dracut_initrd {
+
+        my $pos = 0;
+
+        # for primary boot kernel
+        if ($o_mbkopt ne "" && ! -d "/lib/modules/$o_mbkopt") {
+                start_progress(N("Creating %s initrd", $o_kernel), 120);
+        }
+        else {
+                start_progress(N("Creating initrd"), 120);
+        }
+
+	do_cmd("mkdir -p $workdir/livecd/isolinux",                         ++$pos);
+        do_cmd("mkdir -p $workdir/livecd/boot/grub",                        ++$pos);
+	do_cmd("mkdir -p $workdir/livecd/loopbacks",                        ++$pos);
+	do_cmd("dracut --early-microcode -f $workdir/livecd/isolinux/live.gz $o_kernel", ++$pos);
+
+	end_progress();
+}
+
+
 ### create an initrd image
 sub create_initrd {
 
@@ -785,6 +809,7 @@ sub create_initrd {
 	$initrd = "$workdir/livecd/isolinux/$initrddir";
 	$mnt = "$workdir/$initrddir.mnt";
 	do_cmd("mkdir -p $workdir/livecd/isolinux",                         ++$pos);
+	do_cmd("mkdir -p $workdir/livecd/loopbacks",                        ++$pos);
 	do_cmd("mkdir -p $workdir/livecd/boot/grub",                        ++$pos);
 	do_cmd("dd if=/dev/zero of=$initrd bs=1k count=$size 2> /dev/null", ++$pos);
 	do_cmd("mke2fs -q -m 0 -F -N $inodes -s 1 $initrd",                 ++$pos);
@@ -838,7 +863,7 @@ sub create_initrd {
 ### create the compressed image
 sub create_compressed {
 	if (defined($opts{img}) && (-f $opts{img})) {
-		do_cmd("ln $opts{img} $workdir/livecd/livecd.$o_looptype");
+		do_cmd("ln $opts{img} $workdir/livecd/loopbacks/distrib-lzma.$o_looptype");
 	}
 	else {
 		my $pos = 0;
@@ -875,7 +900,7 @@ sub create_compressed {
 			my @files = qx(find $o_root -type f 2>/dev/null);
 			my $total = scalar(@files);
 			start_progress(N("Creating compressed image"), $total+2);
-			my $iso = "$loopcmp $o_root $workdir/livecd/livecd.$o_looptype $withcompression -processors 4 -info -progress -ef $workdir/excludes.list";
+			my $iso = "$loopcmp $o_root $workdir/livecd/loopbacks/distrib-lzma.$o_looptype $withcompression -processors 4 -info -progress -ef $workdir/excludes.list";
 			$iso = "$iso -sort $workdir/sort.list" if (defined($opts{sort}));
 			$iso = "$iso 2>&1";
 			print "DEBUG: $iso\n" if (defined($opts{debug}));
@@ -896,8 +921,8 @@ sub create_compressed {
 				set_progress($pos, $linep);
 			}
 			close CMP;
-			do_cmd("chmod 644 $workdir/livecd/livecd.$o_looptype", $total+1); # Failure = out of space
-			do_cmd("ln $workdir/livecd/livecd.$o_looptype $opts{img}", $total+2) if (defined($opts{img}));
+			do_cmd("chmod 644 $workdir/livecd/loopbacks/distrib-lzma.$o_looptype", $total+1); # Failure = out of space
+			do_cmd("ln $workdir/livecd/loopbacks/distrib-lzma.$o_looptype $opts{img}", $total+2) if (defined($opts{img}));
 			end_progress();
 		}
 		else {
@@ -1029,7 +1054,7 @@ sub create_isolinux {
 
 	# write config
 	my $appopt;
-	$appopt = "initrd=live.gz root=/dev/sr0:CDLABEL=$opts{volumeid} ramdisk_size=32768 vga=$o_vgamode keyb=$o_keyboard nopat rd_NO_LUKS rd_NO_MD noiswmd";
+	$appopt = "initrd=live.gz root=mgalive:LABEL=$opts{volumeid} ramdisk_size=32768 vga=$o_vgamode keyb=$o_keyboard nopat rd_NO_LUKS rd_NO_MD noiswmd";
 	#$appopt .= " splash=$o_splash" if ($o_splash !~ m/no/);
 	$appopt = "$appopt fstab=".$opts{fstab} if (defined($opts{fstab}));
 	$appopt = "$appopt home=usb" if (defined($opts{usbhome}));
@@ -1292,8 +1317,12 @@ MAIN: {
 
 	print_banner();
 	parse_options();
-
-	create_initrd();
+	if (defined($opts{oldinit})) {
+		create_initrd();
+        }
+	else {
+		create_dracut_initrd();
+	}
 	create_isolinux();
 	create_efiimage() if (defined($opts{uefi}));
 	create_compressed();

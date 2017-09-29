@@ -31,6 +31,7 @@ all:
 	@$(CP) $(MKREMASTERDIR)/mkremaster.png $(DISTDIR)/
 	@$(CP) $(SRCDIR)/gfxboot.cfg.in $(DISTDIR)/gfxboot.cfg
 	@$(CP) $(SRCDIR)/finish-install.in $(DISTDIR)/finish-install
+	@$(CP) $(SRCDIR)/60-live.conf.in $(DISTDIR)/60-live.conf
 	@$(CP) $(SRCDIR)/fstab.in $(DISTDIR)/fstab
 	@$(CAT) $(SRCDIR)/rc.sysinit.in | \
 		$(SED) -e 's,@MAX_SPLASH@,$(MAX_SPLASH),g' | \
@@ -60,6 +61,8 @@ install:
 	@echo 'Created directory $(DESTDIR)$(DESKTOPDIR)'
 	@$(MKDIR) -p $(DESTDIR)$(ICONSDIR)
 	@echo 'Created directory $(DESTDIR)$(ICONSDIR)'
+	@$(MKDIR) -p $(DESTDIR)$(DRACUTDIR)
+	@echo 'Created directory $(DESTDIR)$(DRACUTDIR)'
 	@$(INSTALL) -m 644 $(DISTDIR)/linuxrc $(DESTDIR)$(SHAREDIR)
 	@echo 'Installed linuxrc to $(DESTDIR)$(SHAREDIR)'
 	@$(INSTALL) -m 644 $(DISTDIR)/halt.local $(DESTDIR)$(SHAREDIR)
@@ -82,6 +85,8 @@ install:
 	@echo 'Installed finish-install to $(DESTDIR)$(SHAREDIR)'
 	@$(INSTALL) -m 644 $(DISTDIR)/fstab $(DESTDIR)$(SHAREDIR)
 	@echo 'Installed fstab to $(DESTDIR)$(SHAREDIR)'
+	@$(INSTALL) -m 644 $(DISTDIR)/60-live.conf $(DESTDIR)$(DRACUTDIR)
+	@echo 'Installed dracut module to $(DESTDIR)$(DRACUTDIR)'
 	@for d in $(SUBDIRS); do ( cd $$d ; make $@ ) ; done
 	@echo
 	@echo '                     ***Installation END***'
