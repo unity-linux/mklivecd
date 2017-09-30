@@ -21,7 +21,6 @@ script:
   - export CID=$(docker ps -l | awk '{print $1}' | grep -v -m1 'CONTAINER')
   - echo $CID
   - docker exec $CID /bin/sh -c 'cd /rpmbuild && make spec && make srpm && make rpm &>> /rpmbuild/iso_build.log'
-  - docker exec $CID /bin/sh -c 'dnf install --setopt=install_weak_deps=False --enablerepo=updates-x86_64-nonfree --enablerepo=mageia-x86_64-nonfree kernel-firmware* --allowerasing -y &>> /rpmbuild/iso_build.log'
   - docker exec $CID /bin/sh -c 'dnf install --setopt=install_weak_deps=False /rpmbuild/RPMS/*/*.rpm task-unity-lxqt-live -y &>> /rpmbuild/iso_build.log'
   - docker exec $CID /bin/sh -c 'dnf update --setopt=install_weak_deps=False -y &>> /rpmbuild/iso_build.log'
   - docker exec $CID /bin/sh -c 'dnf clean all &>> /rpmbuild/iso_build.log'
