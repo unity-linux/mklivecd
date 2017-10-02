@@ -76,7 +76,7 @@ my $o_tmp		= "/tmp";
 my $o_looptype		= "sqfs";
 my $o_keyboard		= '@DEF_KEYBOARD@';
 my $o_resolution	= '@DEF_RESOLUTION@';
-my $o_theme		= 'Mageia-Default';
+my $o_theme		= 'Unity-Default';
 my $o_vgamode		= '@DEF_VGAMODE@';
 my $o_splash		= "silent";
 my $o_bootloader	= "grub";
@@ -170,7 +170,7 @@ Boot options:
    --bootmenu <file>               What boot menu definition file should be used
                                    in case that bootloader option is set to iso or grub.
                                    For iso this file must be named 'isolinux.cfg',
-                                   for grub the name must be 'menu.lst'.
+                                   for grub the name must be 'grub.cfg'.
                                    Boot menu will be generated if not specified.
    --bootlang <lang code>          Which language shound be used as default
                                    in the boot menu.
@@ -433,7 +433,7 @@ sub parse_options {
 	die_(N("\nFATAL: Root directory (--root) '%s' does not exist\n", $o_root)) unless (-d $o_root);
 	$o_tmp =~ s|/$||;
 	$o_tmp .= "/";
-	$o_stage2 = get_exec("find $o_root/usr/lib/grub -name cdboot.img");
+	$o_stage2 = get_exec("find $o_root/usr/lib/grub -name boot_hybrid.img");
 	die_(N("\nFATAL: Temporary directory (--tmp) '%s' does not exist\n", $o_tmp)) unless (-d $o_tmp);
 
 	# optional stuff
@@ -607,8 +607,8 @@ sub create_dracut_initrd {
                 start_progress(N("Creating initrd via dracut"), 120);
         }
 
-	do_cmd("mkdir -p $workdir/livecd/isolinux",                         ++$pos);
-        do_cmd("mkdir -p $workdir/livecd/boot/grub",                        ++$pos);
+	do_cmd("mkdir -p $workdir/livecd/isolinux",                         ++$pos) if ($o_bootloader =~ m/^iso/);
+        do_cmd("mkdir -p $workdir/livecd/boot/grub",                        ++$pos) if ($o_bootloader =~ m/^grub/);
 	do_cmd("mkdir -p $workdir/livecd/loopbacks",                        ++$pos);
 	if ($o_bootloader =~ m/^grub/) {
 		do_cmd("dracut --early-microcode -f $workdir/livecd/boot/initrd $o_kernel &> /dev/null", ++$pos);
@@ -665,14 +665,12 @@ sub create_initrd {
 	do_copy($o_root."usr/share/mklivecd/fstab",      644, "$dir/etc/fstab",               ++$pos);
 
 	# lets start to question some of these..
-	#do_copy($o_root."usr/sbin/hwdetect2",                              755, "$dir/usr/sbin/hwdetect2",         ++$pos);
 	do_copy($o_root."usr/share/mklivecd/halt.local",                   755, "$dir/sbin/halt.local",            ++$pos);
 	do_copy($o_root."etc/inittab",                                     644, "$dir/etc/inittab",                ++$pos);
 	do_copy($o_root."sbin/init",                                       755, "$dir/sbin/init.dynamic",          ++$pos);
 	do_copy($o_root."lib/module-init-tools/ldetect-lst-modules.alias",   0, "$dir/lib/module-init-tools",      ++$pos);
 
 	do_copy($o_root."$kernel_dir/modules.dep",		0, "$dir/lib/modules",		++$pos);
-	#do_copy($o_root."$kernel_dir/modules.description",	0, "$dir/lib/modules",		++$pos);
 	do_copy($o_root."$kernel_dir/modules.alias",		0, "$dir/lib/modules",		++$pos);
 
 	#Get some firmware like microcode
@@ -712,12 +710,6 @@ sub create_initrd {
 	do_copy($o_root."${LIBDIR}/libc.so.6",			0, "$dir/${LIBDIR}",		++$pos);
 	do_copy($o_root."${LIBDIR}/libkmod.so.2",		0, "$dir/${LIBDIR}",		++$pos);
 
-	#not sure why these were pulled in
-	#do_copy($o_root."${LIBDIR}/libext2fs.so.2",		644, "$dir/${LIBDIR}",		++$pos);
-	#do_copy($o_root."${LIBDIR}/libpopt.so.0",		0, "$dir/${LIBDIR}",		++$pos);
-	#do_copy($o_root."${LIBDIR}/libncurses.so.5",		644, "$dir/${LIBDIR}",		++$pos);
-	#do_copy($o_root."${LIBDIR}/libreadline.so.6",		0, "$dir/${LIBDIR}",		++$pos);
-
 	# Plymouth support
 	if (!defined($opts{nosplash})) {
 	do_copy($o_root."${LIBDIR}/libm.so.6",			0, "$dir/${LIBDIR}",		++$pos);
@@ -734,7 +726,6 @@ sub create_initrd {
 	do_copy($o_root."sbin/plymouthd",			755, "$dir/bin/plymouthd",	++$pos);
 	do_copy($o_root."usr/bin/udevadm",			755, "$dir/bin/udevadm",	++$pos);
 	do_copy($o_root."usr/lib/systemd/systemd-udevd",	755, "$dir/bin/systemd-udevd",	++$pos);
-	#do_copy($o_root."sbin/nash",				755, "$dir/bin/nash",		++$pos);
 	# required by nash
 	do_copy($o_root."${LIBDIR}/libblkid.so.1",		644, "$dir/${LIBDIR}",		++$pos);
 	do_copy($o_root."${LIBDIR}/libdevmapper.so.1.02",	0, "$dir/${LIBDIR}",		++$pos);
@@ -754,10 +745,8 @@ sub create_initrd {
 	do_copy($o_root."${LIBDIR}/libmount.so*",		644, "$dir/${LIBDIR}",		++$pos);
 	do_copy($o_root."${LIBDIR}/libudev.so.*",		644, "$dir/${LIBDIR}",		++$pos);
 	do_copy($o_root."${LIBDIR}/libuuid.so.1",		644, "$dir/${LIBDIR}",		++$pos);
-	#do_copy($o_root."usr/${LIBDIR}/libbdevid.so.6.0.93",	0, "$dir/${LIBDIR}",		++$pos);
 	do_copy($o_root."usr/${LIBDIR}/libelf.so.1",		0, "$dir/${LIBDIR}",		++$pos);
 	do_copy($o_root."usr/${LIBDIR}/libgcc_s.so.1",		0, "$dir/${LIBDIR}",		++$pos);
-	#do_copy($o_root."usr/${LIBDIR}/libnash.so.6.0.93",	0, "$dir/${LIBDIR}",		++$pos);
 	do_copy($o_root."usr/${LIBDIR}/libparted.so.2",		0, "$dir/${LIBDIR}",		++$pos);
 	}
 
@@ -1020,6 +1009,7 @@ sub create_grub2 {
         start_progress(N("Creating grub2 boot menu"), 2);
 
 	do_cmd("cp -rf /usr/lib/grub/* $workdir/livecd/boot/grub/", ++$pos);
+	do_cmd("cp -rf /boot/grub/themes $workdir/livecd/boot/grub/", ++$pos);
 	die_(N("\nFATAL: The kernel '%sboot/vmlinuz-%s' does not exist on your machine.\n", $o_root, $o_kernel)) unless (-f $o_root."boot/vmlinuz-$o_kernel");
         do_copy($o_root."boot/vmlinuz-$o_kernel", 644, "$workdir/livecd/boot/vmlinuz", ++$pos);
 
@@ -1039,9 +1029,9 @@ sub create_grub2 {
         print CFG 'else',"\n";
         print CFG '  set timeout=5',"\n";
         print CFG 'fi',"\n";
-        if ( -e "$workdir/livecd/boot/grub/themes/mageia/theme.txt" ) {
+        if ( -e "$workdir/livecd/boot/grub/themes/$o_theme/theme.txt" ) {
                 print CFG 'insmod png',"\n";
-                print CFG 'set theme=($root)/boot/grub/themes/mageia/theme.txt',"\n";
+                print CFG 'set theme=($root)/boot/grub/themes/$o_theme/theme.txt',"\n";
                 print CFG 'export theme',,"\n";
         }
         print CFG "search --no-floppy --set=root --label $opts{volumeid}\n";
@@ -1216,20 +1206,7 @@ sub create_finaliso {
 	# create actual iso
 	$opts{isoextrafiles} = "" unless (defined($opts{isoextrafiles}));
 
-	if ($o_bootloader =~ m/^grub/) {
-		$loader = " -b boot/grub/stage2_eltorito";
-                open SORT, '>', "$workdir/sort_iso.list";
-                print SORT "$workdir/livecd/boot/grub/stage2_eltorito 500\n";
-                print SORT "$workdir/livecd/boot/grub/grub.conf 499\n";
-                print SORT "$workdir/livecd/boot/vmlinuz 498\n";
-                print SORT "$workdir/livecd/boot/initrd 497\n";
-                print SORT "$workdir/livecd/boot/* 450\n";
-                print SORT "$workdir/livecd/loopbacks/distrib-lzma.$o_looptype 400\n";
-                close SORT;
-                set_progress(++$pos, "$workdir/sort_iso.list");
-
-	}
-	elsif ($o_bootloader =~ m/^iso/) {
+	if ($o_bootloader =~ m/^iso/) {
 		$loader = " -b isolinux/isolinux.bin";
         	open SORT, '>', "$workdir/sort_iso.list";
         	print SORT "$workdir/livecd/isolinux/isolinux.bin 500\n";
@@ -1353,14 +1330,10 @@ MAIN: {
 
 	print_banner();
 	parse_options();
-	if (defined($opts{oldinit})) {
-		create_initrd();
-        }
-	else {
-		create_dracut_initrd();
-	}
-	#create_isolinux();
-	create_grub2();
+	create_initrd() if (defined($opts{oldinit}));
+	create_dracut_initrd() if (!defined($opts{oldinit}));
+	create_isolinux() if ($o_bootloader =~ m/^iso/);
+	create_grub2() if ($o_bootloader =~ m/^grub/);
 	create_efiimage() if (defined($opts{uefi}));
 	create_compressed();
 	create_finaliso();
