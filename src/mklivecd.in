@@ -1029,9 +1029,9 @@ sub create_grub2 {
         print CFG 'else',"\n";
         print CFG '  set timeout=5',"\n";
         print CFG 'fi',"\n";
-        if ( -e "$workdir/livecd/boot/grub/themes/$o_theme/theme.txt" ) {
+        if ( -e "$workdir/livecd/boot/grub/themes/$opts{boottheme}/theme.txt" ) {
                 print CFG 'insmod png',"\n";
-                print CFG 'set theme=($root)/boot/grub/themes/$o_theme/theme.txt',"\n";
+                print CFG 'set theme=($root)/boot/grub/themes/'.$opts{boottheme}.'/theme.txt',"\n";
                 print CFG 'export theme',,"\n";
         }
         print CFG "search --no-floppy --set=root --label $opts{volumeid}\n";
