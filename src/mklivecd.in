@@ -972,7 +972,7 @@ sub create_efiimage {
         print CFG "insmod $_\n" foreach qw(part_gpt part_msdos fat efi_gop efi_uga video_bochs video_cirrus video_fb font);
         print CFG 'if loadfont "${prefix}/fonts/unicode.pf2" ; then',"\n";
         print CFG '   insmod gfxterm',"\n";
-        print CFG '   set gfxmode=auto',"\n";
+        print CFG '   set gfxmode=1024x768,800x600,auto',"\n";
         print CFG '   set gfxpayload=keep',"\n";
         print CFG '   terminal_input console',"\n";
         print CFG '   terminal_output gfxterm',"\n";
@@ -984,11 +984,11 @@ sub create_efiimage {
         }
         print CFG "search --no-floppy --set=root --label $opts{volumeid}\n";
         print CFG 'menuentry "Start Live (UEFI mode)" {',"\n";
-        print CFG "   linux /isolinux/vmlinuz livecd=livecd root=/dev/rd/3 vga=$o_vgamode keyb=$o_keyboard quiet splash=$o_splash\n";
+        print CFG "   linux /isolinux/vmlinuz livecd=livecd root=/dev/rd/3 keyb=$o_keyboard quiet splash=$o_splash\n";
         print CFG "   initrd /isolinux/initrd\n";
         print CFG "}\n";
         print CFG 'menuentry "Install (UEFI mode)" {',"\n";
-        print CFG "   linux /isolinux/vmlinuz livecd=livecd root=/dev/rd/3 vga=$o_vgamode keyb=$o_keyboard quiet splash=$o_splash install\n";
+        print CFG "   linux /isolinux/vmlinuz livecd=livecd root=/dev/rd/3 keyb=$o_keyboard quiet splash=$o_splash install\n";
         print CFG "   initrd /isolinux/initrd\n";
         print CFG "}\n";
         close CFG;
@@ -1020,7 +1020,7 @@ sub create_grub2 {
         print CFG "insmod $_\n" foreach qw(part_gpt part_msdos fat video_bochs video_cirrus video_fb font);
         print CFG 'if loadfont "${prefix}/fonts/unicode.pf2" ; then',"\n";
         print CFG '   insmod gfxterm',"\n";
-        print CFG '   set gfxmode=auto',"\n";
+        print CFG '   set gfxmode=1024x768,800x600,auto',"\n";
         print CFG '   set gfxpayload=keep',"\n";
         print CFG '   terminal_input console',"\n";
         print CFG '   terminal_output gfxterm',"\n";
@@ -1038,7 +1038,7 @@ sub create_grub2 {
         }
         print CFG "search --no-floppy --set=root --label $opts{volumeid}\n";
         print CFG 'menuentry "Start Live" {',"\n";
-        print CFG "   linux /boot/vmlinuz root=mgalive:LABEL=$opts{volumeid} ramdisk_size=32768 vga=$o_vgamode keyb=$o_keyboard quiet splash=$o_splash\n";
+        print CFG "   linux /boot/vmlinuz root=mgalive:LABEL=$opts{volumeid} ramdisk_size=32768 keyb=$o_keyboard quiet splash=$o_splash\n";
         print CFG "   initrd /boot/initrd\n";
         print CFG "}\n";
         print CFG 'menuentry "Safe Boot" {',"\n";
