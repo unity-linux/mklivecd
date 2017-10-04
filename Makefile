@@ -119,7 +119,7 @@ clean:
 	@$(RM) -f *.spec
 	@$(RM) -rf $(MKLIVECDDIST)
 	@$(RM) -rf $(DISTDIR)
-	@$(RM) -rf SRPMS
+	@$(RM) -rf SRPMS RPMS
 	@$(RM) -rf $(MKLIVECDDIST).tar.xz*
 	@find -name '*~' -exec $(RM) {} \;
 	@for d in $(SUBDIRS); do ( cd $$d ; make $@ ) ; done
