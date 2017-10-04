@@ -12,10 +12,7 @@ BuildRequires:	intltool
 Requires:	beesu
 Requires:	zenity
 Requires:	imagemagick
-Requires:	busybox-static >= 1.18.4
-Requires:	cdrkit-genisoimage
 Requires:	squashfs-tools >= 4.2
-Requires:	syslinux >= 4.00
 Requires:	drakx-installer-binaries-probe
 Requires:	plymouth-scripts
 Requires:	plymouth
