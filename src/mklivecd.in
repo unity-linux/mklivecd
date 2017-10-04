@@ -557,9 +557,11 @@ sub check_root {
 
 ### check beforehand if we have needed apps installed
 sub check_apps {
-	die_("\nFATAL: The '/usr/bin/genisoimage' program is not available, please install the correct package\n") unless (-f '/usr/bin/genisoimage');
+	if (($o_bootloader =~m/^iso/) && (! -f '/usr/bin/genisoimage')) {
+            die_(N("\nFATAL: '%s' is not available, please install the correct package\n", '/usr/bin/genisoimage'));
+            die_(N("\nFATAL: '%s' does not exist on your machine. You need to install the syslinux package.\n", '/usr/bin/isohybrid'));
+    	}
 	die_("\nFATAL: The 'md5sum' program is not available, please install the coreutils package\n") unless (-f '/usr/bin/md5sum');
-	die_(N("\nFATAL: '%s' does not exist on your machine. You need to install the syslinux package.\n", '/usr/bin/isohybrid')) unless (-f '/usr/bin/isohybrid');
 	if (($o_bootloader =~m/^grub/) && ($o_stage2 eq '')) {
 	    die("\nFATAL: The Grub program is not available, please install the correct package\n")
 	}
