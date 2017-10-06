@@ -18,7 +18,8 @@ Requires:	plymouth-scripts
 Requires:	plymouth
 Requires:	bootsplash
 Requires:	microcode
-Requires:	unity-grub2-pc
+Requires:	grub2
+Requires:	grub2-common
 Requires:	xorriso
 
 # We need a theme for testing
