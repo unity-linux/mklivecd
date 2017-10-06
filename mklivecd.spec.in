@@ -56,14 +56,9 @@ cat mklivecd.lang mkremaster.lang >> %{name}.list
 %license COPYING
 %doc AUTHORS CHANGELOG FAQ README.md README.BOOTCODES README.USB TODO
 %{_sbindir}/mklivecd
-%{_sbindir}/hwdetect2
 %{_sbindir}/mkremaster
 %dir %{_datadir}/mklivecd
-%{_datadir}/mklivecd/linuxrc
-%{_datadir}/mklivecd/halt.local
-%{_datadir}/mklivecd/rc.sysinit
 %{_datadir}/mklivecd/gfxboot.cfg
-%{_datadir}/mklivecd/fstab
 %{_datadir}/mklivecd/finish-install
 %{_datadir}/applications/mkremaster-kde.desktop
 %{_datadir}/applications/mkremaster.desktop
