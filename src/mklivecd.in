@@ -182,7 +182,6 @@ Boot options:
                                    (default: %s)
    --noprompt                      Disable ISO Linux prompt (i.e. prompt 0).
    --uefi                          Enable uefi boot.
-   --oldinit			   Use old init system (will be depricated)
    --keyboard <mapping>            Specify a different keyboard layout as
                                    default for the LiveCD.
                                    (default: %s)
@@ -398,7 +397,6 @@ sub parse_options {
 		'timeout=i',
 		'noprompt',
 		'uefi',
-		'oldinit',
 		'keyboard=s',
 		'resolution=s',
 		'splash=s',
@@ -597,7 +595,7 @@ sub do_copy {
 }    	
 
 ### create an dracut initrd image
-sub create_dracut_initrd {
+sub create_initrd {
 
         my $pos = 0;
 
@@ -621,239 +619,6 @@ sub create_dracut_initrd {
 	end_progress();
 }
 
-
-### create an initrd image
-sub create_initrd {
-
-	my @INITRDDIRS = ("live");
-	# start progress bar
-	my $pos = 0;
-
-	# for primary boot kernel
-	if ($o_mbkopt ne "" && ! -d "/lib/modules/$o_mbkopt") {
-		start_progress(N("Creating %s initrd", $o_kernel), 120);
-	}
-    	# for multiple boot kernel
-	elsif  ($o_mbkopt ne "" && -d "/lib/modules/$o_mbkopt") {
-        	start_progress(N("Creating %s and %s initrd", $o_kernel, $o_mbkopt), 240);
-		push(@INITRDDIRS, "initrd2");
-	}
-	else {
-		start_progress(N("Creating initrd"), 120);
-	}
-
-	# create directories
-	my $initrddir = undef;
-	foreach $initrddir (@INITRDDIRS) {
-	# start
-	my $dir = $workdir."/".$initrddir.".dir";
-	mkdir_p("$dir/$_") foreach qw(bin dev etc/sysconfig etc/livecd/hwdetect etc/rc.d/ etc/profile.d proc sys lib lib64 ramfs sbin usr/bin usr/sbin modules usr/lib usr/lib64 usr/share/ldetect-lst usr/share/plymouth lib/plymouth lib64/plymouth lib/module-init-tools cdrom loopfs tmp ramfs);
-
-	# dropped modules parport pcmcia uwb
-	my @kernel_drivers = qw(ata block firewire message scsi usb gpu);
-	my @kernel_fs = qw(fat isofs nls overlayfs squashfs udf);
-	my $kernel_dir = "lib/modules/${o_kernel}";
-	my $kmod_dir = "$kernel_dir/kernel";
-	mkdir_p("$dir/$kmod_dir/drivers/$_") foreach @kernel_drivers;
-	mkdir_p("$dir/$kmod_dir/fs/$_") foreach @kernel_fs;
-	mkdir_p("$dir/$kmod_dir/lib");
-	mkdir_p("$dir/lib/firmware");
-	set_progress(++$pos, "mkdir -p $dir/...");
-
-	# copy files
-	do_copy($o_root."bin/busybox.static",            755, "$dir/bin/busybox",             ++$pos);
-	do_copy($o_root."usr/share/mklivecd/linuxrc",    755, "$dir/linuxrc",                 ++$pos);
-	do_copy($o_root."usr/share/mklivecd/rc.sysinit", 755, "$dir/etc/rc.d/rc.sysinit",     ++$pos);
-	do_copy($o_root."usr/share/mklivecd/fstab",      644, "$dir/etc/fstab",               ++$pos);
-
-	# lets start to question some of these..
-	do_copy($o_root."usr/share/mklivecd/halt.local",                   755, "$dir/sbin/halt.local",            ++$pos);
-	do_copy($o_root."etc/inittab",                                     644, "$dir/etc/inittab",                ++$pos);
-	do_copy($o_root."sbin/init",                                       755, "$dir/sbin/init.dynamic",          ++$pos);
-	do_copy($o_root."lib/module-init-tools/ldetect-lst-modules.alias",   0, "$dir/lib/module-init-tools",      ++$pos);
-
-	do_copy($o_root."$kernel_dir/modules.dep",		0, "$dir/lib/modules",		++$pos);
-	do_copy($o_root."$kernel_dir/modules.alias",		0, "$dir/lib/modules",		++$pos);
-
-	#Get some firmware like microcode
-	do_copy($o_root."lib/firmware/intel*",			0, "$dir/lib/firmware",		++$pos);
-	do_copy($o_root."lib/firmware/amd*",			0, "$dir/lib/firmware",		++$pos);
-	do_copy($o_root."lib/firmware/i915",			0, "$dir/lib/firmware",		++$pos);
-
-	do_copy($o_root."$kmod_dir/drivers/$_",			0, "$dir/$kmod_dir/drivers/$_",	++$pos) foreach @kernel_drivers;
-	do_copy($o_root."$kmod_dir/fs/$_",			0, "$dir/$kmod_dir/fs/$_",	++$pos) foreach @kernel_fs;
-	do_copy($o_root."$kmod_dir/lib/crc*",   		0, "$dir/$kmod_dir/lib",	++$pos);
-	
-	my $moduletest = $o_root."$kernel_dir/kernel/fs/overlayfs/overlay.ko.xz";
-   	# overlayfs kernel is essential for the mklivecd to boot, no kernel overlay??? you should exit
-	die_("\nFATAL: The overlayfs kernel module  $moduletest is missing, please check your kernel\n") unless (-f $moduletest);
-	
-	do_copy($o_root."usr/share/pci.ids",			0, "$dir/usr/share",		++$pos);
-	do_copy($o_root."usr/share/usb.ids",			0, "$dir/usr/share",		++$pos);
-	do_copy($o_root."usr/share/ldetect-lst/fallback-modules.alias",	0, "$dir/usr/share/ldetect-lst",	++$pos);
-	do_copy($o_root."usr/share/ldetect-lst/pcitable.gz",	644, "$dir/usr/share/ldetect-lst",	++$pos);
-	do_copy($o_root."usr/share/ldetect-lst/usbtable.gz",	644, "$dir/usr/share/ldetect-lst",	++$pos);
-	
-	my $LIBDIR = undef;
-	my $ARCHNUM = undef;
-	# x86_64 support
-	if (-e "$o_root/usr/lib64/drakx-installer-binaries/probe-modules") {
-		$LIBDIR = "lib64";
-		$ARCHNUM = "x86-64";
-		do_copy($o_root.$LIBDIR."/ld-linux-$ARCHNUM.so.2",	0, "$dir/$LIBDIR",	++$pos);
-	}
-	# i586 support
-	if (-e "$o_root/usr/lib/drakx-installer-binaries/probe-modules") {
-		$LIBDIR = "lib";
-		$ARCHNUM = "i586";
-		do_copy($o_root.$LIBDIR."/ld-linux.so.2",	0, "$dir/$LIBDIR",		++$pos);
-	}
-	do_copy($o_root."usr/${LIBDIR}/drakx-installer-binaries/probe-modules", 755, "$dir/bin/probe-modules",	++$pos);
-	do_copy($o_root."${LIBDIR}/libc.so.6",			0, "$dir/${LIBDIR}",		++$pos);
-	do_copy($o_root."${LIBDIR}/libkmod.so.2",		0, "$dir/${LIBDIR}",		++$pos);
-
-	# Plymouth support
-	if (!defined($opts{nosplash})) {
-	do_copy($o_root."${LIBDIR}/libm.so.6",			0, "$dir/${LIBDIR}",		++$pos);
-	do_copy($o_root."usr/${LIBDIR}/libpng16.so.16",		0, "$dir/${LIBDIR}",		++$pos);
-	do_copy($o_root."${LIBDIR}/libply.so.*",		0, "$dir/${LIBDIR}",		++$pos);
-	do_copy($o_root."${LIBDIR}/libply-splash-core.so.*",	0, "$dir/${LIBDIR}",		++$pos);
-	do_copy($o_root."usr/${LIBDIR}/libply-boot-client.so.*",	0, "$dir/${LIBDIR}",	++$pos);	
-	do_copy($o_root."usr/${LIBDIR}/libply-splash-graphics.so.*",	0, "$dir/${LIBDIR}",	++$pos);	
-	do_copy($o_root."usr/${LIBDIR}/plymouth/text.so",	0, "$dir/${LIBDIR}/plymouth",	++$pos);
-	do_copy($o_root."usr/${LIBDIR}/plymouth/script.so",	0, "$dir/${LIBDIR}/plymouth",	++$pos);
-	do_copy($o_root."usr/${LIBDIR}/plymouth/details.so",	0, "$dir/${LIBDIR}/plymouth",	++$pos);
-	do_copy($o_root."usr/share/plymouth/*",			0, "$dir/usr/share/plymouth",	++$pos);
-	do_copy($o_root."bin/plymouth",				755, "$dir/bin/plymouth",	++$pos);
-	do_copy($o_root."sbin/plymouthd",			755, "$dir/bin/plymouthd",	++$pos);
-	do_copy($o_root."usr/bin/udevadm",			755, "$dir/bin/udevadm",	++$pos);
-	do_copy($o_root."usr/lib/systemd/systemd-udevd",	755, "$dir/bin/systemd-udevd",	++$pos);
-	# required by nash
-	do_copy($o_root."${LIBDIR}/libblkid.so.1",		644, "$dir/${LIBDIR}",		++$pos);
-	do_copy($o_root."${LIBDIR}/libdevmapper.so.1.02",	0, "$dir/${LIBDIR}",		++$pos);
-	do_copy($o_root."${LIBDIR}/libdl.so.2",			0, "$dir/${LIBDIR}",		++$pos);
-	do_copy($o_root."${LIBDIR}/libpthread.so.0",		0, "$dir/${LIBDIR}",		++$pos);
-	do_copy($o_root."${LIBDIR}/libresolv.so.2",		0, "$dir/${LIBDIR}",		++$pos);
-	do_copy($o_root."${LIBDIR}/librt.so.1",			0, "$dir/${LIBDIR}",		++$pos);
-	do_copy($o_root."${LIBDIR}/libldetect.so.0.*",		644, "$dir/${LIBDIR}",		++$pos);
-	do_copy($o_root."${LIBDIR}/libpci.so.*",		644, "$dir/${LIBDIR}",		++$pos);
-	do_copy($o_root."${LIBDIR}/liblzma.so.*",		644, "$dir/${LIBDIR}",		++$pos);
-	do_copy($o_root."${LIBDIR}/libcap.so.*",		644, "$dir/${LIBDIR}",		++$pos);
-	do_copy($o_root."${LIBDIR}/libsysfs.so.*",		644, "$dir/${LIBDIR}",		++$pos);
-	do_copy($o_root."${LIBDIR}/libpam.so.*",		644, "$dir/${LIBDIR}",		++$pos);
-	do_copy($o_root."${LIBDIR}/libacl.so.*",		644, "$dir/${LIBDIR}",		++$pos);
-	do_copy($o_root."${LIBDIR}/libattr.so.*",		644, "$dir/${LIBDIR}",		++$pos);
-	do_copy($o_root."${LIBDIR}/libaudit.so.*",		644, "$dir/${LIBDIR}",		++$pos);
-	do_copy($o_root."${LIBDIR}/libmount.so*",		644, "$dir/${LIBDIR}",		++$pos);
-	do_copy($o_root."${LIBDIR}/libudev.so.*",		644, "$dir/${LIBDIR}",		++$pos);
-	do_copy($o_root."${LIBDIR}/libuuid.so.1",		644, "$dir/${LIBDIR}",		++$pos);
-	do_copy($o_root."usr/${LIBDIR}/libelf.so.1",		0, "$dir/${LIBDIR}",		++$pos);
-	do_copy($o_root."usr/${LIBDIR}/libgcc_s.so.1",		0, "$dir/${LIBDIR}",		++$pos);
-	do_copy($o_root."usr/${LIBDIR}/libparted.so.2",		0, "$dir/${LIBDIR}",		++$pos);
-	}
-
-	do_cmd("cp -a $o_root/etc/sysconfig $dir/etc",		++$pos);
-	if (!defined($opts{nofinishinstall})){
-		do_copy($o_root."usr/share/mklivecd/finish-install",	755, "$dir/etc/sysconfig",	++$pos);
-	}
-	else {
-	open CFG, '>', "$dir/etc/sysconfig/finish-install";
-	print CFG "FINISH_INSTALL=no\n";
-	close CFG;
-	}
-	do_cmd("mknod $dir/dev/initrd b 1 250", ++$pos);
-	do_cmd("mknod $dir/dev/live b 1 250",	++$pos);
-	do_cmd("mknod $dir/dev/console c 5 1",  ++$pos);
-	do_cmd("mknod $dir/dev/fb c 29 0",      ++$pos);
-	do_cmd("mknod $dir/dev/null c 1 3",     ++$pos);
-	do_cmd("mknod $dir/dev/systty c 4 0",   ++$pos);
-	do_cmd("mknod $dir/dev/ram b 1 1",      ++$pos);
-	do_cmd("mknod $dir/dev/tty$_ c 4 $_",   ++$pos) foreach((0,1,2,3,4,5,6,7,8,9,10,11,12));
-	do_cmd("mknod $dir/dev/ttyS0 c 4 64",   ++$pos);
-	do_cmd("mknod $dir/dev/ttyS1 c 4 65",   ++$pos);
-	do_cmd("mknod $dir/dev/ttyS2 c 4 66",   ++$pos);
-	do_cmd("mknod $dir/dev/ttyS3 c 4 67",   ++$pos);
-	do_cmd("mknod $dir/dev/lvm b 109 0",    ++$pos);
-
-	# generate modules file
-	do_cmd(":>$dir$modfile", ++$pos);
-	my $cfg = defined($kernel) ? "" : "--config $dir$modfile";
-	if ( $initrddir =~ m/^initrd$/ ) {
-		do_cmd("(depmod -a $o_kernel) 2>/dev/null", ++$pos);
-		do_cmd("(depmod -a --basedir $dir ".$cfg." $o_kernel || cp -f $o_root/lib/modules/$o_kernel/modules.dep $dir/lib/modules/$o_kernel) 2>/dev/null", ++$pos);
-		do_cmd("(cp -f $dir/lib/modules/$o_kernel/modules.dep $dir/modules) 2>/dev/null",                 ++$pos);
-	} elsif ( $initrddir =~ m/^initrd2$/ ) {
-		do_cmd("(depmod -a --basedir $dir ".$cfg." $o_mbkopt || cp -f $o_root/lib/modules/$o_mbkopt/modules.dep $dir/lib/modules/$o_mbkopt) 2>/dev/null", ++$pos);
-	}
-	# get sizes$o_kernel
-	my $size = get_exec("du -ks $dir | awk '{print \$1}'");
-	$size = $size + 300;
-	set_progress(++$pos, "du -ks $dir");
-
-	# number of inodes
-	my $inodes = 1250;
-	my $num = get_exec("find $dir | wc -l");
-	$inodes = $inodes + $num;
-	$size = int($size + ($inodes / 10)) + 1; # 10 inodes needs 1K
-	set_progress(++$pos, "find $dir | wc -l");
-
-	# do magic
-	my $initrd = undef;
-	my $mnt = undef;
-	$initrd = "$workdir/livecd/isolinux/$initrddir";
-	$mnt = "$workdir/$initrddir.mnt";
-	do_cmd("mkdir -p $workdir/livecd/isolinux",                         ++$pos);
-	do_cmd("mkdir -p $workdir/livecd/loopbacks",                        ++$pos);
-	do_cmd("mkdir -p $workdir/livecd/boot/grub",                        ++$pos);
-	do_cmd("dd if=/dev/zero of=$initrd bs=1k count=$size 2> /dev/null", ++$pos);
-	do_cmd("mke2fs -q -m 0 -F -N $inodes -s 1 $initrd",                 ++$pos);
-	do_cmd("mkdir -p $mnt ; mount -o loop -t ext2 $initrd $mnt",        ++$pos);
-	do_cmd("rm -rf $mnt/lost+found",                                    ++$pos);
-	do_cmd("(cd $dir ; tar cf - .) | (cd $mnt ; tar xf -)",             ++$pos);
-	do_cmd("sleep 1 ; umount $mnt",                                     ++$pos);
-	do_cmd("(cd $workdir/livecd/isolinux ; gzip -9 $initrddir)",        ++$pos);
-
-	# make splash
-	if (($o_splash !~ m/no/) && (!defined($opts{nosplash}))&& ($initrddir !~ m/^initrd2$/) ) {
-		if (-e "/tmp/bootsplash/scripts/make-boot-splash") {
-		    do_cmd("rm -rf /tmp/bootsplash");
-       	}
-		# common splash setup
-		do_cmd("mkdir -p /tmp/bootsplash");
-		if (!defined($opts{nosplash})) {
-			do_cmd("cp -r $o_root/usr/share/bootsplash/scripts /tmp/bootsplash");
-			do_cmd("perl -pi -e 's#usr/share/bootsplash#tmp/bootsplash#' /tmp/bootsplash/scripts/make-boot-splash");
-			do_cmd("perl -pi -e 's#usr/share/bootsplash#tmp/bootsplash#' /tmp/bootsplash/scripts/make-boot-splash-raw");
-			do_cmd("perl -pi -e 's/^warn/#warn/' /tmp/bootsplash/scripts/remove-boot-splash");
-		}
-
-		do_cmd("[ -d $o_root/tmp ] || mkdir $o_root/tmp");
-		do_cmd("mv -f $initrd.gz /tmp");
-		if (!defined($opts{nosplash})) {
-			do_cmd("/tmp/bootsplash/scripts/make-boot-splash-raw $o_root/tmp/initrd $o_theme 2>/dev/null");
-		}
-		do_cmd("mv -f $o_root/tmp/initrd $workdir/livecd/isolinux", ++$pos);
-	}
-
-        if ($o_bootloader =~ m/^iso/) {
-                if (!defined($opts{nosplash})) {
-                        my $bootsplashtest = $o_root."usr/share/gfxboot/themes/$opts{boottheme}/back.jpg";
-                        die_("\nWARNING: The boot theme is missing, please install a bootsplash theme\n") unless (-e $bootsplashtest);
-			do_cmd("convert $bootsplashtest -resize 640x480! $workdir/livecd/isolinux/back.jpg", ++$pos);
-			die_("\nWARNING: The boot theme copy/conversion failed, is ImageMagick installed?\n") unless (-e "$workdir/livecd/isolinux/back.jpg");
-			#do_copy($o_root."usr/share/gfxboot/themes/$opts{boottheme}/back.jpg", 644, "$workdir/livecd/isolinux/back.jpg", ++$pos);
-                }
-        } else {
-                do_copy($o_stage2, 644, "$workdir/livecd/boot/grub/stage2_eltorito", ++$pos);
-                do_copy($o_root."boot/grub/*.xpm.gz", 644, "$workdir/livecd/boot/grub/livecd.xpm.gz", ++$pos);
-                do_copy($o_root."usr/share/gfxboot/themes/$opts{boottheme}/boot/*", 644, "$workdir/livecd/boot/grub", ++$pos);
-        }
-
-  	# we are done
-	} # end
-	end_progress();
-}
-	
 ### create the compressed image
 sub create_compressed {
 	if (defined($opts{img}) && (-f $opts{img})) {
@@ -1332,8 +1097,7 @@ MAIN: {
 
 	print_banner();
 	parse_options();
-	create_initrd() if (defined($opts{oldinit}));
-	create_dracut_initrd() if (!defined($opts{oldinit}));
+	create_initrd();
 	create_isolinux() if ($o_bootloader =~ m/^iso/);
 	create_grub2() if ($o_bootloader =~ m/^grub/);
 	create_efiimage() if (defined($opts{uefi}));
