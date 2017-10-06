@@ -1,2 +1,0 @@
-none /proc proc defaults 0 0
-none /dev/pts devpts mode=0620 0 0

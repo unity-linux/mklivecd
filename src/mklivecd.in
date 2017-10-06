@@ -160,8 +160,6 @@ Image generation:
    --nosplash                      Disable the use of boot splash (plymouth)
 
 Boot options:
-   --bootopt <option>              Specify an additional boot option to pass to
-                                   the kernel command-line.
    --bootmsg <msg>                 Use 'msg' as the isolinux boot message.
    --bootkey <key=msg>             Display 'msg' on key 'key' from isolinux.
    --bootimg <img>                 Use 'img' (LSS format) as the isolinux.
@@ -191,11 +189,6 @@ Boot options:
    --splash <silent|verbose|no>    Create the LiveCD with bootsplash support if
                                    available on the root filesystem.
                                    (default: %s)
-   --fstab <options>               Override the default options for the fstab on
-                                   the LiveCD. Options are one or more of 'auto'
-                                   and 'rw', for example '--fstab=rw,auto' will
-                                   automatically mount all detected partitions
-                                   rw.
    --nofinishinstall               Disables the automatic system setup screens on
                                    first boot.
    --nosyslog                      Disable common logs to speed boot.
@@ -214,10 +207,6 @@ ISO Image options:
    --md5sum                        Compute and implant the md5sum to verify media.
    --memtest                       Use memtest86+ to check the system memory.
    
-Behaviour:
-   --usbhome                       Use USB memory stick devices as a persistent
-                                   home when available/connected on bootup.
-
 Examples:
     %s --nodir ^/usr/src/RPM,^/root/tmp livecd.iso
     %s --splash=silent livecd.iso
@@ -390,7 +379,6 @@ sub parse_options {
 		'sort=s',
 		'kernel=s',
 		'lowmem',
-		'bootopt=s@',
 		'bootmsg=s',
 		'bootkey=s%',
 		'bootimg=s',
@@ -400,7 +388,6 @@ sub parse_options {
 		'keyboard=s',
 		'resolution=s',
 		'splash=s',
-		'fstab=s',
 		'isoextrafiles=s',
 		'application=s',
 		'volumeid=s',
@@ -419,7 +406,6 @@ sub parse_options {
 		'nosplash',
 		'nofinishinstall',
 		'nosyslog',
-		'usbhome'
 	);
 
 	# help and stuff
@@ -861,9 +847,6 @@ sub create_isolinux {
 	my $appopt;
 	$appopt = "initrd=initrd root=mgalive:LABEL=$opts{volumeid} ramdisk_size=32768 vga=$o_vgamode keyb=$o_keyboard nopat rd_NO_LUKS rd_NO_MD noiswmd";
 	#$appopt .= " splash=$o_splash" if ($o_splash !~ m/no/);
-	$appopt = "$appopt fstab=".$opts{fstab} if (defined($opts{fstab}));
-	$appopt = "$appopt home=usb" if (defined($opts{usbhome}));
-	$appopt = "$appopt $_" foreach (@{$opts{bootopt}});
 
 	open LANG, '>', "$workdir/livecd/isolinux/lang";
 	print LANG $opts{bootlang}."\n";

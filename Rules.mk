@@ -107,14 +107,9 @@ BUILDDIST=\
 
 # these are files in the src dir
 SRCDIST=\
-	$(SRCDIR)/linuxrc.in \
-	$(SRCDIR)/rc.sysinit.in \
 	$(SRCDIR)/$(PKGNAME).in \
-	$(SRCDIR)/hwdetect2.in \
-	$(SRCDIR)/halt.local.in \
 	$(SRCDIR)/gfxboot.cfg.in \
 	$(SRCDIR)/finish-install.in \
-	$(SRCDIR)/fstab.in \
 	$(SRCDIR)/60-live.conf.in \
 
 # these are files in the src/po dir

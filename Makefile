@@ -7,39 +7,12 @@ SUBDIRS = $(MKREMASTERDIR) $(PODIRS)
 all:
 	@for d in $(SUBDIRS); do ( cd $$d ; make ) ; done
 	@$(MKDIR) -p $(DISTDIR)
-	@$(CAT) $(SRCDIR)/hwdetect2.in | \
-		$(SED) -e 's,@MKLIVECDVER@,$(ARCHIVEVER),g' | \
-		$(SED) -e 's,@DEF_KEYBOARD@,$(DEF_KEYBOARD),g' | \
-		$(SED) -e 's,@MAX_SPLASH@,$(MAX_SPLASH),g' | \
-		$(SED) -e 's,@VAL_SPLASH_FULL@,$(VAL_SPLASH_FULL),g' | \
-		$(SED) -e 's,@VAL_SPLASH_LINUXRC@,$(VAL_SPLASH_LINUXRC),g' | \
-		$(SED) -e 's,@VAL_SPLASH_SYSINIT@,$(VAL_SPLASH_SYSINIT),g' | \
-		$(SED) -e 's,@VAL_SPLASH_HWDETECT@,$(VAL_SPLASH_HWDETECT),g' \
-			>$(DISTDIR)/hwdetect2
-	@$(CAT) $(SRCDIR)/linuxrc.in | \
-		$(SED) -e 's,@MKLIVECDVER@,$(ARCHIVEVER),g' | \
-		$(SED) -e 's,@KERNELVER@,$(KERNELVER),g' | \
-		$(SED) -e 's,@MAX_SPLASH@,$(MAX_SPLASH),g' | \
-		$(SED) -e 's,@VAL_SPLASH_FULL@,$(VAL_SPLASH_FULL),g' | \
-		$(SED) -e 's,@VAL_SPLASH_LINUXRC@,$(VAL_SPLASH_LINUXRC),g' | \
-		$(SED) -e 's,@VAL_SPLASH_SYSINIT@,$(VAL_SPLASH_SYSINIT),g' | \
-		$(SED) -e 's,@VAL_SPLASH_HWDETECT@,$(VAL_SPLASH_HWDETECT),g' \
-			>$(DISTDIR)/linuxrc
-	@$(CP) $(SRCDIR)/halt.local.in $(DISTDIR)/halt.local
 	@$(CP) $(MKREMASTERDIR)/mkremaster.in $(DISTDIR)/mkremaster
 	@$(CP) $(MKREMASTERDIR)/*.desktop $(DISTDIR)/
 	@$(CP) $(MKREMASTERDIR)/mkremaster.png $(DISTDIR)/
 	@$(CP) $(SRCDIR)/gfxboot.cfg.in $(DISTDIR)/gfxboot.cfg
 	@$(CP) $(SRCDIR)/finish-install.in $(DISTDIR)/finish-install
 	@$(CP) $(SRCDIR)/60-live.conf.in $(DISTDIR)/60-live.conf
-	@$(CP) $(SRCDIR)/fstab.in $(DISTDIR)/fstab
-	@$(CAT) $(SRCDIR)/rc.sysinit.in | \
-		$(SED) -e 's,@MAX_SPLASH@,$(MAX_SPLASH),g' | \
-		$(SED) -e 's,@VAL_SPLASH_FULL@,$(VAL_SPLASH_FULL),g' | \
-		$(SED) -e 's,@VAL_SPLASH_LINUXRC@,$(VAL_SPLASH_LINUXRC),g' | \
-		$(SED) -e 's,@VAL_SPLASH_SYSINIT@,$(VAL_SPLASH_SYSINIT),g' | \
-		$(SED) -e 's,@VAL_SPLASH_HWDETECT@,$(VAL_SPLASH_HWDETECT),g' \
-			>$(DISTDIR)/rc.sysinit
 	@$(CAT) $(SRCDIR)/$(PKGNAME).in | \
 		$(SED) -e 's,@PKGNAME@,$(PKGNAME),g' | \
 		$(SED) -e 's,@MKLIVECDVER@,$(ARCHIVEVER),g' | \
@@ -63,18 +36,10 @@ install:
 	@echo 'Created directory $(DESTDIR)$(ICONSDIR)'
 	@$(MKDIR) -p $(DESTDIR)$(DRACUTDIR)
 	@echo 'Created directory $(DESTDIR)$(DRACUTDIR)'
-	@$(INSTALL) -m 644 $(DISTDIR)/linuxrc $(DESTDIR)$(SHAREDIR)
-	@echo 'Installed linuxrc to $(DESTDIR)$(SHAREDIR)'
-	@$(INSTALL) -m 644 $(DISTDIR)/halt.local $(DESTDIR)$(SHAREDIR)
-	@echo 'Installed halt.local to $(DESTDIR)$(SHAREDIR)'
-	@$(INSTALL) -m 644 $(DISTDIR)/rc.sysinit $(DESTDIR)$(SHAREDIR)
-	@echo 'Installed rc.sysinit to $(DESTDIR)$(SHAREDIR)'
 	@$(INSTALL) -m 644 $(DISTDIR)/*.desktop $(DESTDIR)$(DESKTOPDIR)
 	@echo 'Installed desktop files to $(DESTDIR)$(DESKTOPDIR)'
 	@$(INSTALL) -m 755 $(DISTDIR)/$(PKGNAME) $(DESTDIR)$(SBINDIR)
 	@echo 'Installed $(PKGNAME) to $(DESTDIR)$(SBINDIR)'
-	@$(INSTALL) -m 755 $(DISTDIR)/hwdetect2 $(DESTDIR)$(SBINDIR)
-	@echo 'Installed hwdetect2 to $(DESTDIR)$(SBINDIR)'
 	@$(INSTALL) -m 755 $(DISTDIR)/mkremaster $(DESTDIR)$(SBINDIR)
 	@echo 'Installed mkremaster to $(DESTDIR)$(SBINDIR)'
 	@$(INSTALL) -m 644 $(DISTDIR)/mkremaster.png $(DESTDIR)$(ICONSDIR)
@@ -83,8 +48,6 @@ install:
 	@echo 'Installed gfxboot.cfg to $(DESTDIR)$(SHAREDIR)'
 	@$(INSTALL) -m 755 $(DISTDIR)/finish-install $(DESTDIR)$(SHAREDIR)
 	@echo 'Installed finish-install to $(DESTDIR)$(SHAREDIR)'
-	@$(INSTALL) -m 644 $(DISTDIR)/fstab $(DESTDIR)$(SHAREDIR)
-	@echo 'Installed fstab to $(DESTDIR)$(SHAREDIR)'
 	@$(INSTALL) -m 644 $(DISTDIR)/60-live.conf $(DESTDIR)$(DRACUTDIR)
 	@echo 'Installed dracut module to $(DESTDIR)$(DRACUTDIR)'
 	@for d in $(SUBDIRS); do ( cd $$d ; make $@ ) ; done
