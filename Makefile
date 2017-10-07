@@ -37,6 +37,8 @@ install:
 	@echo 'Created directory $(DESTDIR)$(ICONSDIR)'
 	@$(MKDIR) -p $(DESTDIR)$(DRACUTDIR)
 	@echo 'Created directory $(DESTDIR)$(DRACUTDIR)'
+	@$(MKDIR) -p $(DESTDIR)$(MODDIR)
+	@echo 'Created directory $(DESTDIR)$(MODDIR)'
 	@$(INSTALL) -m 644 $(DISTDIR)/*.desktop $(DESTDIR)$(DESKTOPDIR)
 	@echo 'Installed desktop files to $(DESTDIR)$(DESKTOPDIR)'
 	@$(INSTALL) -m 755 $(DISTDIR)/$(PKGNAME) $(DESTDIR)$(SBINDIR)
