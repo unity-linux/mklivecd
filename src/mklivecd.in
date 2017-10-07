@@ -597,9 +597,11 @@ sub create_initrd {
         do_cmd("mkdir -p $workdir/livecd/boot/grub",                        ++$pos) if ($o_bootloader =~ m/^grub/);
 	do_cmd("mkdir -p $workdir/livecd/loopbacks",                        ++$pos);
 	if ($o_bootloader =~ m/^grub/) {
-		do_cmd("dracut -f $workdir/livecd/boot/initrd $o_kernel", ++$pos);
+		do_cmd("dracut -f $workdir/livecd/boot/initrd $o_kernel", ++$pos) if (defined($opts{debug}));
+		do_cmd("dracut -f $workdir/livecd/boot/initrd $o_kernel &> /dev/null", ++$pos) if (!defined($opts{debug}));
 	} else {
-		do_cmd("dracut -f $workdir/livecd/isolinux/initrd $o_kernel", ++$pos);
+		do_cmd("dracut -f $workdir/livecd/isolinux/initrd $o_kernel", ++$pos) if (defined($opts{debug}));
+		do_cmd("dracut -f $workdir/livecd/isolinux/initrd $o_kernel &> /dev/null", ++$pos) if (!defined($opts{debug}));
 	}
 
 	end_progress();
