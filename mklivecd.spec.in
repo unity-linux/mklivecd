@@ -66,3 +66,4 @@ cat mklivecd.lang mkremaster.lang >> %{name}.list
 %{_datadir}/applications/mkremaster-tinyme.desktop
 %{_datadir}/pixmaps/mkremaster.png
 %config /etc/dracut.conf.d/60-live.conf
+%config /etc/modprobe.d/blacklist_ide.conf
