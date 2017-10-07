@@ -72,6 +72,7 @@ RCDIR=$(SHAREDIR)/init.d
 DESKTOPDIR=$(prefix)/share/applications
 LOCALEDIR=$(prefix)/share/locale
 DRACUTDIR=/etc/dracut.conf.d/
+MODDIR=/etc/modprobe.d/
 
 # Utility programs: you can change the locations for your site either
 # here or as an override on the make command-line (preferred)
@@ -111,6 +112,7 @@ SRCDIST=\
 	$(SRCDIR)/gfxboot.cfg.in \
 	$(SRCDIR)/finish-install.in \
 	$(SRCDIR)/60-live.conf.in \
+	$(SRCDIR)/blacklist_ide.conf.in \
 
 # these are files in the src/po dir
 MKLIVECDPODIST=\

@@ -13,6 +13,7 @@ all:
 	@$(CP) $(SRCDIR)/gfxboot.cfg.in $(DISTDIR)/gfxboot.cfg
 	@$(CP) $(SRCDIR)/finish-install.in $(DISTDIR)/finish-install
 	@$(CP) $(SRCDIR)/60-live.conf.in $(DISTDIR)/60-live.conf
+	@$(CP) $(SRCDIR)/blacklist_ide.conf.in $(DISTDIR)/blacklist_ide.conf
 	@$(CAT) $(SRCDIR)/$(PKGNAME).in | \
 		$(SED) -e 's,@PKGNAME@,$(PKGNAME),g' | \
 		$(SED) -e 's,@MKLIVECDVER@,$(ARCHIVEVER),g' | \
@@ -50,6 +51,8 @@ install:
 	@echo 'Installed finish-install to $(DESTDIR)$(SHAREDIR)'
 	@$(INSTALL) -m 644 $(DISTDIR)/60-live.conf $(DESTDIR)$(DRACUTDIR)
 	@echo 'Installed dracut module to $(DESTDIR)$(DRACUTDIR)'
+	@$(INSTALL) -m 644 $(DISTDIR)/blacklist_ide.conf $(DESTDIR)$(MODDIR)
+	@echo 'Installed blacklist_ide.conf to $(DESTDIR)$(DRACUTDIR)'
 	@for d in $(SUBDIRS); do ( cd $$d ; make $@ ) ; done
 	@echo
 	@echo '                     ***Installation END***'

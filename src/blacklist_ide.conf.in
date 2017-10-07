@@ -1,0 +1,2 @@
+# temp fix for 3395
+blacklist pata_acpi
