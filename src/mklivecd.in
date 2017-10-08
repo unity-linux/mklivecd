@@ -86,7 +86,7 @@ my $o_mbkopt		= "";
 my $o_gzip;
 my $o_xz;
 my $o_nosplash;
-my $o_timeout		= 150;
+my $o_timeout		= 15;
 my %opts		= ( # these are all the options with defaults
 	'root'		=> \$o_root,
 	'tmp'		=> \$o_tmp,
