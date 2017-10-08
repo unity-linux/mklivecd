@@ -57,7 +57,7 @@ my $depmod         = "/sbin/depmod";
 my $modfile        = "/etc/modules.conf";
 my $modext         = ".ko.xz";
 my $nodirs         = '^/[.].* ^/dev$ ^/initrd$ ^/live$ ^/lost+found$ ^/mnt$ ^/media$ ^/proc$ ^/sys$ ^/tmp$ ^/var/tmp$ ^/root/tmp$ ^/proc/asound';
-my $nofiles        = '^/[.].* ^/fastboot$ /core[.][0-9][0-9]*$ .*~$ .*[.]rpmnew$ .*[.]rpmsave$ [.]bash_history$ [.]fonts[.]cache-[0-9]$ [.]xauth.* [.]wh[.]* [.]xsession-errors$ ^/var/run/ ^/var/lock/subsys/ ^/var/lib/dhcp/ ^/etc/modprobe.conf ^/etc/sysconfig/network-scripts/ifcfg-eth* ^/etc/udev/rules.d/61-* ^/etc/udev/rules.d/70-persistent* ^/etc/asound.state ^/etc/X11/xorg.conf ^/etc/lilo.conf ^/boot/grub/grub.cfg ^/etc/modprobe.preload.d/cpufreq ^/etc/sysconfig/harddrake2/previous_hw ^/var/lib/rpm/__db.* ^/etc/sysconfig/finish-install ^/etc/sysconfig/clock ^/etc/localtime ^/etc/sysconfig/hardrake2/kernels ^/var/lib/speedboot/status ^/run/* ^/var/run/* ^/var/log/* ^/var/log/ConsoleKit/* ^/var/log/cups/* ^/var/log/daemons/* ^/var/log/gdm/* ^/var/log/kernels/* ^/var/log/lpr/* ^/var/log/mail/* ^/var/log/ppp/* ^/root/.bash_history ^/home/guest/.bash_history ^/var/spool/repackage/* ^/var/lib/smart/packages/* ^/var/lib/smart/channels/* ^/var/lib/speedboot/status ^/root/.thumbnails';
+my $nofiles        = '^/[.].* ^/fastboot$ /core[.][0-9][0-9]*$ .*~$ .*[.]rpmnew$ .*[.]rpmsave$ [.]bash_history$ [.]fonts[.]cache-[0-9]$ [.]xauth.* [.]wh[.]* [.]xsession-errors$ ^/var/run/ ^/var/lock/subsys/ ^/var/lib/dhcp/ ^/etc/sysconfig/network-scripts/ifcfg-eth* ^/etc/udev/rules.d/61-* ^/etc/udev/rules.d/70-persistent* ^/etc/asound.state ^/etc/X11/xorg.conf ^/boot/grub/grub.cfg ^/etc/modprobe.preload.d/cpufreq ^/etc/sysconfig/harddrake2/previous_hw ^/var/lib/rpm/__db.* ^/etc/sysconfig/finish-install ^/etc/sysconfig/clock ^/etc/localtime ^/etc/sysconfig/hardrake2/kernels ^/var/lib/speedboot/status ^/run/* ^/var/run/* ^/var/log/* ^/var/log/ConsoleKit/* ^/var/log/cups/* ^/var/log/daemons/* ^/var/log/gdm/* ^/var/log/kernels/* ^/var/log/lpr/* ^/var/log/mail/* ^/var/log/ppp/* ^/root/.bash_history ^/home/guest/.bash_history ^/var/spool/repackage/* ^/var/lib/speedboot/status ^/root/.thumbnails';
 my $loopmod		= undef;
 my $loopcmp		= undef;
 my $o_stage2		= undef;
@@ -780,9 +780,9 @@ sub create_grub2 {
         print CFG 'fi',"\n";
 	print CFG 'if [ x$feature_timeout_style = xy ] ; then',"\n";
         print CFG '  set timeout_style=menu',"\n";
-        print CFG '  set timeout=5',"\n";
+        print CFG "  set timeout=$o_timeout","\n";
         print CFG 'else',"\n";
-        print CFG '  set timeout=5',"\n";
+        print CFG "  set timeout=$o_timeout","\n";
         print CFG 'fi',"\n";
         if ( -e "$workdir/livecd/boot/grub/themes/$opts{boottheme}/theme.txt" ) {
                 print CFG 'insmod png',"\n";
