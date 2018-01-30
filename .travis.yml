@@ -35,7 +35,7 @@ script:
   - export TASK_NAME=$(echo $TASK_RPM | sed -e s/task-unity-// -e s/-live//)
   - mkdir $TASK_NAME
   - export LIVE_LOG=$(readlink -f ./*.log)
-  - if [ "$TRAVIS_TEST_RESULT" == "1" ]; then mv $LIVE_LOG ./$TASK_NAME/ && rsync -arz --progress --rsh=ssh -e "ssh -o StrictHostKeyChecking=no" ./$TASK_NAME foobar:/var/www/html/isos/; exit 1; fi
+  - if [ "$TRAVIS_TEST_RESULT" == "1" ]; then mv $LIVE_LOG ./$TASK_NAME/ && rsync -arz --progress --rsh=ssh -e "ssh -o StrictHostKeyChecking=no" ./$TASK_NAME foobar2:/var/www/html/isos/; exit 1; fi
   - docker exec -d $CID /bin/sh -c 'mklivecd --tmp /rpmbuild --xz /rpmbuild/live.iso --nodir ^/rpmbuild &>> /rpmbuild/iso_build-${log_date}.log'
   - docker exec $CID /bin/sh -c 'while ps ax | grep mklivecd | grep -v grep > /dev/null ; do sleep 60 ; export x="$(($x+1))" ; echo "--==|mklivecd has been running for $x minute(s)|==--" ; done'
   - export LIVE_ISO=$(readlink -f ./*.iso)
@@ -44,7 +44,7 @@ script:
   - export NEW_ISO=$(readlink -f ./$TASK_NAME/*.iso)
   - echo "$NEW_ISO"
   - md5sum "$NEW_ISO" > ./$TASK_NAME/$(basename "$NEW_ISO").md5
-  - if [ "$TRAVIS_TEST_RESULT" == "1" ]; then rsync -arz --progress --rsh=ssh -e "ssh -o StrictHostKeyChecking=no" ./$TASK_NAME foobar:/var/www/html/isos/; fi
+  - if [ "$TRAVIS_TEST_RESULT" == "1" ]; then rsync -arz --progress --rsh=ssh -e "ssh -o StrictHostKeyChecking=no" ./$TASK_NAME foobar2:/var/www/html/isos/; fi
 
 after_success:
   - sudo -H pip install --upgrade pyOpenSSL ndg-httpsclient pyasn1 jinja2 requests[security] marshmallow copr-cli simplejson
