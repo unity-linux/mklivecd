@@ -34,7 +34,7 @@ script:
   - mkdir $TASK_NAME
   - export LIVE_LOG=$(readlink -f ./*.log)
   - if [ "$TRAVIS_TEST_RESULT" == "1" ]; then mv $LIVE_LOG ./$TASK_NAME/ && rsync -arz --progress --rsh=ssh -e "ssh -o StrictHostKeyChecking=no" ./$TASK_NAME foobar2:public_html/pub/isos/; exit 1; fi
-  - docker exec -d $CID /bin/sh -c 'mklivecd --tmp /rpmbuild --xz /rpmbuild/live.iso --nodir ^/rpmbuild &>> /rpmbuild/iso_build.log'
+  - docker exec -d $CID /bin/sh -c 'mklivecd --tmp /rpmbuild --xz /rpmbuild/live.iso --nodir ^/rpmbuild --boottheme=maggy &>> /rpmbuild/iso_build.log'
   - docker exec $CID /bin/sh -c 'while ps ax | grep mklivecd | grep -v grep > /dev/null ; do sleep 60 ; export x="$(($x+1))" ; echo "--==|mklivecd has been running for $x minute(s)|==--" ; done'
   - export LIVE_ISO=$(readlink -f ./*.iso)
   - mv $LIVE_ISO ./$TASK_NAME/Unity-Linux-"$(date +%Y%m%d%H)".iso
