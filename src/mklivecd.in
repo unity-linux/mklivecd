@@ -594,7 +594,7 @@ sub create_initrd {
         }
 
 	do_cmd("mkdir -p $workdir/livecd/isolinux",                         ++$pos) if ($o_bootloader =~ m/^iso/);
-        do_cmd("mkdir -p $workdir/livecd/boot/grub",                        ++$pos) if ($o_bootloader =~ m/^grub/);
+        do_cmd("mkdir -p $workdir/livecd/boot/grub2",                       ++$pos) if ($o_bootloader =~ m/^grub/);
 	do_cmd("mkdir -p $workdir/livecd/loopbacks",                        ++$pos);
 	if ($o_bootloader =~ m/^grub/) {
 		do_cmd("dracut -f $workdir/livecd/boot/initrd $o_kernel", ++$pos) if (defined($opts{debug}));
@@ -715,9 +715,9 @@ sub create_efiimage {
         do_cmd("grub2-mkimage --prefix='/EFI/BOOT' -O x86_64-efi -o $efi_dir/BOOT/bootx64.efi $core_mods $gfx_mods", ++$pos);
 
         # add theme if present
-        if ( -e "$o_root/boot/grub/themes/mageia/theme.txt" ) {
-                do_cmd("cp -pr $o_root/boot/grub/fonts $efi_dir/BOOT");
-                do_cmd("cp -pr $o_root/boot/grub/themes $efi_dir/BOOT");
+        if ( -e "$o_root/boot/grub2/themes/*/theme.txt" ) {
+                do_cmd("cp -pr $o_root/boot/grub2/fonts $efi_dir/BOOT");
+                do_cmd("cp -pr $o_root/boot/grub2/themes $efi_dir/BOOT");
         }
 
         # build the GRUB2 config for the LiveCD
@@ -764,7 +764,7 @@ sub create_grub2 {
         start_progress(N("Creating grub2 boot menu"), 2);
 
 	do_cmd("cp -rf /usr/lib/grub/* $workdir/livecd/boot/grub/", ++$pos);
-	do_cmd("cp -rf /boot/grub/themes $workdir/livecd/boot/grub/", ++$pos);
+	do_cmd("cp -rf /boot/grub2/themes $workdir/livecd/boot/grub2/", ++$pos);
 	die_(N("\nFATAL: The kernel '%sboot/vmlinuz-%s' does not exist on your machine.\n", $o_root, $o_kernel)) unless (-f $o_root."boot/vmlinuz-$o_kernel");
         do_copy($o_root."boot/vmlinuz-$o_kernel", 644, "$workdir/livecd/boot/vmlinuz", ++$pos);
 
@@ -784,9 +784,9 @@ sub create_grub2 {
         print CFG 'else',"\n";
         print CFG "  set timeout=$o_timeout","\n";
         print CFG 'fi',"\n";
-        if ( -e "$workdir/livecd/boot/grub/themes/$opts{boottheme}/theme.txt" ) {
+        if ( -e "$workdir/livecd/boot/grub2/themes/$opts{boottheme}/theme.txt" ) {
                 print CFG 'insmod png',"\n";
-                print CFG 'set theme=($root)/boot/grub/themes/'.$opts{boottheme}.'/theme.txt',"\n";
+                print CFG 'set theme=($root)/boot/grub2/themes/'.$opts{boottheme}.'/theme.txt',"\n";
                 print CFG 'export theme',,"\n";
         }
         print CFG "search --no-floppy --set=root --label $opts{volumeid}\n";
