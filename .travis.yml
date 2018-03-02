@@ -1,53 +1,76 @@
 sudo: required
 language: bash
 services:
-  - docker
+- docker
 install: true
-
 before_install:
-  - openssl aes-256-cbc -K $encrypted_2312699044a7_key -iv $encrypted_2312699044a7_iv -in .stuff.tar.gz.enc -out stuff.tar.gz -d
-  - file stuff.tar.gz
-  - tar xzvf stuff.tar.gz -C /tmp/
-  - eval "$(ssh-agent -s)"
-  - chmod 600 /tmp/stuff/.deploy
-  - ssh-add /tmp/stuff/.deploy
-  - mv /tmp/stuff/.host ~/.ssh/config
-  - docker pull jmiahman/mageia-rpmbuilder
+- openssl aes-256-cbc -K $encrypted_658e77cbe6b3_key -iv $encrypted_658e77cbe6b3_iv -in .stuff.tar.gz.enc -out stuff.tar.gz -d
+- file stuff.tar.gz
+- tar xzvf stuff.tar.gz -C /tmp/
+- eval "$(ssh-agent -s)"
+- chmod 600 /tmp/stuff/.deploy
+- ssh-add /tmp/stuff/.deploy
+- mv /tmp/stuff/.host ~/.ssh/config
+- docker pull jmiahman/mageia-rpmbuilder
 env:
-  - TASK_RPM="task-unity-lxqt-live"
+- TASK_RPM="task-unity-lxqt-live"
 script:
-  - export DID=$(docker images -a | grep -m1 mageia-rpmbuilder | awk '{print $3}')
-  - echo $DID
-  - docker run --hostname=unity-linux --privileged=true -d -v "$(pwd):/rpmbuild" -v "/dev:/dev" -v "/sys/fs/cgroup:/sys/fs/cgroup:ro" $DID tail -f /dev/null 
-  - export CID=$(docker ps -l | awk '{print $1}' | grep -v -m1 'CONTAINER')
-  - echo $CID
-  - docker exec $CID /bin/sh -c 'cd /rpmbuild && make rpm &>> /rpmbuild/iso_build.log'
-  - docker exec $CID /bin/sh -c 'dnf install --setopt=install_weak_deps=False /rpmbuild/RPMS/*/*.rpm -y &>> /rpmbuild/iso_build.log'
-  - docker exec $CID /bin/sh -c 'dnf install --setopt=install_weak_deps=False grub2-mageia-theme acl acr38u awesfx b43-openfwwf btrfs-progs cgroup cpupower crda davfs2 dmraid gdisk gparted harddrake hdparm hso-rezero ipset irqbalance jfsutils kpartx ld10k1 ldetect lib64lvm2app2.2 lib64lvm2cmd2.02 libinput-tools lib64sane1 libselinux-utils lvm2 mdadm microcode_ctl monitor-edid ndiswrapper opensc parted pciutils pcmciautils policycoreutils reiserfsprogs rng-utils rsyslog system-config-printer-udev tslib-common upower usb_modeswitch usb_modeswitch-data usbutils vaapi-driver-intel vboxadditions-kernel-desktop-latest wireless-regdb wireless-tools xfsprogs xinetd zd1211-firmware -y &>> /rpmbuild/iso_build.log'
-  - if [ "$TASK_RPM" == "task-unity-lxqt-live" ]; then export taskcmd='dnf install --setopt=install_weak_deps=False task-unity-lxqt-live -y &>> /rpmbuild/iso_build.log'; fi
-  - if [ "$TASK_RPM" == "task-unity-enlightenment-live" ]; then export taskcmd='dnf install --setopt=install_weak_deps=False task-unity-enlightenment-live -y &>> /rpmbuild/iso_build.log'; fi
-  - echo "$taskcmd"
-  - docker exec $CID /bin/sh -c "$taskcmd"
-  - docker exec $CID /bin/sh -c 'dnf update --setopt=install_weak_deps=False -y &>> /rpmbuild/iso_build.log'
-  - docker exec $CID /bin/sh -c 'dnf clean all &>> /rpmbuild/iso_build.log'
-  - export TASK_NAME=$(echo $TASK_RPM | sed -e s/task-unity-// -e s/-live//)
-  - mkdir $TASK_NAME
-  - export LIVE_LOG=$(readlink -f ./*.log)
-  - if [ "$TRAVIS_TEST_RESULT" == "1" ]; then mv $LIVE_LOG ./$TASK_NAME/ && rsync -arz --progress --rsh=ssh -e "ssh -o StrictHostKeyChecking=no" ./$TASK_NAME foobar2:public_html/pub/isos/; exit 1; fi
-  - docker exec -d $CID /bin/sh -c 'mklivecd --tmp /rpmbuild --xz /rpmbuild/live.iso --nodir ^/rpmbuild --boottheme=maggy &>> /rpmbuild/iso_build.log'
-  - docker exec $CID /bin/sh -c 'while ps ax | grep mklivecd | grep -v grep > /dev/null ; do sleep 60 ; export x="$(($x+1))" ; echo "--==|mklivecd has been running for $x minute(s)|==--" ; done'
-  - export LIVE_ISO=$(readlink -f ./*.iso)
-  - mv $LIVE_ISO ./$TASK_NAME/Unity-Linux-"$(date +%Y%m%d%H)".iso
-  - mv $LIVE_LOG ./$TASK_NAME/${TASK_NAME}-$(date +%Y%m%d%H).log
-  - export NEW_ISO=$(readlink -f ./$TASK_NAME/*.iso)
-  - echo "$NEW_ISO"
-  - md5sum "$NEW_ISO" > ./$TASK_NAME/$(basename "$NEW_ISO").md5
-  - if [ "$TRAVIS_TEST_RESULT" == "1" ]; then rsync -arz --progress --rsh=ssh -e "ssh -o StrictHostKeyChecking=no" ./$TASK_NAME foobar2:public_html/pub/isos/; fi
-
+- export DID=$(docker images -a | grep -m1 mageia-rpmbuilder | awk '{print $3}')
+- echo $DID
+- docker run --hostname=unity-linux --privileged=true -d -v "$(pwd):/rpmbuild" -v
+  "/dev:/dev" -v "/sys/fs/cgroup:/sys/fs/cgroup:ro" $DID tail -f /dev/null
+- export CID=$(docker ps -l | awk '{print $1}' | grep -v -m1 'CONTAINER')
+- echo $CID
+- docker exec $CID /bin/sh -c 'cd /rpmbuild && make rpm &>> /rpmbuild/iso_build.log'
+- docker exec $CID /bin/sh -c 'dnf install --setopt=install_weak_deps=False /rpmbuild/RPMS/*/*.rpm
+  -y &>> /rpmbuild/iso_build.log'
+- docker exec $CID /bin/sh -c 'dnf install --setopt=install_weak_deps=False grub2-mageia-theme
+  acl acr38u awesfx b43-openfwwf btrfs-progs cgroup cpupower crda davfs2 dmraid gdisk
+  gparted harddrake hdparm hso-rezero ipset irqbalance jfsutils kpartx ld10k1 ldetect
+  lib64lvm2app2.2 lib64lvm2cmd2.02 libinput-tools lib64sane1 libselinux-utils lvm2
+  mdadm microcode_ctl monitor-edid ndiswrapper opensc parted pciutils pcmciautils
+  policycoreutils reiserfsprogs rng-utils rsyslog system-config-printer-udev tslib-common
+  upower usb_modeswitch usb_modeswitch-data usbutils vaapi-driver-intel vboxadditions-kernel-desktop-latest
+  wireless-regdb wireless-tools xfsprogs xinetd zd1211-firmware -y &>> /rpmbuild/iso_build.log'
+- if [ "$TASK_RPM" == "task-unity-lxqt-live" ]; then export taskcmd='dnf install --setopt=install_weak_deps=False
+  task-unity-lxqt-live -y &>> /rpmbuild/iso_build.log'; fi
+- if [ "$TASK_RPM" == "task-unity-enlightenment-live" ]; then export taskcmd='dnf
+  install --setopt=install_weak_deps=False task-unity-enlightenment-live -y &>> /rpmbuild/iso_build.log';
+  fi
+- echo "$taskcmd"
+- docker exec $CID /bin/sh -c "$taskcmd"
+- docker exec $CID /bin/sh -c 'dnf update --setopt=install_weak_deps=False -y &>>
+  /rpmbuild/iso_build.log'
+- docker exec $CID /bin/sh -c 'dnf clean all &>> /rpmbuild/iso_build.log'
+- export TASK_NAME=$(echo $TASK_RPM | sed -e s/task-unity-// -e s/-live//)
+- mkdir $TASK_NAME
+- export LIVE_LOG=$(readlink -f ./*.log)
+- if [ "$TRAVIS_TEST_RESULT" == "1" ]; then mv $LIVE_LOG ./$TASK_NAME/ && rsync -arz
+  --progress --rsh=ssh -e "ssh -o StrictHostKeyChecking=no" ./$TASK_NAME foobar2:public_html/pub/isos/;
+  exit 1; fi
+- docker exec -d $CID /bin/sh -c 'mklivecd --tmp /rpmbuild --xz /rpmbuild/live.iso
+  --nodir ^/rpmbuild --boottheme=maggy &>> /rpmbuild/iso_build.log'
+- docker exec $CID /bin/sh -c 'while ps ax | grep mklivecd | grep -v grep > /dev/null
+  ; do sleep 60 ; export x="$(($x+1))" ; echo "--==|mklivecd has been running for
+  $x minute(s)|==--" ; done'
+- export LIVE_ISO=$(readlink -f ./*.iso)
+- mv $LIVE_ISO ./$TASK_NAME/Unity-Linux-"$(date +%Y%m%d%H)".iso
+- mv $LIVE_LOG ./$TASK_NAME/${TASK_NAME}-$(date +%Y%m%d%H).log
+- export NEW_ISO=$(readlink -f ./$TASK_NAME/*.iso)
+- echo "$NEW_ISO"
+- md5sum "$NEW_ISO" > ./$TASK_NAME/$(basename "$NEW_ISO").md5
+- if [ "$TRAVIS_TEST_RESULT" == "1" ]; then rsync -arz --progress --rsh=ssh -e "ssh
+  -o StrictHostKeyChecking=no" ./$TASK_NAME foobar2:public_html/pub/isos/; fi
 after_success:
-  - sudo -H pip install --upgrade pyOpenSSL ndg-httpsclient pyasn1 jinja2 requests[security] marshmallow copr-cli simplejson
-  - if [ -f ./SRPMS/*.src.rpm ]; then copr-cli --config /tmp/stuff/.copr build -r Mageia-6-x86_64 jmiahman/mklivecd ./SRPMS/*.src.rpm; fi & 
-  - if [ "$TRAVIS_BRANCH" == "master" ] && [ -f ./SRPMS/*.src.rpm ]; then copr-cli --config /tmp/stuff/.copr build -r Mageia-6-x86_64 jmiahman/Unity-Linux ./SRPMS/*.src.rpm; fi &
-  - rsync -arz --progress --delete --rsh=ssh -e "ssh -o StrictHostKeyChecking=no" ./$TASK_NAME foobar2:public_html/pub/isos/ &
-  - rsync -arz --progress --delete --rsh=ssh -e "ssh -o StrictHostKeyChecking=no" ./$TASK_NAME foobar:/var/www/html/isos/ &
-  - wait %1 %2 %3 %4
+- sudo -H pip install --upgrade pyOpenSSL ndg-httpsclient pyasn1 jinja2 requests[security]
+  marshmallow copr-cli simplejson
+- if [ -f ./SRPMS/*.src.rpm ]; then copr-cli --config /tmp/stuff/.copr build -r Mageia-6-x86_64
+  jmiahman/mklivecd ./SRPMS/*.src.rpm; fi &
+- if [ "$TRAVIS_BRANCH" == "master" ] && [ -f ./SRPMS/*.src.rpm ]; then copr-cli --config
+  /tmp/stuff/.copr build -r Mageia-6-x86_64 jmiahman/Unity-Linux ./SRPMS/*.src.rpm;
+  fi &
+- rsync -arz --progress --delete --rsh=ssh -e "ssh -o StrictHostKeyChecking=no" ./$TASK_NAME
+  foobar2:public_html/pub/isos/ &
+- rsync -arz --progress --delete --rsh=ssh -e "ssh -o StrictHostKeyChecking=no" ./$TASK_NAME
+  foobar:/var/www/html/isos/ &
+- wait %1 %2 %3 %4
