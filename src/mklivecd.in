@@ -595,10 +595,11 @@ sub create_initrd {
 
 	do_cmd("mkdir -p $workdir/livecd/isolinux",                         ++$pos) if ($o_bootloader =~ m/^iso/);
         do_cmd("mkdir -p $workdir/livecd/boot/grub2",                       ++$pos) if ($o_bootloader =~ m/^grub/);
+        do_cmd("mkdir -p $workdir/livecd/boot/live",                       ++$pos) if ($o_bootloader =~ m/^grub/);
 	do_cmd("mkdir -p $workdir/livecd/loopbacks",                        ++$pos);
 	if ($o_bootloader =~ m/^grub/) {
-		do_cmd("dracut -f $workdir/livecd/boot/initrd $o_kernel", ++$pos) if (defined($opts{debug}));
-		do_cmd("dracut -f $workdir/livecd/boot/initrd $o_kernel &> /dev/null", ++$pos) if (!defined($opts{debug}));
+		do_cmd("dracut -f $workdir/livecd/boot/live/initrd $o_kernel", ++$pos) if (defined($opts{debug}));
+		do_cmd("dracut -f $workdir/livecd/boot/live/initrd $o_kernel &> /dev/null", ++$pos) if (!defined($opts{debug}));
 	} else {
 		do_cmd("dracut -f $workdir/livecd/isolinux/initrd $o_kernel", ++$pos) if (defined($opts{debug}));
 		do_cmd("dracut -f $workdir/livecd/isolinux/initrd $o_kernel &> /dev/null", ++$pos) if (!defined($opts{debug}));
@@ -766,7 +767,7 @@ sub create_grub2 {
 	do_cmd("cp -rf /usr/lib/grub/* $workdir/livecd/boot/grub/", ++$pos);
 	do_cmd("cp -rf /boot/grub2/themes $workdir/livecd/boot/grub2/", ++$pos);
 	die_(N("\nFATAL: The kernel '%sboot/vmlinuz-%s' does not exist on your machine.\n", $o_root, $o_kernel)) unless (-f $o_root."boot/vmlinuz-$o_kernel");
-        do_copy($o_root."boot/vmlinuz-$o_kernel", 644, "$workdir/livecd/boot/vmlinuz", ++$pos);
+        do_copy($o_root."boot/vmlinuz-$o_kernel", 644, "$workdir/livecd/boot/live/vmlinuz", ++$pos);
 
 	# build the GRUB2 config for the LiveCD
         open CFG, '>', "$workdir/livecd/boot/grub/grub.cfg";
@@ -791,12 +792,12 @@ sub create_grub2 {
         }
         print CFG "search --no-floppy --set=root --label $opts{volumeid}\n";
         print CFG 'menuentry "Start Live" {',"\n";
-        print CFG "   linux /boot/vmlinuz root=mgalive:LABEL=$opts{volumeid} ramdisk_size=32768 keyb=$o_keyboard quiet splash=$o_splash\n";
-        print CFG "   initrd /boot/initrd\n";
+        print CFG "   linux /boot/live/vmlinuz root=mgalive:LABEL=$opts{volumeid} ramdisk_size=32768 keyb=$o_keyboard quiet splash=$o_splash\n";
+        print CFG "   initrd /boot/live/initrd\n";
         print CFG "}\n";
         print CFG 'menuentry "Safe Boot" {',"\n";
-        print CFG "   linux /boot/vmlinuz root=mgalive:LABEL=$opts{volumeid} ramdisk_size=32768 keyb=$o_keyboard acpi=off noapic nolapic noscsi nopcmcia nopat\n";
-        print CFG "   initrd /boot/initrd\n";
+        print CFG "   linux /boot/live/vmlinuz root=mgalive:LABEL=$opts{volumeid} ramdisk_size=32768 keyb=$o_keyboard acpi=off noapic nolapic noscsi nopcmcia nopat\n";
+        print CFG "   initrd /boot/live/initrd\n";
         print CFG "}\n";
         close CFG;
 
