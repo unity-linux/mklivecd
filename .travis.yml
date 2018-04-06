@@ -30,19 +30,21 @@ script:
 - docker exec $CID /bin/sh -c "$taskcmd"
 - docker exec $CID /bin/sh -c 'dnf update --setopt=install_weak_deps=False -y &>> /rpmbuild/iso_build.log'
 - docker exec $CID /bin/sh -c 'dnf clean all &>> /rpmbuild/iso_build.log'
-- export TASK_NAME=$(echo $TASK_RPM | sed -e s/task-unity-// -e s/-live//)
+- export TASK_NAME=$(echo $TASK_RPM | sed -e s/task-// -e s/-live//)
 - mkdir $TASK_NAME
 - export LIVE_LOG=$(readlink -f ./*.log)
 - if [ "$TRAVIS_TEST_RESULT" == "1" ]; then mv $LIVE_LOG ./$TASK_NAME/ && rsync -arz --progress --rsh=ssh -e "ssh -o StrictHostKeyChecking=no" ./$TASK_NAME foobar2:public_html/pub/isos/; exit 1; fi
 - docker exec -d $CID /bin/sh -c 'mklivecd --tmp /rpmbuild --xz /rpmbuild/live.iso --nodir ^/rpmbuild --boottheme=maggy &>> /rpmbuild/iso_build.log'
 - docker exec $CID /bin/sh -c 'while ps ax | grep mklivecd | grep -v grep > /dev/null ; do sleep 60 ; export x="$(($x+1))" ; echo "--==|mklivecd has been running for $x minute(s)|==--" ; done'
+- docker exec $CID /bin/sh -c 'rpm -qa &> /rpmbuild/rpm.list'
 - export LIVE_ISO=$(readlink -f ./*.iso)
-- mv $LIVE_ISO ./$TASK_NAME/Unity-Linux-"$(date +%Y%m%d%H)".iso
+- export RPM_LIST=$(readlink -f ./rpm.list)
+- mv $LIVE_ISO ./$TASK_NAME/$(TASK_NAME}-$(date +%Y%m%d%H).iso
 - mv $LIVE_LOG ./$TASK_NAME/${TASK_NAME}-$(date +%Y%m%d%H).log
+- mv $RPM_LIST ./$TASK_NAME/${TASK_NAME}-$(date +%Y%m%d%H).rpmlist
 - export NEW_ISO=$(readlink -f ./$TASK_NAME/*.iso)
 - echo "$NEW_ISO"
 - md5sum "$NEW_ISO" > ./$TASK_NAME/$(basename "$NEW_ISO").md5
-- rpm -qa > ./$TASK_NAME/$(basename "$NEW_ISO").rpmlist
 - if [ "$TRAVIS_TEST_RESULT" == "1" ]; then rsync -arz --progress --rsh=ssh -e "ssh -o StrictHostKeyChecking=no" ./$TASK_NAME foobar2:public_html/pub/isos/; fi
 after_success:
 - sudo -H pip install --upgrade pyOpenSSL ndg-httpsclient pyasn1 jinja2 requests[security] marshmallow copr-cli simplejson
