@@ -39,7 +39,7 @@ script:
 - docker exec $CID /bin/sh -c 'rpm -qa &> /rpmbuild/rpm.list'
 - export LIVE_ISO=$(readlink -f ./*.iso)
 - export RPM_LIST=$(readlink -f ./rpm.list)
-- mv $LIVE_ISO ./$TASK_NAME/$(TASK_NAME}-$(date +%Y%m%d%H).iso
+- mv $LIVE_ISO ./$TASK_NAME/${TASK_NAME}-$(date +%Y%m%d%H).iso
 - mv $LIVE_LOG ./$TASK_NAME/${TASK_NAME}-$(date +%Y%m%d%H).log
 - mv $RPM_LIST ./$TASK_NAME/${TASK_NAME}-$(date +%Y%m%d%H).rpmlist
 - export NEW_ISO=$(readlink -f ./$TASK_NAME/*.iso)
