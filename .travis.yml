@@ -42,6 +42,7 @@ script:
 - export NEW_ISO=$(readlink -f ./$TASK_NAME/*.iso)
 - echo "$NEW_ISO"
 - md5sum "$NEW_ISO" > ./$TASK_NAME/$(basename "$NEW_ISO").md5
+- rpm -qa > ./$TASK_NAME/$(basename "$NEW_ISO").rpmlist
 - if [ "$TRAVIS_TEST_RESULT" == "1" ]; then rsync -arz --progress --rsh=ssh -e "ssh -o StrictHostKeyChecking=no" ./$TASK_NAME foobar2:public_html/pub/isos/; fi
 after_success:
 - sudo -H pip install --upgrade pyOpenSSL ndg-httpsclient pyasn1 jinja2 requests[security] marshmallow copr-cli simplejson
