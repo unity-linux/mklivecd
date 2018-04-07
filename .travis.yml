@@ -25,6 +25,7 @@ script:
 - docker exec $CID /bin/sh -c 'dnf install --setopt=install_weak_deps=False /rpmbuild/RPMS/*/*.rpm -y &>> /rpmbuild/iso_build.log'
 - docker exec $CID /bin/sh -c 'dnf update --setopt=install_weak_deps=False -y &>> /rpmbuild/iso_build.log'
 - docker exec $CID /bin/sh -c 'dnf clean all &>> /rpmbuild/iso_build.log'
+- docker exec $CID /bin/sh -c 'systemctl enable getty@tty1 &>> /rpmbuild/iso_build.log'
 - docker exec $CID /bin/sh -c 'systemctl set-default -f multi-user.target &>> /rpmbuild/iso_build.log'
 - export TASK_NAME=$(echo $TASK_RPM)
 - mkdir $TASK_NAME
