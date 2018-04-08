@@ -219,7 +219,7 @@ ISO="$(__ "From an ISO file")"
 CD="$(__ "From CD/DVD")"
 
 # Check whether or not we're running in live mode.
-if [ -d "/union" ]; then
+if [ -d "/run/mgalive" ]; then
 	printf "Running in live mode...\n" >> $LOG
 	SRC=$(zenity --list --radiolist --title="$TITLE" --width=450 --height=250 \
 		     --window-icon=$ICON \
@@ -733,7 +733,7 @@ mkdir -vp $USBMNT/boot/grub >> $LOG 2>&1
 cp -v /lib/grub/i386-mandriva/* $USBMNT/boot/grub >> $LOG 2>&1
 # copy gxmenu file from either livecd or current install
 if [[ $IMAGE == "/initrd/cdrom" ]]; then
-	cp -v /union/boot/gfxmenu $USBMNT/boot >> $LOG 2>&1
+	cp -v /run/mgalive/ovlsize/boot/gfxmenu $USBMNT/boot >> $LOG 2>&1
 else
 	printf "Create graphical boot menu on the fly\n" >> $LOG
 	mkdir -vp /tmp/gfxboot >> $LOG 2>&1
@@ -905,8 +905,8 @@ exit 0
 Auto_Needed_Space() {
 	# Set needed space on the temporary partition...
 	ROOTSPACE=$(df -h / | grep / | cut -b28-34 | sed s/G/*1024/\;s/M//\;s/,/./ | bc)
-	if [ -d "/union" ]; then
-	UNIONSPACE=$(df -h /union | grep /union | cut -b28-34 | sed s/G/*1024/\;s/M//\;s/,/./ | bc)
+	if [ -d "/run/mgalive" ]; then
+	UNIONSPACE=$(df -h /run/mgalive | grep /run/mgalive | cut -b28-34 | sed s/G/*1024/\;s/M//\;s/,/./ | bc)
 	else 
 	UNIONSPACE=0
 	fi
@@ -1209,7 +1209,7 @@ Insert your mklivecd options here:")" \
 	echo $CUSTOM_OPTIONS
 
     
-	if [ -d "/union" ]; then
+	if [ -d "/run/mgalive" ]; then
 		# No need to auto check if we are in live mode
 		Ask_Needed_Space
 	else
@@ -1247,8 +1247,8 @@ Insert your mklivecd options here:")" \
 
 	# Fix halt if running from livecd so new remaster ejects the cd at shutdown
 	if [ -e /initrd/loopfs/etc/rc.d/init.d/halt ]; then
-		mv -f /union/etc/rc.d/init.d/halt /tmp/halt.bak
-		cp -f /initrd/loopfs/etc/rc.d/init.d/halt /union/etc/rc.d/init.d/halt
+		mv -f /run/mgalive/etc/rc.d/init.d/halt /tmp/halt.bak
+		cp -f /initrd/loopfs/etc/rc.d/init.d/halt /run/mgalive/etc/rc.d/init.d/halt
 	fi
 
 	__ "Running mklivecd to create the remaster..."; echo
@@ -1258,7 +1258,7 @@ Insert your mklivecd options here:")" \
 
 	# Change halt back if running livecd so cd ejects at shutdown
 	if [ -e /tmp/halt.bak ]; then
-		mv -f /tmp/halt.bak /union/etc/rc.d/init.d/halt
+		mv -f /tmp/halt.bak /run/mgalive/etc/rc.d/init.d/halt
 	fi
 
 	# Check if the remaster iso actually exists, and if yes, calculate the md5-sum.
@@ -1486,9 +1486,9 @@ date >> $LOG
 # Check wether or not we're running in live mode.
 LiveMode=0
 
-if [ -d "/union" ]; then
+if [ -d "/run/mgalive" ]; then
     __ "Running in live mode..."; echo
-    ROOT=/union
+    ROOT=/run/mgalive
     LiveMode=1
 else
     __ "Running in installed mode..."; echo
