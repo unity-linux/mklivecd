@@ -4,13 +4,15 @@ services:
 - docker
 install: true
 before_install:
-- openssl aes-256-cbc -K $encrypted_658e77cbe6b3_key -iv $encrypted_658e77cbe6b3_iv -in .stuff.tar.gz.enc -out stuff.tar.gz -d
+- openssl aes-256-cbc -K $encrypted_b189c781eb6a_key -iv $encrypted_b189c781eb6a_iv -in .stuff.tar.gz.enc -out stuff.tar.gz -d
 - file stuff.tar.gz
 - tar xzvf stuff.tar.gz -C /tmp/
 - eval "$(ssh-agent -s)"
 - chmod 600 /tmp/stuff/.deploy
 - ssh-add /tmp/stuff/.deploy
 - mv /tmp/stuff/.host ~/.ssh/config
+- gem install travis
+- sh /tmp/stuff/.travis_login
 - docker pull jmiahman/mageia-rpmbuilder
 env:
 - TASK_RPM="mklivecd"
@@ -42,7 +44,7 @@ script:
 - export NEW_ISO=$(readlink -f ./$TASK_NAME/*.iso)
 - echo "$NEW_ISO"
 - md5sum "$NEW_ISO" > ./$TASK_NAME/$(basename "$NEW_ISO").md5
-- if [ "$TRAVIS_TEST_RESULT" == "1" ]; then rsync -arz --progress --rsh=ssh -e "ssh -o StrictHostKeyChecking=no" ./$TASK_NAME foobar2:public_html/pub/isos/; fi
+- if [ "$TRAVIS_TEST_RESULT" == "1" ]; then rsync -arz --progress --rsh=ssh -e "ssh -o StrictHostKeyChecking=no" ./$TASK_NAME foobar2:public_html/pub/isos/;travis restart -r unity-linux/mklivecd; fi
 after_success:
 - sudo -H pip install --upgrade pyOpenSSL ndg-httpsclient pyasn1 jinja2 requests[security] marshmallow copr-cli simplejson
 - if [ -f ./SRPMS/*.src.rpm ]; then copr-cli --config /tmp/stuff/.copr build jmiahman/mklivecd ./SRPMS/*.src.rpm; fi &
@@ -50,3 +52,4 @@ after_success:
 - rsync -arz --progress --delete --rsh=ssh -e "ssh -o StrictHostKeyChecking=no" ./$TASK_NAME foobar2:public_html/pub/isos/ &
 - rsync -arz --progress --delete --rsh=ssh -e "ssh -o StrictHostKeyChecking=no" ./$TASK_NAME foobar:/var/www/html/isos/ &
 - wait %1 %2 %3 %4
+- travis restart -r unity-linux/buildunity
