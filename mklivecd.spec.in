@@ -9,8 +9,6 @@ Group:		System/Packaging
 URL:		https://github.com/unity-linux/mklivecd/
 Source0:	%{name}-%{version}.tar.xz
 BuildRequires:	intltool
-Requires:	beesu
-Requires:	zenity
 Requires:	imagemagick
 Requires:	squashfs-tools >= 4.2
 Requires:	drakx-installer-binaries-probe
@@ -40,6 +38,21 @@ to 2GB for a normal 650MB CD or around 10GB for a normal 4GB DVD. When
 booting from this LiveCD, the data is transparently decompressed as
 needed with almost no performance impact.
 
+%package -n mkremaster
+Summary: mkremaster is a gui frontend to mklivecd
+Requires:	beesu
+Requires:       zenity
+Requires:       mklivecd
+
+%description -n mkremaster
+mkremaster is a gui frontend to mklivecd and the mklivecd tools.
+The mklivecd tools are dedicated to providing you with the capability to
+create your own Live CD or Live DVD from a currently installed Mageia
+distribution. It can be used to create your own travelling Mageia-based
+Live CD, specialized Live CD featuring custom-developed applications or to
+put together a demo disk to show off the power of our favorite OS. The
+possibilities are endless!
+
 %prep
 %setup -q
 
@@ -51,13 +64,13 @@ needed with almost no performance impact.
 
 %find_lang mklivecd
 %find_lang mkremaster
-cat mklivecd.lang mkremaster.lang >> %{name}.list
+cat mklivecd.lang >> %{name}.list
+cat mkremaster.lang >> mkremaster.list
 
 %files -f %{name}.list
 %license COPYING
 %doc AUTHORS CHANGELOG FAQ README.md README.BOOTCODES README.USB TODO
 %{_sbindir}/mklivecd
-%{_sbindir}/mkremaster
 %dir %{_datadir}/mklivecd
 %{_datadir}/mklivecd/gfxboot.cfg
 %{_datadir}/mklivecd/finish-install
@@ -67,3 +80,6 @@ cat mklivecd.lang mkremaster.lang >> %{name}.list
 %{_datadir}/pixmaps/mkremaster.png
 %config /etc/dracut.conf.d/60-live.conf
 %config /etc/modprobe.d/blacklist_ide.conf
+
+%files -n mkremaster -f mkremaster.list
+%{_sbindir}/mkremaster
