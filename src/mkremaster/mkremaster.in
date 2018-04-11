@@ -51,7 +51,8 @@ DEFAULT_OPTIONS="--nofile=^/etc/sysconfig/hardrake2/kernels \
 --nofile=^/root/.bash_history \
 --nofile=^/home/guest/.bash_history \
 --nofile=^/var/spool/repackage/* \
---nofile=^/var/lib/smart/packages/* \
+--nofile=^/var/lib/dnf/* \
+--nofile=^/var/cache/dnf/* \
 --nofile=^/var/lib/speedboot/status \
 --nodir=^/root/.thumbnails"
 
@@ -949,16 +950,16 @@ Ask_Needed_Space() {
 }
 
 install_first_rpms_element() {
-	OUTPUT=$(smart -o rpm-root=$RPM_TMP install --dump $RPM_ELEMENT 2>&1 1>/dev/null)
+	OUTPUT=$(dnf -y --installroot=$RPM_TMP install $RPM_ELEMENT 2>&1 1>/dev/null)
 	if [ $? -eq 0 ]; then
 	zenity --title "$TITLE" --question --text "$(__ "The resolution of %s dependency failed.\n
 This might be due to an out of date repository information.\n
 If problem persist, please contact the Unity-Linux dev team.\n\n
-Would you like to try to update smart and try again?" "$RPM_ELEMENT")" --window-icon=$ICON
+Would you like to try to update dnf and try again?" "$RPM_ELEMENT")" --window-icon=$ICON
 
 		if [ "$?" == "0" ]; then
-		smart update
-		OUTPUT=$(smart -o rpm-root=$RPM_TMP install --dump $RPM_ELEMENT 2>&1 1>/dev/null)
+		dnf update -y
+		OUTPUT=$(dnf -y --installroot=$RPM_TMP install $RPM_ELEMENT 2>&1 1>/dev/null)
 			if [ $? -eq 0 ]; then
 			zenity --title="$TITLE" --error --text="$(__ "Sorry, the resolution failed again. Please try again later")" --window-icon=$ICON
 			exit 1
@@ -974,7 +975,7 @@ Would you like to try to update smart and try again?" "$RPM_ELEMENT")" --window-
 		fi
 	fi
 		
-	RPMS_DOWNLOAD=$(smart download $OUTPUT)
+	RPMS_DOWNLOAD=$(dnf download $OUTPUT)
 	if [ $? -eq 0 ]; then
 	zenity --title "$TITLE" --question --text "$(__ "The download of %s rpms failed.\n
 This might be due to an error with the network connection or a dependency error.\n
@@ -982,8 +983,8 @@ If problem persist, please contact the Unity-Linux dev team.\n\n
 Would you like to try again?" "$RPM_ELEMENT")" --window-icon=$ICON
 
 		if [ "$?" == "0" ]; then
-		smart update
-		RPMS_DOWNLOAD=$(smart download $OUTPUT)
+		dnf -y update
+		RPMS_DOWNLOAD=$(dnf download $OUTPUT)
 			if [ $? -eq 0 ]; then
 			zenity --title="$TITLE" --error --text="$(__ "Sorry, the download failed again. Please try again later")" --window-icon=$ICON
 			exit 1
@@ -1001,22 +1002,22 @@ Would you like to try again?" "$RPM_ELEMENT")" --window-icon=$ICON
 	
 	RPM_INSTALL=$(rpm --root=$RPM_TMP -Uvh --replacepkgs *.rpm)
 	if [ $? -eq 1 ]; then
-		zenity --title="$TITLE" --error --text="$(__ "Sorry, the install of the rpms failed. Please ensure plf is not enabled and the repo has not changed since the last time you updated smart")" --window-icon=$ICON
+		zenity --title="$TITLE" --error --text="$(__ "Sorry, the install of the rpms failed. Please ensure plf is not enabled and the repo has not changed since the last time you updated dnf")" --window-icon=$ICON
 		exit 1	
 	fi
 }
 
 install_rpms_element() {
-	OUTPUT=$(smart -o rpm-root=$RPM_TMP install --dump $RPM_ELEMENT 2>&1 1>/dev/null)
+	OUTPUT=$(dnf -y --installroot=$RPM_TMP install $RPM_ELEMENT 2>&1 1>/dev/null)
 	if [ $? -eq 0 ]; then
 	zenity --title "$TITLE" --question --text "$(__ "The resolution of %s dependency failed.\n
 This might be due to an out of date repository information.\n
 If problem persist, please contact the Unity-Linux dev team.\n\n
-Would you like to try to update smart and try again?" "$RPM_ELEMENT")" --window-icon=$ICON
+Would you like to try to update dnf and try again?" "$RPM_ELEMENT")" --window-icon=$ICON
 
 		if [ "$?" == "0" ]; then
-		smart update
-		OUTPUT=$(smart -o rpm-root=$RPM_TMP install --dump $RPM_ELEMENT 2>&1 1>/dev/null)
+		dnf -y update
+		OUTPUT=$(dnf -y --installroot=$RPM_TMP install $RPM_ELEMENT 2>&1 1>/dev/null)
 			if [ $? -eq 0 ]; then
 			zenity --title="$TITLE" --error --text="$(__ "Sorry, the resolution failed again. Please try again later")" --window-icon=$ICON
 			exit 1
@@ -1032,7 +1033,7 @@ Would you like to try to update smart and try again?" "$RPM_ELEMENT")" --window-
 		fi
 	fi
 		
-	RPMS_DOWNLOAD=$(smart download $OUTPUT)
+	RPMS_DOWNLOAD=$(dnf download $OUTPUT)
 	if [ $? -eq 0 ]; then
 	zenity --title "$TITLE" --question --text "$(__ "The download of %s rpms failed.\n
 This might be due to an error with the network connection or a dependency error.\n
@@ -1040,8 +1041,8 @@ If problem persist, please contact the Unity-Linux dev team.\n\n
 Would you like to try again?" "$RPM_ELEMENT")" --window-icon=$ICON
 
 		if [ "$?" == "0" ]; then
-		smart update
-		RPMS_DOWNLOAD=$(smart download $OUTPUT)
+		dnf -y update
+		RPMS_DOWNLOAD=$(dnf download $OUTPUT)
 			if [ $? -eq 0 ]; then
 			zenity --title="$TITLE" --error --text="$(__ "Sorry, the download failed again. Please try again later")" --window-icon=$ICON
 			exit 1
@@ -1059,7 +1060,7 @@ Would you like to try again?" "$RPM_ELEMENT")" --window-icon=$ICON
 	
 	RPM_INSTALL=$(rpm --root=$RPM_TMP -Uvh *.rpm)
 	if [ $? -eq 1 ]; then
-		zenity --title="$TITLE" --error --text="$(__ "Sorry, the install of the rpms failed. Please ensure plf is not enabled and the repo has not changed since the last time you updated smart")" --window-icon=$ICON
+		zenity --title="$TITLE" --error --text="$(__ "Sorry, the install of the rpms failed. Please ensure plf is not enabled and the repo has not changed since the last time you updated dnf")" --window-icon=$ICON
 		exit 1	
 	fi
 }	
@@ -1067,7 +1068,7 @@ Would you like to try again?" "$RPM_ELEMENT")" --window-icon=$ICON
 LiveRPM_install_RPMS() {
 	echo "10"
 	# Install minimum set of rpms & flatten
-	smart download xz shadow-utils tcb setup coreutils rpm-helper grep li*pcre0 coreutils
+	dnf download xz shadow-utils tcb setup coreutils rpm-helper grep li*pcre0 coreutils
 	for tmp in $(ls *rpm); do rpm2cpio $tmp | cpio -ivd; done
 	mkdir dev proc sys	
 	
@@ -1102,16 +1103,16 @@ LiveRPM_install_RPMS() {
 	done
 	
 	# Required to fix policykit taking over some files
-	smart download policykit
-	smart download polkit
+	dnf download policykit
+	dnf download polkit
 	rpm --root=$RPM_TMP -Uvh --replacepkgs *.rpm
 	rm -fr *rpm
 	
-	smart download hal
+	dnf download hal
 	rpm --root=$RPM_TMP -Uvh --replacepkgs *.rpm
 	rm -fr *rpm
 	
-	smart download dbus
+	dnf download dbus
 	rpm --root=$RPM_TMP -Uvh --replacepkgs *.rpm
 	rm -fr *rpm
 	
@@ -1128,7 +1129,7 @@ LiveRPM_change_settings() {
 	
 	echo "30"
 	# Setup smart for first run
-	chroot $chrtopt "smart-setup-auto"
+	#chroot $chrtopt "smart-setup-auto"
 	
 	# Some basic configuration setup
 	sed -i 's/=mdk/=Unity/g' $RPM_TMP/usr/share/gdm/defaults.conf
