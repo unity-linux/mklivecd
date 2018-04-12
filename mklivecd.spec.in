@@ -74,12 +74,12 @@ cat mkremaster.lang >> mkremaster.list
 %dir %{_datadir}/mklivecd
 %{_datadir}/mklivecd/gfxboot.cfg
 %{_datadir}/mklivecd/finish-install
-%{_datadir}/applications/mkremaster-kde.desktop
-%{_datadir}/applications/mkremaster.desktop
-%{_datadir}/applications/mkremaster-tinyme.desktop
-%{_datadir}/pixmaps/mkremaster.png
 %config /etc/dracut.conf.d/60-live.conf
 %config /etc/modprobe.d/blacklist_ide.conf
 
 %files -n mkremaster -f mkremaster.list
 %{_sbindir}/mkremaster
+%{_datadir}/pixmaps/mkremaster.png
+%{_datadir}/applications/mkremaster-kde.desktop
+%{_datadir}/applications/mkremaster.desktop
+%{_datadir}/applications/mkremaster-tinyme.desktop
