@@ -1108,7 +1108,7 @@ LiveRPM_install_RPMS() {
 	rpm --root=$RPM_TMP -Uvh --replacepkgs *.rpm
 	rm -fr *rpm
 	
-	dnf download hal
+	dnf download systemd
 	rpm --root=$RPM_TMP -Uvh --replacepkgs *.rpm
 	rm -fr *rpm
 	
@@ -1353,11 +1353,10 @@ RPMlive() {
 	
 	# First question
 	zenity --title "$TITLE" --question --text "$(__ "You are about to create a LiveCD ISO from RPMS.\n
-Requirements:\n
+Requirements:                                                 \n
 * min. 2 GB free space on the host system.\n
-* You must have a working Smart system and internet connectivity\n
-* Smart must not be used for the duration of the livecd creation\n
-* Make sure the plf repository is not enabled (not supported at present)")"
+* You must have a working DNF system and internet connectivity\n
+* DNF must not be used for the duration of the livecd creation\n ")" 
 
 	if [ "$?" == "1" ]; then
 		exit_script
