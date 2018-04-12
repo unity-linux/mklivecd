@@ -12,7 +12,7 @@ TMP="/tmp/unity.tmp"
 BRANDNAME=Unity
 DISKNAME=Unity.$$
 RPM_TMP=/tmp/Unity-RPMS.$$
-chrtopt="$RPM_TMP /bin/su root -c"
+chrtopt="$RPM_TMP /usr/bin/su root -c"
 FIRST_ELEMENT_LIST="perl rpm bootloader-utils dnf"
 SMART_ERROR=
 FIX_SUCCESS=
@@ -1068,7 +1068,7 @@ Would you like to try again?" "$RPM_ELEMENT")" --window-icon=$ICON
 LiveRPM_install_RPMS() {
 	echo "10"
 	# Install minimum set of rpms & flatten
-	dnf download xz shadow-utils tcb setup coreutils rpm-helper grep li*pcre0 coreutils
+	dnf download xz shadow-utils tcb setup coreutils rpm-helper grep li*pcre* coreutils
 	for tmp in $(ls *rpm); do rpm2cpio $tmp | cpio -ivd; done
 	mkdir dev proc sys	
 	
