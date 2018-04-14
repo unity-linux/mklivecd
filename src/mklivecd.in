@@ -764,7 +764,7 @@ sub create_grub2 {
         my $pos = 0;
         start_progress(N("Creating grub2 boot menu"), 2);
 
-	do_cmd("cp -rf /usr/lib/grub/* $workdir/livecd/boot/grub/", ++$pos);
+	do_cmd("cp -rf /usr/lib/grub/* $workdir/livecd/boot/grub2/", ++$pos);
 	do_cmd("cp -rf /boot/grub2/themes $workdir/livecd/boot/grub2/", ++$pos);
 	die_(N("\nFATAL: The kernel '%sboot/vmlinuz-%s' does not exist on your machine.\n", $o_root, $o_kernel)) unless (-f $o_root."boot/vmlinuz-$o_kernel");
         do_copy($o_root."boot/vmlinuz-$o_kernel", 644, "$workdir/livecd/boot/live/vmlinuz", ++$pos);
