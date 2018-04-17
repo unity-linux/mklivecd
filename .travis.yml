@@ -38,6 +38,7 @@ script:
 - docker exec -d $CID /bin/sh -c 'mklivecd --tmp /rpmbuild --xz /rpmbuild/live.iso --nodir ^/rpmbuild --boottheme=maggy &>> /rpmbuild/iso_build.log'
 - docker exec $CID /bin/sh -c 'while ps ax | grep mklivecd | grep -v grep > /dev/null ; do sleep 60 ; export x="$(($x+1))" ; echo "--==|mklivecd has been running for $x minute(s)|==--" ; done'
 - docker exec $CID /bin/sh -c 'rpm -qa &> /rpmbuild/rpm.list'
+- ls -l
 - export LIVE_ISO=$(readlink -f ./*.iso)
 - export RPM_LIST=$(readlink -f ./rpm.list)
 - mv $LIVE_ISO ./$TASK_NAME/${TASK_NAME}-$(date +%Y%m%d%H).iso
