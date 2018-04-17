@@ -13,10 +13,10 @@ before_install:
 - mv /tmp/stuff/.host ~/.ssh/config
 - gem install travis
 - sh /tmp/stuff/.travis_login
-- docker pull jmiahman/mageia-rpmbuilder
 env:
 - TASK_RPM="mklivecd"
 script:
+- docker pull jmiahman/mageia-rpmbuilder-x86_64
 - export DID=$(docker images -a | grep -m1 mageia-rpmbuilder | awk '{print $3}')
 - echo $DID
 - docker run --hostname=unity-linux --privileged=true -d -v "$(pwd):/rpmbuild" -v "/dev:/dev" -v "/sys/fs/cgroup:/sys/fs/cgroup:ro" $DID tail -f /dev/null
