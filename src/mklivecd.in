@@ -995,7 +995,7 @@ sub create_finaliso {
 	} 
 	
 	elsif ($o_bootloader =~ m/^grub/) {
-	$cmd="grub2-mkrescue -o $finaliso $workdir/livecd -- -as mkisofs -V $opts{volumeid} 2>&1";
+	$cmd="grub2-mkrescue -o $finaliso $workdir/livecd -- -as mkisofs -V $opts{volumeid}";
 	}
 
           open ISO, "$cmd |" or die_(N("\nFATAL: Unable to execute '%s'\n", $cmd));
