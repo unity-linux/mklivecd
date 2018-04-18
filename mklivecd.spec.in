@@ -15,9 +15,7 @@ Requires:	drakx-installer-binaries-probe
 Requires:	plymouth-scripts
 Requires:	plymouth
 Requires:	bootsplash
-#Requires:	microcode
 Requires:	grub2
-Requires:	grub2-common
 Requires:	xorriso
 
 # We need a theme for testing
