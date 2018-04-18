@@ -771,7 +771,7 @@ sub create_grub2 {
         do_copy($o_root."boot/vmlinuz-$o_kernel", 644, "$workdir/livecd/boot/live/vmlinuz", ++$pos);
 
 	# build the GRUB2 config for the LiveCD
-        open CFG, '>', "$workdir/livecd/boot/grub/grub.cfg";
+        open CFG, '>', "$workdir/livecd/boot/grub2/grub.cfg";
         print CFG "insmod $_\n" foreach qw(part_gpt part_msdos fat video_bochs video_cirrus video_fb font);
         print CFG 'if loadfont "${prefix}/fonts/unicode.pf2" ; then',"\n";
         print CFG '   insmod gfxterm',"\n";
