@@ -595,6 +595,7 @@ sub create_initrd {
 
 	do_cmd("mkdir -p $workdir/livecd/isolinux",                         ++$pos) if ($o_bootloader =~ m/^iso/);
         do_cmd("mkdir -p $workdir/livecd/boot/grub2",                       ++$pos) if ($o_bootloader =~ m/^grub/);
+        do_cmd("mkdir -p $workdir/livecd/boot/grub",                       ++$pos) if ($o_bootloader =~ m/^grub/);
         do_cmd("mkdir -p $workdir/livecd/boot/live",                       ++$pos) if ($o_bootloader =~ m/^grub/);
 	do_cmd("mkdir -p $workdir/livecd/loopbacks",                        ++$pos);
 	if ($o_bootloader =~ m/^grub/) {
