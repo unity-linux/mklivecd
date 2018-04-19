@@ -24,7 +24,7 @@ script:
 - docker run --hostname=unity-linux --privileged=true -d -v "$(pwd):/rpmbuild" -v "/dev:/dev" -v "/sys/fs/cgroup:/sys/fs/cgroup:ro" $DID tail -f /dev/null
 - export CID=$(docker ps -l | awk '{print $1}' | grep -v -m1 'CONTAINER')
 - echo $CID
-- docker exec $CID /bin/sh -c 'cd /rpmbuild && make rpm &>> /rpmbuild/iso_build.log'
+- docker exec $CID /bin/sh -c "cd /rpmbuild && setarch ${ARCH} make rpm &>> /rpmbuild/iso_build.log"
 - docker exec $CID /bin/sh -c 'rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-Unity &>> /rpmbuild/iso_build.log'
 - docker exec $CID /bin/sh -c 'sed -i "s%gpgcheck=1%gpgcheck=0%g" /etc/yum.repos.d/*.repo &>> /rpmbuild/iso_build.log'
 - docker exec $CID /bin/sh -c 'dnf install --setopt=install_weak_deps=False /rpmbuild/RPMS/*/*.rpm -y &>> /rpmbuild/iso_build.log'
