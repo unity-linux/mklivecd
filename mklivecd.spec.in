@@ -15,11 +15,13 @@ Requires:	drakx-installer-binaries-probe
 Requires:	plymouth-scripts
 Requires:	plymouth
 Requires:	bootsplash
-Requires:	grub2
+Requires:	grub2 >= grub2-2.02.0-6
 Requires:	xorriso
 
 # We need a theme for testing
 Suggests:	mageia-theme
+BuildArch:      noarch
+
 
 %description
 The mklivecd tools are dedicated to providing you with the capability to
@@ -41,6 +43,7 @@ Summary: mkremaster is a gui frontend to mklivecd
 Requires:	beesu
 Requires:       zenity
 Requires:       mklivecd
+BuildArch:      noarch
 
 %description -n mkremaster
 mkremaster is a gui frontend to mklivecd and the mklivecd tools.
