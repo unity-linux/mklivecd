@@ -19,11 +19,12 @@ env:
 script:
 - export ARCH=$(echo $TASK_RPM|cut -d- -f2)
 - docker pull jmiahman/mageia-rpmbuilder-${ARCH}
-- export DID=$(docker images -a | grep -m1 mageia-rpmbuilder | awk '{print $3}')
+- export DID=$(docker images -a | grep -m1 mageia-rpmbuilder-${ARCH} | awk '{print $3}')
 - echo $DID
 - docker run --hostname=unity-linux --privileged=true -d -v "$(pwd):/rpmbuild" -v "/dev:/dev" -v "/sys/fs/cgroup:/sys/fs/cgroup:ro" $DID tail -f /dev/null
 - export CID=$(docker ps -l | awk '{print $1}' | grep -v -m1 'CONTAINER')
 - echo $CID
+- docker exec $CID /bin/sh -c "setarch ${ARCH} dnf config-manager --dump-variables &>> /rpmbuild/iso_build.log"
 - docker exec $CID /bin/sh -c "cd /rpmbuild && setarch ${ARCH} make rpm &>> /rpmbuild/iso_build.log"
 - docker exec $CID /bin/sh -c 'rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-Unity &>> /rpmbuild/iso_build.log'
 - docker exec $CID /bin/sh -c 'sed -i "s%gpgcheck=1%gpgcheck=0%g" /etc/yum.repos.d/*.repo &>> /rpmbuild/iso_build.log'
