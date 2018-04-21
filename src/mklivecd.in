@@ -86,7 +86,7 @@ my $o_mbkopt		= "";
 my $o_gzip;
 my $o_xz;
 my $o_nosplash;
-my $o_timeout		= 15;
+my $o_timeout		= 10;
 my %opts		= ( # these are all the options with defaults
 	'root'		=> \$o_root,
 	'tmp'		=> \$o_tmp,
@@ -771,10 +771,9 @@ sub create_grub2 {
 
 	# build the GRUB2 config for the LiveCD
         open CFG, '>', "$workdir/livecd/boot/grub2/grub.cfg";
-        print CFG "insmod $_\n" foreach qw(part_gpt part_msdos fat video_bochs video_cirrus video_fb font);
+        print CFG "insmod $_\n" foreach qw(part_gpt part_msdos fat video_bochs video_cirrus vga vbe ieee1275_fb efi_uga efi_gop video_fb font);
         print CFG 'if loadfont "${prefix}/fonts/unicode.pf2" ; then',"\n";
         print CFG '   insmod gfxterm',"\n";
-        print CFG '   set gfxmode=1024x768,800x600,auto',"\n";
         print CFG '   set gfxpayload=keep',"\n";
         print CFG '   terminal_input console',"\n";
         print CFG '   terminal_output gfxterm',"\n";
