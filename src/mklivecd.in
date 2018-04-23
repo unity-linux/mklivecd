@@ -769,21 +769,9 @@ sub create_grub2 {
 	die_(N("\nFATAL: The kernel '%sboot/vmlinuz-%s' does not exist on your machine.\n", $o_root, $o_kernel)) unless (-f $o_root."boot/vmlinuz-$o_kernel");
         do_copy($o_root."boot/vmlinuz-$o_kernel", 644, "$workdir/livecd/boot/live/vmlinuz", ++$pos);
 
+	do_cmd("export pkgdatadir=/usr/share/grub/ && sh /etc/grub.d/00_header > $workdir/livecd/boot/grub2/grub.cfg", ++$pos);
 	# build the GRUB2 config for the LiveCD
-        open CFG, '>', "$workdir/livecd/boot/grub2/grub.cfg";
-        print CFG "insmod $_\n" foreach qw(part_gpt part_msdos fat video_bochs video_cirrus vga vbe ieee1275_fb efi_uga efi_gop video_fb font);
-        print CFG 'if loadfont "${prefix}/fonts/unicode.pf2" ; then',"\n";
-        print CFG '   insmod gfxterm',"\n";
-        print CFG '   set gfxpayload=keep',"\n";
-        print CFG '   terminal_input console',"\n";
-        print CFG '   terminal_output gfxterm',"\n";
-        print CFG 'fi',"\n";
-	print CFG 'if [ x$feature_timeout_style = xy ] ; then',"\n";
-        print CFG '  set timeout_style=menu',"\n";
-        print CFG "  set timeout=$o_timeout","\n";
-        print CFG 'else',"\n";
-        print CFG "  set timeout=$o_timeout","\n";
-        print CFG 'fi',"\n";
+        open CFG, '>>', "$workdir/livecd/boot/grub2/grub.cfg";
         if ( -e "$workdir/livecd/boot/grub2/themes/$opts{boottheme}/theme.txt" ) {
                 print CFG 'insmod png',"\n";
                 print CFG 'set theme=($root)/boot/grub2/themes/'.$opts{boottheme}.'/theme.txt',"\n";
