@@ -774,6 +774,7 @@ sub create_grub2 {
         open CFG, '>>', "$workdir/livecd/boot/grub2/grub.cfg";
         if ( -e "$workdir/livecd/boot/grub2/themes/$opts{boottheme}/theme.txt" ) {
                 print CFG 'insmod png',"\n";
+                print CFG 'insmod jpg',"\n";
                 print CFG 'set theme=($root)/boot/grub2/themes/'.$opts{boottheme}.'/theme.txt',"\n";
                 print CFG 'export theme',,"\n";
         }
