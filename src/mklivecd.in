@@ -772,6 +772,12 @@ sub create_grub2 {
 	do_cmd("export pkgdatadir=/usr/share/grub/ && sh /etc/grub.d/00_header > $workdir/livecd/boot/grub2/grub.cfg", ++$pos);
 	# build the GRUB2 config for the LiveCD
         open CFG, '>>', "$workdir/livecd/boot/grub2/grub.cfg";
+	print CFG 'font=($root)/boot/grub2/fonts/unicode.pf2',"\n";
+	print CFG 'if loadfont $font ; then',"\n";
+	print CFG '  set gfxmode=1024x768x32',"\n";
+	print CFG '  load_video',"\n";
+	print CFG '  insmod gfxterm',"\n";
+	print CFG 'fi',"\n";
         if ( -e "$workdir/livecd/boot/grub2/themes/$opts{boottheme}/theme.txt" ) {
                 print CFG 'insmod png',"\n";
                 print CFG 'insmod jpg',"\n";
