@@ -780,6 +780,8 @@ sub create_grub2 {
 	print CFG '  terminal_output gfxterm',"\n";
 	print CFG '  set gfxmode=1024x768x32',"\n";
 	print CFG 'fi',"\n";
+	print CFG 'insmod regexp',"\n";
+	print CFG 'loadfont $prefix/themes/'.$opts{boottheme}.'/*.pf2',"\n";
         if ( -e "$workdir/livecd/boot/grub2/themes/$opts{boottheme}/theme.txt" ) {
                 print CFG 'set theme=($root)/boot/grub2/themes/'.$opts{boottheme}.'/theme.txt',"\n";
                 print CFG 'export theme',,"\n";
